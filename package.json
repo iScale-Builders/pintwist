@@ -1,0 +1,41 @@
+{
+  "name": "pintwist-extension",
+  "version": "1.5.3",
+  "description": "Advanced Pinterest analytics with bulk data extraction, pin sorting, smart filtering, and HD image downloads.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc && npm run copy-files",
+    "copy-files": "node -e \"const fs=require('fs');['dist/content.js','dist/background.js','dist/popup.js'].forEach(f=>{let c=fs.readFileSync(f,'utf8');c=c.replace(/^export \\{[^}]*\\};?\\s*$/gm,'');fs.writeFileSync(f,c);});fs.cpSync('dist/background.js','js/background.js');fs.cpSync('dist/content.js','js/content.js');fs.cpSync('dist/popup.js','popup.js');console.log('Files processed and copied');\"",
+    "watch": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "@typescript-eslint/parser": "^8.19.1",
+    "@vitest/coverage-v8": "^4.0.16",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.1.7",
+    "jsdom": "^27.4.0",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.0.16"
+  }
+}

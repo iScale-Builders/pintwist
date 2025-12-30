@@ -1,0 +1,1441 @@
+/* ===== PINTWIST 1.5.3 - SOFT PINK THEME ===== */
+/* Production Ready | Optimized | Clean */
+
+:root {
+    /* Soft Pink Theme */
+    --pintwist-primary: #F48FB1;
+    --pintwist-primary-dark: #EC407A;
+    
+    /* Backgrounds */
+    --pintwist-bg-dark: rgba(255, 255, 255, 0.98);
+    
+    /* Text */
+    --pintwist-text-light: #FFFFFF;
+    --pintwist-text-muted: rgba(17, 17, 17, 0.6);
+    --pintwist-text-panel: #333333;
+    
+    /* Borders & Shadows */
+    --pintwist-shadow-dark: 0 8px 32px rgba(0, 0, 0, 0.4);
+    
+    /* Status Colors */
+    --pintwist-success: #00A86B;
+    --pintwist-error: #FF3B30;
+    
+    /* Card Colors */
+    --pintwist-card-bg: #FFFFFF;
+    --pintwist-card-border: rgba(244, 143, 177, 0.12);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes pintwistPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+}
+
+@keyframes pintwistSpin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pintwistShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* ===== METRICS OVERLAY (On Pin Hover) ===== */
+.pintwist-metrics-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: auto;
+    min-width: 45px;
+    max-width: 55px;
+    height: 90%;
+    background: transparent;
+    border-radius: 16px 0 0 16px;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    z-index: 999;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+[data-test-pin-id]:hover .pintwist-metrics-overlay {
+    pointer-events: auto;
+}
+
+/* ===== LOADING STATE ===== */
+.pintwist-loading-state {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.pintwist-skeleton {
+    animation: pintwistPulse 1.2s ease-in-out infinite;
+}
+
+.pintwist-skeleton-icon {
+    background: linear-gradient(90deg, rgba(244,143,177,0.1) 25%, rgba(244,143,177,0.2) 50%, rgba(244,143,177,0.1) 75%);
+    background-size: 200% 100%;
+    animation: pintwistShimmer 1.5s infinite;
+    border-radius: 50%;
+}
+
+.pintwist-skeleton-text {
+    background: linear-gradient(90deg, rgba(244,143,177,0.1) 25%, rgba(244,143,177,0.2) 50%, rgba(244,143,177,0.1) 75%);
+    background-size: 200% 100%;
+    animation: pintwistShimmer 1.5s infinite;
+    border-radius: 4px;
+    height: 14px;
+    width: 32px;
+}
+
+/* ===== METRICS COLUMN ===== */
+.pintwist-metrics-column {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.pintwist-metric-item {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding: 3px 2px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 4px;
+    font-size: 10px;
+    color: var(--pintwist-text-light);
+    transition: all 0.15s ease;
+    cursor: default;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.pintwist-metric-item:hover {
+    background: var(--pintwist-primary);
+    transform: translateX(3px);
+    border-color: var(--pintwist-primary);
+}
+
+.pintwist-metric-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: #FFFFFF;
+}
+
+.pintwist-metric-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    fill: #FFFFFF;
+}
+
+.pintwist-metric-value {
+    font-weight: 700;
+    color: var(--pintwist-text-light);
+    font-size: 10px;
+    letter-spacing: 0.1px;
+}
+
+/* ===== DOWNLOAD BUTTON ===== */
+.pintwist-download-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 100% !important;
+    padding: 5px 6px;
+    background: #F0F0F0;
+    color: #555;
+    border: 1px solid #DDD;
+    border-radius: 4px;
+    font-size: 7px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: none;
+    margin-top: 4px;
+    font-family: inherit;
+    letter-spacing: 0.1px;
+    text-transform: uppercase;
+}
+
+.pintwist-download-btn:hover:not(:disabled) {
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+    border-color: var(--pintwist-primary);
+    transform: translateY(-1px);
+}
+
+.pintwist-download-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.pintwist-download-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pintwist-download-btn.pintwist-downloading {
+    background: var(--pintwist-success);
+    color: #FFFFFF;
+    border-color: var(--pintwist-success);
+}
+
+.pintwist-download-icon {
+    width: 11px;
+    height: 11px;
+}
+
+.pintwist-download-loader {
+    animation: pintwistSpin 1s linear infinite;
+    font-size: 10px;
+}
+
+/* ===== ERROR BADGE ===== */
+.pintwist-error-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--pintwist-error);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--pintwist-text-light);
+    z-index: 998;
+    box-shadow: var(--pintwist-shadow-dark);
+    cursor: help;
+}
+
+/* ===== CUSTOM DROPDOWN (SHARED) ===== */
+.custom-dropdown {
+    position: relative;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.custom-dropdown-btn {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    color: #555;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.custom-dropdown-btn:hover {
+    background: rgba(244, 143, 177, 0.05);
+    border-color: var(--pintwist-primary);
+}
+
+.custom-dropdown-btn:focus {
+    outline: none;
+    border-color: var(--pintwist-primary);
+    box-shadow: 0 0 0 3px rgba(244, 143, 177, 0.15);
+}
+
+.dropdown-text {
+    flex: 1;
+}
+
+.dropdown-arrow {
+    transition: transform 0.2s ease;
+    opacity: 0.6;
+}
+
+.custom-dropdown-btn:hover .dropdown-arrow {
+    opacity: 1;
+}
+
+.custom-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: #FFFFFF;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-dropdown-menu.show {
+    max-height: 300px;
+    opacity: 1;
+    transform: translateY(0);
+    overflow-y: auto;
+}
+
+.dropdown-item {
+    padding: 12px 14px;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.dropdown-item:first-child {
+    border-radius: 10px 10px 0 0;
+}
+
+.dropdown-item:last-child {
+    border-radius: 0 0 10px 10px;
+}
+
+.dropdown-item:hover {
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+    padding-left: 18px;
+}
+
+.dropdown-item:active {
+    background: var(--pintwist-primary-dark);
+}
+
+/* ===== SORTED VIEW - PINTEREST GRID ===== */
+.pinterest--container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 24px;
+    background: #FAFAFA;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.pinterest--container .custom-dropdown {
+    position: relative;
+    width: 20%;
+    margin-top: 8px;
+}
+
+/* Pin Cards in Sorted View */
+.pinterest--block {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    background: var(--pintwist-card-bg);
+    border-radius: 16px;
+    padding: 0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--pintwist-card-border);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    width: 100%;
+}
+
+.pinterest--block * {
+    padding-bottom: 0 !important;
+}
+
+/* Hide Pinterest extra UI in sorted view */
+.pinterest--block [data-test-id="pinTitle"],
+.pinterest--block [data-test-id="pin-title"],
+.pinterest--block [data-test-id="truncated-description"],
+.pinterest--block [data-test-id="pointer-events-wrapper"] {
+    display: none !important;
+}
+
+.pinterest--block button:not(.pintwist-download-btn),
+.pinterest--block [role="button"]:not(.pintwist-download-btn):not(.pintwist-metric-item) {
+    display: none !important;
+}
+
+.pinterest--block > * {
+    flex: unset !important;
+    max-height: 320px;
+}
+
+.pinterest--block > .pintwist-metrics-overlay {
+    max-height: none !important;
+}
+
+.pinterest--block:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 16px 40px rgba(244, 143, 177, 0.2);
+    border-color: var(--pintwist-primary);
+}
+
+/* Pin Images */
+.pinterest--block > div[data-grid-item] img,
+.pinterest--block img {
+    width: 100%;
+    height: 320px !important;
+    max-height: 320px !important;
+    object-fit: contain;
+    background: #f5f5f5;
+    border-radius: 16px 16px 0 0;
+    flex-shrink: 0;
+    display: block;
+}
+
+/* ===== VIDEO PIN STYLING ===== */
+/* Video pins are rebuilt from scratch in JS with just: img + badge + overlay */
+
+/* Video badge */
+.pintwist-video-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 100;
+    pointer-events: none;
+}
+
+/* Placeholder when no image available */
+.pintwist-placeholder-thumb {
+    width: 100%;
+    height: 320px;
+    background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #999;
+    font-size: 14px;
+}
+
+.pintwist-placeholder-thumb span:first-child {
+    font-size: 48px;
+}
+
+.pintwist-placeholder-thumb .pintwist-view-link {
+    color: var(--pintwist-primary);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 6px 12px;
+    border: 2px solid var(--pintwist-primary);
+    border-radius: 20px;
+    margin-top: 5px;
+    transition: all 0.2s;
+}
+
+.pintwist-placeholder-thumb .pintwist-view-link:hover {
+    background: var(--pintwist-primary);
+    color: white;
+}
+
+.pinterest--block > div {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: unset !important;
+    min-height: 0;
+    height: auto !important;
+    padding: 0 !important;
+}
+
+.pinterest--block div:not(.pintwist-metrics-overlay):not(.pintwist-metrics-column):not(.pintwist-metric-item):not(.pintwist-metric-icon) {
+    height: auto !important;
+    min-height: unset !important;
+    max-height: unset !important;
+}
+
+.pinterest--block [data-grid-item] > div:not(.pintwist-metrics-overlay) {
+    display: flex;
+    flex-direction: column;
+    height: auto !important;
+}
+
+/* Metrics Overlay in Sorted View */
+.pinterest--block .pintwist-metrics-overlay {
+    position: relative;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #FFFFFF;
+    backdrop-filter: none;
+    margin: 0 !important;
+    border-radius: 0 0 16px 16px !important;
+    flex-shrink: 0;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 10;
+    padding: 4px 4px 4px 4px !important;
+    box-sizing: border-box;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    overflow: hidden !important;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-metrics-column {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    grid-template-rows: auto auto !important;
+    gap: 2px !important;
+    row-gap: 2px !important;
+    column-gap: 2px !important;
+    flex-direction: unset !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-sizing: border-box;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: unset !important;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    background: #FFFFFF;
+    border-radius: 3px;
+    height: 26px !important;
+    min-height: 26px !important;
+    max-height: 26px !important;
+    font-size: 12px;
+    line-height: 1 !important;
+    border: 1.5px solid var(--pintwist-primary);
+    padding: 0 4px !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    overflow: hidden;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-item:hover {
+    background: var(--pintwist-primary);
+    transform: translateY(-1px);
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--pintwist-primary);
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: var(--pintwist-primary);
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-value {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pintwist-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    white-space: nowrap;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-download-icon {
+    width: 14px;
+    height: 14px;
+    color: #555;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-download-icon svg {
+    fill: #555;
+}
+
+/* Download Button in Sorted View */
+.pinterest--block .pintwist-metrics-overlay .pintwist-download-btn {
+    width: 100% !important;
+    margin: 2px 0 0 0 !important;
+    padding: 5px 10px !important;
+    font-size: 12px;
+    height: 26px !important;
+    border-radius: 4px;
+    background: #F0F0F0;
+    color: #555;
+    border: 1px solid #DDD;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-download-btn:hover {
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+    border-color: var(--pintwist-primary);
+    transform: translateY(-1px);
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-download-btn:hover .pintwist-download-icon {
+    color: #FFFFFF;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-download-btn:hover .pintwist-download-icon svg {
+    fill: #FFFFFF;
+}
+
+/* ===== SORT BADGE ===== */
+.pintwist-legacy-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    color: var(--pintwist-primary);
+    z-index: 999;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    font-size: 12px;
+    padding: 8px 14px;
+    text-decoration: none;
+    font-weight: 700;
+    font-family: inherit;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    border: 2px solid var(--pintwist-primary);
+    letter-spacing: 0.3px;
+}
+
+.pintwist-legacy-badge:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 24px rgba(244, 143, 177, 0.5);
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+}
+
+/* ===== INITIAL BAR (BEFORE STATE) ===== */
+#pintwist-initial-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 99999;
+    background: #F8F8F8;
+    border-bottom: 10px solid var(--pintwist-primary);
+    padding: 10px 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: nowrap;
+    margin-bottom: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#pintwist-initial-bar > * {
+    flex-shrink: 0;
+}
+
+#pintwist-initial-bar .pintwist-pages-label,
+#pintwist-initial-bar .pintwist-sort-label {
+    color: #555;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    line-height: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+}
+
+#pintwist-initial-bar .pintwist-pages-input {
+    width: 55px;
+    padding: 0 10px;
+    background: #FFFFFF;
+    color: #333;
+    border: 1.5px solid #DDD;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    height: 36px;
+    box-sizing: border-box;
+    line-height: 36px;
+}
+
+#pintwist-initial-bar .pintwist-pages-input:focus {
+    border-color: var(--pintwist-primary);
+    outline: none;
+}
+
+#pintwist-initial-bar .pintwist-sort-btn {
+    padding: 0 20px;
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(244, 143, 177, 0.3);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    height: 36px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#pintwist-initial-bar .pintwist-sort-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(244, 143, 177, 0.4);
+    background: var(--pintwist-primary-dark);
+}
+
+/* Dropdown - MATCH AFTER BAR */
+#pintwist-initial-bar .custom-dropdown {
+    /* width:auto and min-width set inline to match AFTER bar */
+}
+
+#pintwist-initial-bar .custom-dropdown-btn {
+    background: #FFFFFF;
+    border: 1.5px solid #DDD;
+    padding: 0 12px;
+    font-size: 13px;
+    color: #333;
+    border-radius: 6px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 110px;
+    height: 36px;
+    box-sizing: border-box;
+    line-height: 1;
+}
+
+#pintwist-initial-bar .custom-dropdown-btn .dropdown-text {
+    color: #333;
+    font-weight: 600;
+}
+
+#pintwist-initial-bar .custom-dropdown-btn .dropdown-arrow {
+    color: #999;
+    opacity: 0.7;
+}
+
+#pintwist-initial-bar .custom-dropdown-btn:hover {
+    border-color: var(--pintwist-primary);
+}
+
+#pintwist-initial-bar .custom-dropdown-btn:hover .dropdown-arrow {
+    opacity: 1;
+    color: var(--pintwist-primary);
+}
+
+/* Search - MATCH AFTER BAR */
+#pintwist-initial-bar .pintwist-search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    height: 36px;
+}
+
+#pintwist-initial-bar #pintwist-search-input-initial {
+    padding: 0 12px;
+    border: 1.5px solid #DDD;
+    border-right: none;
+    border-radius: 16px 0 0 16px;
+    font-size: 12px;
+    width: 160px;
+    outline: none;
+    background: #FFFFFF;
+    color: #333;
+    height: 36px;
+    box-sizing: border-box;
+    line-height: 36px;
+}
+
+#pintwist-initial-bar #pintwist-search-input-initial::placeholder {
+    color: #AAA;
+}
+
+#pintwist-initial-bar #pintwist-search-input-initial:focus {
+    border-color: var(--pintwist-primary);
+}
+
+#pintwist-initial-bar #pintwist-search-btn-initial {
+    padding: 0 12px;
+    border: 1.5px solid #DDD;
+    border-left: none;
+    border-radius: 0 16px 16px 0;
+    background: #F0F0F0;
+    color: #666;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    margin: 0;
+    height: 36px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#pintwist-initial-bar #pintwist-search-btn-initial:hover {
+    background: var(--pintwist-primary);
+    color: white;
+    border-color: var(--pintwist-primary);
+}
+
+/* ===== CHECKBOXES (SHARED) ===== */
+.pintwist-checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+    height: 36px;
+}
+
+/* BEFORE bar: checkbox next to search */
+#pintwist-initial-bar .pintwist-checkbox-wrapper {
+    margin-left: 0;
+}
+
+/* AFTER bar: checkbox next to search (no margin) */
+#pintwist-resort-bar .pintwist-checkbox-wrapper {
+    margin-left: 0;
+}
+
+.pintwist-checkbox-wrapper input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--pintwist-primary);
+}
+
+#pintwist-initial-bar .pintwist-checkbox-label {
+    color: #555;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+}
+
+#pintwist-resort-bar .pintwist-checkbox-label {
+    color: #555;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+}
+
+/* ===== RESORT BAR (AFTER STATE) ===== */
+#pintwist-resort-bar {
+    position: sticky;
+    top: 0;
+    z-index: 99999;
+    background: #F8F8F8;
+    border-bottom: 2px solid var(--pintwist-primary);
+    padding: 10px 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#pintwist-resort-bar label {
+    color: #555;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.2px;
+}
+
+.pintwist-logo-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 16px;
+}
+
+.pintwist-logo-icon {
+    height: 32px;
+    width: auto;
+}
+
+.pintwist-logo-wordmark {
+    height: 28px;
+    width: auto;
+}
+
+/* Tutorial Link */
+.pintwist-tutorial-link {
+    color: #777;
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 8px 12px;
+    background: #EFEFEF;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    margin-left: auto;
+    height: 36px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+}
+
+.pintwist-tutorial-link:hover {
+    color: var(--pintwist-primary);
+    background: #E8E8E8;
+}
+
+
+#pintwist-resort-bar .custom-dropdown {
+    min-width: 120px;
+    margin-top: 0;
+}
+
+#pintwist-resort-bar .custom-dropdown-btn {
+    background: #FFFFFF;
+    border: 1.5px solid #DDD;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #333;
+    border-radius: 6px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 110px;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+#pintwist-resort-bar .custom-dropdown-btn .dropdown-text {
+    color: #333;
+    font-weight: 600;
+}
+
+#pintwist-resort-bar .custom-dropdown-btn .dropdown-arrow {
+    color: #999;
+    opacity: 0.7;
+}
+
+#pintwist-resort-bar .custom-dropdown-btn:hover {
+    border-color: var(--pintwist-primary);
+}
+
+#pintwist-resort-bar .custom-dropdown-btn:hover .dropdown-arrow {
+    opacity: 1;
+    color: var(--pintwist-primary);
+}
+
+#pintwist-resort-bar .custom-dropdown-btn:focus {
+    border-color: var(--pintwist-primary);
+    box-shadow: 0 0 0 2px rgba(244, 143, 177, 0.2);
+    outline: none;
+}
+
+#pintwist-resort-bar .custom-dropdown-menu {
+    background: #FFFFFF;
+    border: 1.5px solid #DDD;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+#pintwist-resort-bar .dropdown-item {
+    color: #333;
+}
+
+#pintwist-resort-bar .dropdown-item:hover {
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+}
+
+#pintwist-resort-bar button {
+    padding: 8px 16px;
+    background: #FFFFFF;
+    color: #555;
+    border: 1.5px solid #DDD;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+#pintwist-resort-bar button:hover {
+    border-color: var(--pintwist-primary);
+    color: var(--pintwist-primary);
+}
+
+#pintwist-resort-bar button:active {
+    background: #F5F5F5;
+}
+
+#pintwist-resort-bar button#pintwist-back-btn {
+    background: #F0F0F0;
+    color: #666;
+    border-color: #DDD;
+}
+
+#pintwist-resort-bar button#pintwist-back-btn:hover {
+    background: #E8E8E8;
+    border-color: #CCC;
+}
+
+#pintwist-resort-bar .resort-info {
+    color: var(--pintwist-primary);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Search Bar */
+#pintwist-resort-bar .pintwist-search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-left: 0;
+    height: 36px;
+}
+
+#pintwist-resort-bar #pintwist-search-input {
+    padding: 8px 12px;
+    border: 1.5px solid #DDD;
+    border-right: none;
+    border-radius: 16px 0 0 16px;
+    font-size: 12px;
+    width: 160px;
+    outline: none;
+    background: #FFFFFF;
+    color: #555;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+#pintwist-resort-bar #pintwist-search-input::placeholder {
+    color: #AAA;
+}
+
+#pintwist-resort-bar #pintwist-search-input:focus {
+    border-color: var(--pintwist-primary);
+}
+
+#pintwist-resort-bar #pintwist-search-btn {
+    padding: 8px 12px;
+    border: 1.5px solid #DDD;
+    border-left: none;
+    border-radius: 0 16px 16px 0;
+    background: #F0F0F0;
+    color: #666;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    margin: 0;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+#pintwist-resort-bar #pintwist-search-btn:hover {
+    background: var(--pintwist-primary);
+    color: white;
+    border-color: var(--pintwist-primary);
+}
+
+/* ===== COLOR PICKER ===== */
+.pintwist-color-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+}
+
+.pintwist-color-label {
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#pintwist-color-picker {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 32px;
+    height: 32px;
+    border: 2px solid #DDD;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+}
+
+#pintwist-color-picker::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+#pintwist-color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+#pintwist-color-picker::-moz-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+#pintwist-color-picker:hover {
+    border-color: var(--pintwist-primary);
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+}
+
+/* SVG Logo Styling */
+.pintwist-logo-wordmark-svg {
+    height: 28px;
+    width: auto;
+}
+
+.pintwist-themed-fill {
+    fill: var(--pintwist-primary);
+    transition: fill 0.3s ease;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    #sort-panel {
+        min-width: 290px;
+        top: 10px;
+    }
+
+    .pinterest--container {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .pinterest--block {
+        min-height: 300px;
+        max-height: 420px;
+    }
+
+    #pintwist-resort-bar {
+        padding: 12px 16px;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    #pintwist-resort-bar .pintwist-search-wrapper {
+        order: 10;
+        width: 100%;
+        margin-left: 0;
+        margin-top: 8px;
+    }
+    
+    #pintwist-resort-bar #pintwist-search-input {
+        flex: 1;
+        width: auto;
+    }
+}
+
+/* ===== ACCESSIBILITY ===== */
+.pintwist-metrics-overlay:focus-within,
+.pintwist-download-btn:focus,
+button:focus-visible {
+    outline: 2px solid var(--pintwist-text-light);
+    outline-offset: 2px;
+}
+
+/* ===== SMOOTH RENDERING ===== */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== FILTER BAR (ADDED) ===== */
+#pintwist-filter-bar {
+    position: sticky;
+    top: 56px; /* Height of resort bar */
+    z-index: 99998; /* Just below resort bar */
+    background: #FFFFFF;
+    border-bottom: 1.5px solid var(--pintwist-primary);
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    box-shadow: 0 4px 16px rgba(244, 143, 177, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#pintwist-filter-bar.pintwist-filter-expanded {
+    max-height: 90px;
+    padding: 16px 28px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+}
+
+.filter-group-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    padding-right: 16px;
+    border-right: 1px solid rgba(244, 143, 177, 0.2);
+}
+
+.filter-group-wrapper:last-of-type {
+    border-right: none;
+    padding-right: 0;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.filter-group label {
+    color: var(--pintwist-primary);
+    font-weight: 700;
+    font-size: 12.5px;
+    white-space: nowrap;
+}
+
+.filter-input {
+    padding: 6px 8px;
+    border: 1.5px solid var(--pintwist-primary);
+    border-radius: 5px;
+    font-size: 12.5px;
+    background: #FFFFFF;
+    color: #555;
+    font-weight: 600;
+    min-width: 40px;
+    max-width: 100px;
+    width: auto;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+/* Date inputs need more width to show full 4-digit year */
+.filter-input[type="date"] {
+    max-width: 135px;
+    min-width: 135px;
+}
+
+.filter-input:focus {
+    border-color: var(--pintwist-primary);
+    background: #FFFFFF;
+    box-shadow: 0 0 0 2px rgba(244, 143, 177, 0.1);
+}
+
+.filter-dash {
+    color: var(--pintwist-primary);
+    font-weight: 700;
+    font-size: 14px;
+}
+
+/* Reset All Button */
+.reset-all-btn {
+    padding: 8px 16px;
+    background: #FFFFFF;
+    color: var(--pintwist-primary);
+    border: 1.5px solid var(--pintwist-primary);
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    margin-right: 16px;
+    padding-right: 20px;
+    border-right: 1.5px solid var(--pintwist-primary);
+    align-self: flex-start;
+    margin-top: 0;
+}
+
+.reset-all-btn:hover {
+    background: rgba(244, 143, 177, 0.05);
+    transform: translateY(-1px);
+}
+
+/* Filter Pills Container */
+.filter-pills-container {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.filter-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: #FFFFFF;
+    border: 1.5px solid var(--pintwist-primary);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    transition: all 0.2s ease;
+}
+
+.filter-pill:hover {
+    background: rgba(244, 143, 177, 0.1);
+    border-color: var(--pintwist-primary);
+    transform: scale(1.1);
+}
+
+.filter-pill-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--pintwist-primary);
+    line-height: 1;
+}
+
+.filter-pill-remove:hover {
+    color: var(--pintwist-primary-dark);
+}
+
+
+/* ===== FILTER TOGGLE BUTTON (ADDED) ===== */
+#pintwist-resort-bar button#pintwist-filter-toggle {
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+    border: none;
+    padding: 6px 14px;
+    font-size: 12px;
+}
+
+#pintwist-resort-bar button#pintwist-filter-toggle:hover {
+    background: var(--pintwist-primary-dark);
+    border-color: var(--pintwist-primary-dark);
+}
+
+/* ===== GREY BADGE (FILTERED) (ADDED) ===== */
+.pintwist-legacy-badge.pintwist-badge-grey {
+    background: #999999;
+    opacity: 0.6;
+    transform: scale(0.85);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.pintwist-legacy-badge.pintwist-badge-grey:hover {
+    background: #999999;
+    opacity: 0.75;
+    transform: translateY(-2px) scale(0.85);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* ===== FILTER SEPARATOR (ADDED) ===== */
+.pintwist-filter-separator {
+    grid-column: 1 / -1;
+    margin: 32px 0;
+    padding: 16px 0;
+    text-align: center;
+    border-top: 2px solid rgba(244, 143, 177, 0.15);
+    border-bottom: 2px solid rgba(244, 143, 177, 0.15);
+    position: relative;
+}
+
+.pintwist-filter-separator span {
+    background: #FFFFFF;
+    padding: 8px 24px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 13px;
+    color: #999999;
+    border: 2px solid rgba(153, 153, 153, 0.3);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+/* ===== RESPONSIVE FILTERS (ADDED) ===== */
+@media (max-width: 1400px) {
+    .filter-row {
+        flex-wrap: wrap;
+    }
+    
+    #pintwist-filter-bar.pintwist-filter-expanded {
+        max-height: 160px;
+    }
+}
+
+@media (max-width: 768px) {
+    .filter-row {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    
+    .filter-group-wrapper {
+        width: 100%;
+        border-right: none;
+        padding-right: 0;
+        flex-wrap: wrap;
+    }
+    
+    .reset-all-btn {
+        width: 100%;
+        margin-right: 0;
+        padding-right: 16px;
+        border-right: none;
+    }
+    
+    #pintwist-filter-bar.pintwist-filter-expanded {
+        max-height: 600px;
+    }
+}
+
