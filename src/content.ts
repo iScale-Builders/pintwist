@@ -917,9 +917,7 @@ async function init(): Promise<void> {
 
 window.sort_all = async function (): Promise<void> {
   // STUB: See js/content.js for the full implementation
-  console.warn(
-    'PinTwist: sort_all stub called. Full implementation is in js/content.js'
-  );
+  console.warn('PinTwist: sort_all stub called. Full implementation is in js/content.js');
 
   document.getElementById('sort-panel')?.remove();
   document.getElementById('pintwist-initial-bar')?.remove();

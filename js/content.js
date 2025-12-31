@@ -30,6 +30,75 @@ const State = {
     filterRanges: null, // ADDED: Original min/max from scan
     activeFilters: null // ADDED: User-modified filters
 };
+
+// ===== PINTEREST LAYOUT DETECTION =====
+
+// Detect Pinterest's header height dynamically
+function getPinterestHeaderHeight() {
+    const headerSelectors = [
+        '[data-test-id="header"]',
+        '[data-test-id="header-container"]',
+        'header',
+        '[role="banner"]',
+    ];
+
+    for (const selector of headerSelectors) {
+        const header = document.querySelector(selector);
+        if (header) {
+            const rect = header.getBoundingClientRect();
+            if (rect.height > 0) {
+                return rect.height;
+            }
+        }
+    }
+    return 56; // Fallback default
+}
+
+// Detect Pinterest's left sidebar width dynamically
+function getPinterestSidebarWidth() {
+    const sidebarSelectors = [
+        '[data-test-id="left-nav-container"]',
+        'nav[aria-label]',
+        'div[data-test-id="sidenav"]',
+    ];
+
+    for (const selector of sidebarSelectors) {
+        const sidebar = document.querySelector(selector);
+        if (sidebar) {
+            const rect = sidebar.getBoundingClientRect();
+            if (rect.width > 0 && rect.width < 120) {
+                return rect.width;
+            }
+        }
+    }
+    return 60; // Fallback default (Pinterest's sidebar is ~60px)
+}
+
+// ===== CONTENT OFFSET FOR PIN PUSH-DOWN =====
+const PINTWIST_BAR_HEIGHT = 70; // Bar height for content offset
+
+// Apply margin-top to Pinterest's content to make room for PinTwist bar
+function applyContentOffset() {
+    const contentContainer = document.querySelector('[data-test-id="masonry-container"]')
+        ?.closest('div')
+        || document.querySelector('body > div:first-child');
+
+    if (contentContainer && contentContainer.id !== 'pintwist-initial-bar') {
+        contentContainer.style.marginTop = `${PINTWIST_BAR_HEIGHT}px`;
+    }
+}
+
+// Remove the content offset when bar is hidden
+function removeContentOffset() {
+    const contentContainer = document.querySelector('[data-test-id="masonry-container"]')
+        ?.closest('div')
+        || document.querySelector('body > div:first-child');
+
+    if (contentContainer && contentContainer.id !== 'pintwist-initial-bar') {
+        contentContainer.style.marginTop = '';
+    }
+}
+
 // ===== SOFT PINK ICONS =====
 const ICONS = {
     heart: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
@@ -550,23 +619,42 @@ window.sort_all = async function() {
     const initialBar = document.createElement('div');
     initialBar.id = 'pintwist-initial-bar';
     
-    // Force visibility with inline styles
+    // Get Pinterest layout dimensions to position bar as centered floating pill
+    const pinterestHeaderHeight = getPinterestHeaderHeight();
+    const sidebarWidth = getPinterestSidebarWidth();
+    const isTrendsPage = window.location.hostname.includes('trends.pinterest');
+
+    // Different positioning for trends page vs main Pinterest
+    let leftPos, rightPos;
+    const pillPadding = 15;
+    if (isTrendsPage) {
+        // On trends page: left same as main, but shorten right side by 20% to avoid profile icons
+        leftPos = pillPadding;
+        rightPos = Math.round(window.innerWidth * 0.20); // 20% from right edge
+    } else {
+        // On main Pinterest: span from sidebar to right edge with padding
+        leftPos = sidebarWidth + pillPadding;
+        rightPos = pillPadding;
+    }
+
     initialBar.style.cssText = `
         position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
+        top: ${isTrendsPage ? 12 : pinterestHeaderHeight}px !important;
+        left: ${leftPos}px !important;
+        right: ${rightPos}px !important;
         z-index: 999999 !important;
         background: #F8F8F8 !important;
-        border-bottom: 10px solid #F48FB1 !important;
-        padding: 10px 24px !important;
+        border: 2px solid #F48FB1 !important;
+        border-radius: 50px !important;
+        padding: 8px 20px !important;
         display: flex !important;
         align-items: center !important;
-        gap: 14px !important;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+        gap: 12px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        box-sizing: border-box !important;
     `;
-    
+
     initialBar.innerHTML = `
         <div class="pintwist-logo-container" style="display:flex; align-items:center; height:36px; margin:0;">
             <svg class="pintwist-logo-wordmark-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0.00 0.00 2959.00 1062.00" style="height:28px; width:auto;">
@@ -619,12 +707,12 @@ window.sort_all = async function() {
         
         <a href="https://www.youtube.com/@iscalepod" target="_blank" class="pintwist-tutorial-link" style="height:36px; display:flex; align-items:center; padding:0 12px; background:#EFEFEF; color:#777; font-size:11px; font-weight:600; text-decoration:none; border-radius:4px; margin-left:auto; box-sizing:border-box;">Tutorial: youtube.com/@iscalepod</a>
     `;
-    
+
     document.body.appendChild(initialBar);
     setupInitialBarEvents(initialBar);
-    
-    // Adjust padding for pin detail pages
-    setTimeout(adjustPinterestPadding, 500);
+
+    // Push content down to make room for PinTwist bar
+    applyContentOffset();
 };
 
 // Toggle left-side metrics overlays visibility
@@ -1876,10 +1964,7 @@ function handleUrlChange() {
     State.aborted = true;
     clearState();
     State.currentUrl = window.location.href;
-    
-    // Adjust padding for pin detail pages
-    adjustPinterestPadding();
-    
+
     if (State.currentUrl.includes('pinterest')) setTimeout(init, 1000);
 }
 function clearState() {
@@ -1927,12 +2012,15 @@ function hideBar() {
     const resortBar = document.getElementById('pintwist-resort-bar');
     const filterBar = document.getElementById('pintwist-filter-bar');
     const newGrid = document.getElementById('newgrid');
-    
+
     if (initialBar) initialBar.remove();
     if (resortBar) resortBar.remove();
     if (filterBar) filterBar.remove();
     if (newGrid) newGrid.remove();
-    
+
+    // Remove content offset when bar is hidden
+    removeContentOffset();
+
     State.aborted = true;
 }
 
