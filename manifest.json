@@ -66,9 +66,13 @@
     "permissions": [
         "tabs",
         "storage",
-        "downloads"
+        "downloads",
+        "identity",
+        "cookies"
     ],
     "host_permissions": [
+        "*://*.clerk.accounts.dev/*",
+        "*://*.iscalelabs.com/*",
         "*://*.pinterest.com/*",
         "*://*.pinterest.at/*",
         "*://*.pinterest.ca/*",
@@ -134,6 +138,11 @@
             ]
         }
     ],
+    "externally_connectable": {
+        "matches": [
+            "https://www.iscalelabs.com/*"
+        ]
+    },
     "content_security_policy": {
         "extension_pages": "script-src 'self'; object-src 'self'"
     }

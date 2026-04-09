@@ -191,13 +191,14 @@ function getCsrfToken() {
 // ===== CACHE MANAGEMENT =====
 async function saveCache() {
     try {
+        if (!chrome?.storage?.local) return;
         const MAX_SIZE = 2000;
         if (State.metricsCache.size > MAX_SIZE) {
             const entries = [...State.metricsCache.entries()];
             entries.slice(0, entries.length - MAX_SIZE).forEach(([k]) => State.metricsCache.delete(k));
         }
-        await chrome.storage.local.set({ 
-            pintwist_cache: Object.fromEntries(State.metricsCache) 
+        await chrome.storage.local.set({
+            pintwist_cache: Object.fromEntries(State.metricsCache)
         });
     } catch (e) {
         console.warn('PinTwist: Cache save failed', e);
@@ -612,9 +613,16 @@ window.sort_all = async function() {
     document.getElementById('sort-panel')?.remove();
     document.getElementById('pintwist-initial-bar')?.remove();
     document.getElementById('pintwist-sorted-container')?.remove();
-    
+
     State.aborted = false;
-    
+
+    // Load saved theme color BEFORE building the bar
+    const themeColor = await new Promise((resolve) => {
+        chrome.storage.sync.get(['pintwist_theme_color'], (result) => {
+            resolve(result.pintwist_theme_color || '#F48FB1');
+        });
+    });
+
     // Create initial bar (BEFORE state)
     const initialBar = document.createElement('div');
     initialBar.id = 'pintwist-initial-bar';
@@ -644,7 +652,7 @@ window.sort_all = async function() {
         right: ${rightPos}px !important;
         z-index: 999999 !important;
         background: #F8F8F8 !important;
-        border: 2px solid #F48FB1 !important;
+        border: 2px solid ${themeColor} !important;
         border-radius: 50px !important;
         padding: 8px 20px !important;
         display: flex !important;
@@ -658,16 +666,16 @@ window.sort_all = async function() {
     initialBar.innerHTML = `
         <div class="pintwist-logo-container" style="display:flex; align-items:center; height:36px; margin:0;">
             <svg class="pintwist-logo-wordmark-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0.00 0.00 2959.00 1062.00" style="height:28px; width:auto;">
-                <path class="pintwist-themed-fill" style="fill:#F48FB1" d="M 606.29 202.72 A 0.15 0.15 0.0 0 0 606.08 202.86 L 606.08 337.13 A 2.37 2.36 82.7 0 1 604.31 339.42 C 597.59 341.17 590.21 344.19 585.28 345.89 Q 550.45 357.90 534.16 363.39 C 531.76 364.20 528.93 364.83 526.66 365.62 C 502.56 373.99 480.54 381.20 457.22 387.24 A 0.90 0.90 0.0 0 1 456.10 386.37 L 456.10 202.21 A 0.39 0.39 0.0 0 0 455.55 201.86 Q 428.32 214.10 404.51 226.28 Q 381.59 238.00 362.56 252.79 Q 349.75 262.74 341.35 275.06 C 335.39 283.81 333.91 294.26 337.79 304.37 C 340.67 311.86 345.33 317.43 351.32 323.78 Q 354.83 327.50 359.07 330.83 Q 374.56 342.98 385.53 348.96 Q 399.02 356.33 411.69 362.73 A 0.90 0.88 13.8 0 1 412.18 363.52 L 412.18 400.80 A 0.68 0.67 -8.9 0 1 411.71 401.44 C 385.32 409.94 360.46 417.94 333.83 428.08 Q 318.97 433.74 308.47 438.74 Q 306.99 439.45 303.79 439.83 A 1.51 1.47 60.6 0 1 302.66 439.50 C 281.45 422.03 262.57 403.40 248.91 380.41 Q 244.72 373.36 237.42 358.09 Q 224.53 331.16 223.64 301.27 C 223.11 283.05 224.31 265.60 229.47 247.93 Q 238.65 216.44 259.18 190.17 Q 266.52 180.79 275.22 171.47 C 276.57 170.03 277.68 168.13 279.11 166.68 Q 288.38 157.34 291.27 154.76 C 342.93 108.53 408.95 81.53 477.50 72.54 C 551.50 62.83 627.95 73.09 695.49 104.97 C 729.22 120.89 760.01 142.12 785.54 169.46 Q 796.65 181.36 804.51 191.49 C 816.01 206.34 823.65 222.35 831.50 242.25 A 5.32 5.18 33.8 0 1 831.85 243.90 Q 831.92 245.43 832.36 246.90 Q 837.11 262.83 838.34 279.74 Q 838.63 283.76 838.38 302.75 C 838.20 316.59 835.05 333.03 830.07 346.72 Q 816.87 382.98 789.98 411.76 C 777.03 425.63 761.48 439.16 745.21 450.41 C 715.59 470.89 682.67 487.22 649.86 501.59 Q 642.45 504.83 618.91 513.76 C 582.78 527.46 546.46 538.67 507.22 550.33 Q 486.59 556.46 474.77 560.40 Q 453.34 567.56 442.46 570.87 C 429.43 574.84 417.83 579.16 405.79 582.94 C 389.80 587.97 369.14 596.21 357.28 600.82 Q 340.76 607.25 323.06 616.32 C 298.86 628.72 277.28 643.69 261.53 665.02 Q 255.85 672.72 252.65 683.15 A 0.40 0.39 8.6 0 0 253.03 683.66 L 411.62 683.66 A 0.54 0.54 0.0 0 1 412.16 684.20 L 412.16 793.47 A 0.69 0.69 0.0 0 1 411.47 794.16 Q 342.30 794.11 180.00 794.14 Q 176.29 794.14 165.85 792.16 Q 154.23 789.96 144.41 783.63 C 132.32 775.84 123.98 761.05 121.17 747.29 Q 119.16 737.44 119.19 726.75 Q 119.23 707.75 122.76 689.08 Q 126.49 669.40 132.14 652.40 C 139.38 630.63 150.21 609.88 164.70 590.51 C 187.34 560.24 216.78 534.88 249.87 515.64 Q 290.68 491.91 335.87 474.34 Q 379.50 457.38 419.53 445.47 Q 448.26 436.92 450.77 436.12 Q 466.38 431.10 481.96 426.70 C 499.87 421.64 514.36 416.62 532.04 411.22 C 545.65 407.07 558.69 402.09 575.03 396.23 Q 581.61 393.88 592.01 389.66 Q 621.02 377.90 648.06 364.68 Q 648.54 364.44 649.10 363.95 Q 649.67 363.45 650.13 363.21 Q 657.72 359.17 668.73 353.30 Q 680.18 347.19 686.88 342.62 C 698.34 334.82 708.14 327.39 716.58 316.77 Q 722.14 309.76 724.21 303.04 C 727.98 290.74 724.40 280.56 716.31 270.50 Q 710.33 263.07 704.20 257.80 Q 687.44 243.38 664.86 231.14 Q 635.68 215.34 606.29 202.72 Z"/>
-                <path class="pintwist-themed-fill" style="fill:#F48FB1" d="M 1658.87 345.16 L 1658.87 473.12 A 0.53 0.53 0.0 0 1 1658.34 473.65 L 1512.26 473.65 A 0.53 0.53 0.0 0 0 1511.73 474.18 L 1511.73 994.04 A 0.53 0.53 0.0 0 1 1511.20 994.57 L 1364.40 994.57 A 0.53 0.53 0.0 0 1 1363.87 994.04 L 1363.87 474.18 A 0.53 0.53 0.0 0 0 1363.34 473.65 L 1222.06 473.65 A 0.53 0.53 0.0 0 1 1221.53 473.12 L 1221.53 345.16 A 0.53 0.53 0.0 0 1 1222.06 344.63 L 1658.34 344.63 A 0.53 0.53 0.0 0 1 1658.87 345.16 Z"/>
-                <rect class="pintwist-themed-fill" style="fill:#F48FB1" x="2053.71" y="387.10" width="126.24" height="87.08" rx="0.34"/>
-                <path class="pintwist-themed-fill" style="fill:#F48FB1" d="M 2596.95 414.06 L 2723.06 414.06 A 0.61 0.60 90.0 0 1 2723.66 414.67 L 2723.66 548.78 A 0.81 0.81 0.0 0 0 2724.47 549.59 L 2786.21 549.59 A 0.63 0.63 0.0 0 1 2786.84 550.22 L 2786.84 631.63 A 0.43 0.43 0.0 0 1 2786.41 632.06 L 2724.13 632.04 A 0.50 0.49 86.4 0 0 2723.64 632.60 Q 2723.67 632.78 2723.66 861.00 Q 2723.66 869.04 2726.02 876.20 C 2732.10 894.62 2751.39 898.17 2768.26 897.50 Q 2782.37 896.93 2796.22 894.56 A 0.50 0.50 0.0 0 1 2796.81 895.05 L 2796.81 992.57 A 0.60 0.59 86.1 0 1 2796.30 993.16 Q 2752.82 999.93 2711.01 999.11 C 2691.78 998.73 2670.45 995.62 2652.10 988.22 C 2601.22 967.68 2596.61 915.65 2596.61 868.83 Q 2596.63 634.84 2596.63 632.47 A 0.42 0.42 0.0 0 0 2596.21 632.05 L 2553.85 632.05 A 0.37 0.37 0.0 0 1 2553.48 631.68 L 2553.48 550.21 A 0.62 0.62 0.0 0 1 2554.10 549.59 L 2596.14 549.59 A 0.49 0.49 0.0 0 0 2596.63 549.10 L 2596.63 414.39 A 0.33 0.32 -90.0 0 1 2596.95 414.06 Z"/>
-                <path class="pintwist-themed-fill" style="fill:#F48FB1" d="M 904.40 549.44 L 1028.50 549.44 A 0.62 0.62 0.0 0 1 1029.12 550.06 L 1029.12 593.36 A 0.33 0.32 -22.9 0 0 1029.68 593.58 C 1060.01 563.04 1099.78 538.48 1144.44 542.17 C 1190.73 546.00 1213.10 584.85 1217.56 627.14 Q 1218.51 636.20 1218.43 653.40 Q 1218.38 666.38 1218.41 994.20 A 0.37 0.37 0.0 0 1 1218.04 994.57 L 1094.24 994.57 A 0.47 0.46 0.0 0 1 1093.77 994.11 Q 1093.78 732.02 1093.77 663.00 C 1093.77 654.62 1092.70 644.52 1087.19 637.64 C 1080.45 629.24 1066.39 629.27 1056.76 632.53 Q 1042.19 637.45 1029.38 646.57 A 0.61 0.60 72.9 0 0 1029.12 647.07 L 1029.12 994.25 A 0.32 0.31 90.0 0 1 1028.81 994.57 L 904.10 994.57 A 0.43 0.42 -0.0 0 1 903.67 994.15 L 903.67 550.17 A 0.73 0.73 0.0 0 1 904.40 549.44 Z"/>
-                <path class="pintwist-themed-fill" style="fill:#F48FB1" d="M 2443.38 693.49 A 0.39 0.38 -21.0 0 1 2442.85 693.26 C 2434.62 667.73 2411.94 626.87 2380.16 629.85 C 2369.39 630.86 2360.75 636.59 2357.91 647.44 C 2354.22 661.58 2362.47 674.29 2371.69 684.59 C 2383.49 697.76 2397.51 709.73 2410.73 720.37 C 2427.37 733.75 2442.76 748.12 2459.63 762.54 C 2491.45 789.73 2524.43 822.35 2529.83 866.27 Q 2533.10 892.83 2525.72 917.25 C 2511.54 964.15 2469.10 992.49 2422.47 1000.06 Q 2399.65 1003.76 2373.19 1001.45 Q 2349.94 999.43 2330.46 992.81 C 2298.37 981.91 2273.16 960.38 2254.95 932.04 Q 2242.63 912.87 2233.87 890.94 A 0.41 0.41 0.0 0 1 2234.08 890.42 L 2318.71 853.03 A 0.60 0.59 67.1 0 1 2319.51 853.36 C 2331.61 884.06 2356.36 925.48 2396.36 916.15 C 2412.23 912.45 2416.06 899.23 2412.66 884.47 Q 2410.31 874.30 2402.76 865.24 C 2393.26 853.85 2382.21 844.32 2371.49 835.26 Q 2367.22 831.64 2319.90 792.10 C 2301.98 777.13 2285.28 761.67 2271.21 743.76 Q 2246.43 712.21 2244.04 674.11 Q 2242.61 651.19 2248.40 631.37 C 2263.29 580.40 2311.63 548.70 2362.55 542.88 Q 2384.79 540.33 2407.91 543.89 Q 2456.33 551.35 2488.19 586.99 C 2505.13 605.94 2517.07 630.98 2523.79 656.13 A 0.63 0.62 -19.8 0 1 2523.44 656.86 L 2443.38 693.49 Z"/>
-                <rect class="pintwist-themed-fill" style="fill:#F48FB1" x="700.59" y="549.46" width="125.48" height="445.12" rx="0.53"/>
-                <path class="pintwist-themed-fill" style="fill:#F48FB1" d="M 1707.96 800.58 L 1742.35 549.80 A 0.42 0.41 -86.0 0 1 1742.76 549.44 L 1832.96 549.44 A 0.44 0.43 86.2 0 1 1833.39 549.82 L 1863.15 806.36 A 0.17 0.17 0.0 0 0 1863.49 806.36 L 1900.89 549.83 A 0.45 0.45 0.0 0 1 1901.34 549.44 L 1997.68 549.44 A 0.35 0.34 -85.7 0 1 1998.02 549.84 L 1931.93 994.18 A 0.45 0.45 0.0 0 1 1931.48 994.57 L 1824.54 994.57 A 0.68 0.67 -3.9 0 1 1823.87 993.99 L 1785.72 745.83 A 0.17 0.17 0.0 0 0 1785.39 745.83 L 1742.60 994.19 A 0.46 0.45 4.4 0 1 1742.15 994.57 L 1636.58 994.57 A 0.48 0.47 85.8 0 1 1636.11 994.16 L 1570.81 549.99 A 0.48 0.48 0.0 0 1 1571.28 549.44 L 1675.17 549.44 A 0.45 0.44 86.3 0 1 1675.61 549.83 L 1707.71 800.58 A 0.13 0.13 0.0 0 0 1707.96 800.58 Z"/>
-                <rect class="pintwist-themed-fill" style="fill:#F48FB1" x="2054.54" y="549.45" width="125.40" height="445.12" rx="0.34"/>
-                <path class="pintwist-themed-fill" style="fill:#F48FB1" d="M 605.64 566.15 A 0.34 0.34 0.0 0 1 606.08 566.47 Q 606.12 711.52 606.13 870.68 Q 606.13 879.74 605.00 886.24 C 601.84 904.45 595.88 920.87 587.77 938.55 Q 572.46 971.96 550.09 1004.09 Q 542.48 1015.03 531.96 1029.18 A 0.65 0.64 44.1 0 1 530.93 1029.19 Q 522.29 1018.19 510.59 1001.21 Q 492.78 975.36 479.32 948.62 Q 475.01 940.06 472.55 934.18 C 469.06 925.87 466.38 920.52 464.45 914.45 Q 459.88 900.07 457.31 884.43 Q 456.11 877.16 456.11 867.47 Q 456.07 755.78 456.14 613.91 A 1.20 1.19 80.4 0 1 456.94 612.78 C 468.44 608.78 482.28 604.50 502.57 598.50 Q 518.45 593.80 530.48 589.85 C 541.79 586.14 554.86 582.71 567.73 578.51 Q 587.15 572.16 605.64 566.15 Z"/>
+                <path class="pintwist-themed-fill" style="fill:${themeColor}" d="M 606.29 202.72 A 0.15 0.15 0.0 0 0 606.08 202.86 L 606.08 337.13 A 2.37 2.36 82.7 0 1 604.31 339.42 C 597.59 341.17 590.21 344.19 585.28 345.89 Q 550.45 357.90 534.16 363.39 C 531.76 364.20 528.93 364.83 526.66 365.62 C 502.56 373.99 480.54 381.20 457.22 387.24 A 0.90 0.90 0.0 0 1 456.10 386.37 L 456.10 202.21 A 0.39 0.39 0.0 0 0 455.55 201.86 Q 428.32 214.10 404.51 226.28 Q 381.59 238.00 362.56 252.79 Q 349.75 262.74 341.35 275.06 C 335.39 283.81 333.91 294.26 337.79 304.37 C 340.67 311.86 345.33 317.43 351.32 323.78 Q 354.83 327.50 359.07 330.83 Q 374.56 342.98 385.53 348.96 Q 399.02 356.33 411.69 362.73 A 0.90 0.88 13.8 0 1 412.18 363.52 L 412.18 400.80 A 0.68 0.67 -8.9 0 1 411.71 401.44 C 385.32 409.94 360.46 417.94 333.83 428.08 Q 318.97 433.74 308.47 438.74 Q 306.99 439.45 303.79 439.83 A 1.51 1.47 60.6 0 1 302.66 439.50 C 281.45 422.03 262.57 403.40 248.91 380.41 Q 244.72 373.36 237.42 358.09 Q 224.53 331.16 223.64 301.27 C 223.11 283.05 224.31 265.60 229.47 247.93 Q 238.65 216.44 259.18 190.17 Q 266.52 180.79 275.22 171.47 C 276.57 170.03 277.68 168.13 279.11 166.68 Q 288.38 157.34 291.27 154.76 C 342.93 108.53 408.95 81.53 477.50 72.54 C 551.50 62.83 627.95 73.09 695.49 104.97 C 729.22 120.89 760.01 142.12 785.54 169.46 Q 796.65 181.36 804.51 191.49 C 816.01 206.34 823.65 222.35 831.50 242.25 A 5.32 5.18 33.8 0 1 831.85 243.90 Q 831.92 245.43 832.36 246.90 Q 837.11 262.83 838.34 279.74 Q 838.63 283.76 838.38 302.75 C 838.20 316.59 835.05 333.03 830.07 346.72 Q 816.87 382.98 789.98 411.76 C 777.03 425.63 761.48 439.16 745.21 450.41 C 715.59 470.89 682.67 487.22 649.86 501.59 Q 642.45 504.83 618.91 513.76 C 582.78 527.46 546.46 538.67 507.22 550.33 Q 486.59 556.46 474.77 560.40 Q 453.34 567.56 442.46 570.87 C 429.43 574.84 417.83 579.16 405.79 582.94 C 389.80 587.97 369.14 596.21 357.28 600.82 Q 340.76 607.25 323.06 616.32 C 298.86 628.72 277.28 643.69 261.53 665.02 Q 255.85 672.72 252.65 683.15 A 0.40 0.39 8.6 0 0 253.03 683.66 L 411.62 683.66 A 0.54 0.54 0.0 0 1 412.16 684.20 L 412.16 793.47 A 0.69 0.69 0.0 0 1 411.47 794.16 Q 342.30 794.11 180.00 794.14 Q 176.29 794.14 165.85 792.16 Q 154.23 789.96 144.41 783.63 C 132.32 775.84 123.98 761.05 121.17 747.29 Q 119.16 737.44 119.19 726.75 Q 119.23 707.75 122.76 689.08 Q 126.49 669.40 132.14 652.40 C 139.38 630.63 150.21 609.88 164.70 590.51 C 187.34 560.24 216.78 534.88 249.87 515.64 Q 290.68 491.91 335.87 474.34 Q 379.50 457.38 419.53 445.47 Q 448.26 436.92 450.77 436.12 Q 466.38 431.10 481.96 426.70 C 499.87 421.64 514.36 416.62 532.04 411.22 C 545.65 407.07 558.69 402.09 575.03 396.23 Q 581.61 393.88 592.01 389.66 Q 621.02 377.90 648.06 364.68 Q 648.54 364.44 649.10 363.95 Q 649.67 363.45 650.13 363.21 Q 657.72 359.17 668.73 353.30 Q 680.18 347.19 686.88 342.62 C 698.34 334.82 708.14 327.39 716.58 316.77 Q 722.14 309.76 724.21 303.04 C 727.98 290.74 724.40 280.56 716.31 270.50 Q 710.33 263.07 704.20 257.80 Q 687.44 243.38 664.86 231.14 Q 635.68 215.34 606.29 202.72 Z"/>
+                <path class="pintwist-themed-fill" style="fill:${themeColor}" d="M 1658.87 345.16 L 1658.87 473.12 A 0.53 0.53 0.0 0 1 1658.34 473.65 L 1512.26 473.65 A 0.53 0.53 0.0 0 0 1511.73 474.18 L 1511.73 994.04 A 0.53 0.53 0.0 0 1 1511.20 994.57 L 1364.40 994.57 A 0.53 0.53 0.0 0 1 1363.87 994.04 L 1363.87 474.18 A 0.53 0.53 0.0 0 0 1363.34 473.65 L 1222.06 473.65 A 0.53 0.53 0.0 0 1 1221.53 473.12 L 1221.53 345.16 A 0.53 0.53 0.0 0 1 1222.06 344.63 L 1658.34 344.63 A 0.53 0.53 0.0 0 1 1658.87 345.16 Z"/>
+                <rect class="pintwist-themed-fill" style="fill:${themeColor}" x="2053.71" y="387.10" width="126.24" height="87.08" rx="0.34"/>
+                <path class="pintwist-themed-fill" style="fill:${themeColor}" d="M 2596.95 414.06 L 2723.06 414.06 A 0.61 0.60 90.0 0 1 2723.66 414.67 L 2723.66 548.78 A 0.81 0.81 0.0 0 0 2724.47 549.59 L 2786.21 549.59 A 0.63 0.63 0.0 0 1 2786.84 550.22 L 2786.84 631.63 A 0.43 0.43 0.0 0 1 2786.41 632.06 L 2724.13 632.04 A 0.50 0.49 86.4 0 0 2723.64 632.60 Q 2723.67 632.78 2723.66 861.00 Q 2723.66 869.04 2726.02 876.20 C 2732.10 894.62 2751.39 898.17 2768.26 897.50 Q 2782.37 896.93 2796.22 894.56 A 0.50 0.50 0.0 0 1 2796.81 895.05 L 2796.81 992.57 A 0.60 0.59 86.1 0 1 2796.30 993.16 Q 2752.82 999.93 2711.01 999.11 C 2691.78 998.73 2670.45 995.62 2652.10 988.22 C 2601.22 967.68 2596.61 915.65 2596.61 868.83 Q 2596.63 634.84 2596.63 632.47 A 0.42 0.42 0.0 0 0 2596.21 632.05 L 2553.85 632.05 A 0.37 0.37 0.0 0 1 2553.48 631.68 L 2553.48 550.21 A 0.62 0.62 0.0 0 1 2554.10 549.59 L 2596.14 549.59 A 0.49 0.49 0.0 0 0 2596.63 549.10 L 2596.63 414.39 A 0.33 0.32 -90.0 0 1 2596.95 414.06 Z"/>
+                <path class="pintwist-themed-fill" style="fill:${themeColor}" d="M 904.40 549.44 L 1028.50 549.44 A 0.62 0.62 0.0 0 1 1029.12 550.06 L 1029.12 593.36 A 0.33 0.32 -22.9 0 0 1029.68 593.58 C 1060.01 563.04 1099.78 538.48 1144.44 542.17 C 1190.73 546.00 1213.10 584.85 1217.56 627.14 Q 1218.51 636.20 1218.43 653.40 Q 1218.38 666.38 1218.41 994.20 A 0.37 0.37 0.0 0 1 1218.04 994.57 L 1094.24 994.57 A 0.47 0.46 0.0 0 1 1093.77 994.11 Q 1093.78 732.02 1093.77 663.00 C 1093.77 654.62 1092.70 644.52 1087.19 637.64 C 1080.45 629.24 1066.39 629.27 1056.76 632.53 Q 1042.19 637.45 1029.38 646.57 A 0.61 0.60 72.9 0 0 1029.12 647.07 L 1029.12 994.25 A 0.32 0.31 90.0 0 1 1028.81 994.57 L 904.10 994.57 A 0.43 0.42 -0.0 0 1 903.67 994.15 L 903.67 550.17 A 0.73 0.73 0.0 0 1 904.40 549.44 Z"/>
+                <path class="pintwist-themed-fill" style="fill:${themeColor}" d="M 2443.38 693.49 A 0.39 0.38 -21.0 0 1 2442.85 693.26 C 2434.62 667.73 2411.94 626.87 2380.16 629.85 C 2369.39 630.86 2360.75 636.59 2357.91 647.44 C 2354.22 661.58 2362.47 674.29 2371.69 684.59 C 2383.49 697.76 2397.51 709.73 2410.73 720.37 C 2427.37 733.75 2442.76 748.12 2459.63 762.54 C 2491.45 789.73 2524.43 822.35 2529.83 866.27 Q 2533.10 892.83 2525.72 917.25 C 2511.54 964.15 2469.10 992.49 2422.47 1000.06 Q 2399.65 1003.76 2373.19 1001.45 Q 2349.94 999.43 2330.46 992.81 C 2298.37 981.91 2273.16 960.38 2254.95 932.04 Q 2242.63 912.87 2233.87 890.94 A 0.41 0.41 0.0 0 1 2234.08 890.42 L 2318.71 853.03 A 0.60 0.59 67.1 0 1 2319.51 853.36 C 2331.61 884.06 2356.36 925.48 2396.36 916.15 C 2412.23 912.45 2416.06 899.23 2412.66 884.47 Q 2410.31 874.30 2402.76 865.24 C 2393.26 853.85 2382.21 844.32 2371.49 835.26 Q 2367.22 831.64 2319.90 792.10 C 2301.98 777.13 2285.28 761.67 2271.21 743.76 Q 2246.43 712.21 2244.04 674.11 Q 2242.61 651.19 2248.40 631.37 C 2263.29 580.40 2311.63 548.70 2362.55 542.88 Q 2384.79 540.33 2407.91 543.89 Q 2456.33 551.35 2488.19 586.99 C 2505.13 605.94 2517.07 630.98 2523.79 656.13 A 0.63 0.62 -19.8 0 1 2523.44 656.86 L 2443.38 693.49 Z"/>
+                <rect class="pintwist-themed-fill" style="fill:${themeColor}" x="700.59" y="549.46" width="125.48" height="445.12" rx="0.53"/>
+                <path class="pintwist-themed-fill" style="fill:${themeColor}" d="M 1707.96 800.58 L 1742.35 549.80 A 0.42 0.41 -86.0 0 1 1742.76 549.44 L 1832.96 549.44 A 0.44 0.43 86.2 0 1 1833.39 549.82 L 1863.15 806.36 A 0.17 0.17 0.0 0 0 1863.49 806.36 L 1900.89 549.83 A 0.45 0.45 0.0 0 1 1901.34 549.44 L 1997.68 549.44 A 0.35 0.34 -85.7 0 1 1998.02 549.84 L 1931.93 994.18 A 0.45 0.45 0.0 0 1 1931.48 994.57 L 1824.54 994.57 A 0.68 0.67 -3.9 0 1 1823.87 993.99 L 1785.72 745.83 A 0.17 0.17 0.0 0 0 1785.39 745.83 L 1742.60 994.19 A 0.46 0.45 4.4 0 1 1742.15 994.57 L 1636.58 994.57 A 0.48 0.47 85.8 0 1 1636.11 994.16 L 1570.81 549.99 A 0.48 0.48 0.0 0 1 1571.28 549.44 L 1675.17 549.44 A 0.45 0.44 86.3 0 1 1675.61 549.83 L 1707.71 800.58 A 0.13 0.13 0.0 0 0 1707.96 800.58 Z"/>
+                <rect class="pintwist-themed-fill" style="fill:${themeColor}" x="2054.54" y="549.45" width="125.40" height="445.12" rx="0.34"/>
+                <path class="pintwist-themed-fill" style="fill:${themeColor}" d="M 605.64 566.15 A 0.34 0.34 0.0 0 1 606.08 566.47 Q 606.12 711.52 606.13 870.68 Q 606.13 879.74 605.00 886.24 C 601.84 904.45 595.88 920.87 587.77 938.55 Q 572.46 971.96 550.09 1004.09 Q 542.48 1015.03 531.96 1029.18 A 0.65 0.64 44.1 0 1 530.93 1029.19 Q 522.29 1018.19 510.59 1001.21 Q 492.78 975.36 479.32 948.62 Q 475.01 940.06 472.55 934.18 C 469.06 925.87 466.38 920.52 464.45 914.45 Q 459.88 900.07 457.31 884.43 Q 456.11 877.16 456.11 867.47 Q 456.07 755.78 456.14 613.91 A 1.20 1.19 80.4 0 1 456.94 612.78 C 468.44 608.78 482.28 604.50 502.57 598.50 Q 518.45 593.80 530.48 589.85 C 541.79 586.14 554.86 582.71 567.73 578.51 Q 587.15 572.16 605.64 566.15 Z"/>
             </svg>
         </div>
         
@@ -693,7 +701,7 @@ window.sort_all = async function() {
         <label class="pintwist-pages-label" style="height:36px; display:flex; align-items:center; color:#555; font-weight:600; font-size:13px; margin:0;">Pages to load:</label>
         <input type="number" id="pintwist-pages-input" class="pintwist-pages-input" value="4" min="1" max="50" style="height:36px; width:55px; padding:0 10px; background:#FFF; border:1.5px solid #DDD; border-radius:6px; font-size:13px; font-weight:600; color:#555; text-align:center; box-sizing:border-box; margin:0;">
         
-        <button id="pintwist-sort-pins-btn" class="pintwist-sort-btn" style="height:36px; display:flex; align-items:center; justify-content:center; padding:0 20px; background:#F48FB1; color:#FFF; border:none; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; text-transform:uppercase; box-sizing:border-box; margin:0;">SORT PINS</button>
+        <button id="pintwist-sort-pins-btn" class="pintwist-sort-btn" style="height:36px; display:flex; align-items:center; justify-content:center; padding:0 20px; background:${themeColor}; color:#FFF; border:none; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; text-transform:uppercase; box-sizing:border-box; margin:0;">SORT PINS</button>
         
         <div class="pintwist-search-wrapper" style="display:flex; align-items:center; height:36px; margin:0;">
             <input type="text" id="pintwist-search-input-initial" placeholder="Search Pinterest..." style="height:36px; padding:0 12px; border:1.5px solid #DDD; border-right:none; border-radius:16px 0 0 16px; font-size:12px; width:140px; background:#FFF; color:#555; box-sizing:border-box; margin:0;">
@@ -701,7 +709,7 @@ window.sort_all = async function() {
         </div>
         
         <label class="pintwist-checkbox-wrapper" style="display:flex; align-items:center; height:36px; gap:6px; cursor:pointer; margin:0;">
-            <input type="checkbox" id="pintwist-show-overlays" checked style="width:16px; height:16px; accent-color:#F48FB1; margin:0;">
+            <input type="checkbox" id="pintwist-show-overlays" checked style="width:16px; height:16px; accent-color:${themeColor}; margin:0;">
             <span class="pintwist-checkbox-label" style="color:#555; font-size:12px; font-weight:600;">Show Overlays</span>
         </label>
         
@@ -784,24 +792,24 @@ function setupInitialBarEvents(bar) {
     const overlayCheckbox = document.getElementById('pintwist-show-overlays');
     
     // Load saved state
-    chrome.storage.local.get(['pintwist_show_overlays'], (result) => {
+    chrome.storage.sync.get(['pintwist_show_overlays'], (result) => {
         const showOverlays = result.pintwist_show_overlays !== false; // Default: true
         overlayCheckbox.checked = showOverlays;
         toggleOverlays(showOverlays);
     });
-    
+
     overlayCheckbox.addEventListener('change', () => {
         const isChecked = overlayCheckbox.checked;
-        chrome.storage.local.set({ pintwist_show_overlays: isChecked });
+        chrome.storage.sync.set({ pintwist_show_overlays: isChecked });
         toggleOverlays(isChecked);
     });
     
     // Load saved theme color for initial bar
-    chrome.storage.local.get(['pintwist_theme_color'], (result) => {
+    chrome.storage.sync.get(['pintwist_theme_color'], (result) => {
         const savedColor = result.pintwist_theme_color || '#F48FB1';
         applyThemeColor(savedColor);
     });
-    
+
     // SORT PINS button - triggers the actual sorting
     const sortBtn = document.getElementById('pintwist-sort-pins-btn');
     sortBtn.addEventListener('click', async () => {
@@ -827,7 +835,7 @@ async function startSortingProcess(pages, sortMetric) {
         
         // Get saved theme color for progress panel
         const savedThemeColor = await new Promise(resolve => {
-            chrome.storage.local.get(['pintwist_theme_color'], (result) => {
+            chrome.storage.sync.get(['pintwist_theme_color'], (result) => {
                 resolve(result.pintwist_theme_color || '#F48FB1');
             });
         });
@@ -1384,26 +1392,28 @@ function applyThemeColor(color) {
     // Update inline-styled elements that can't use CSS variables
     document.querySelectorAll('.pintwist-legacy-badge').forEach(el => {
         if (!el.classList.contains('pintwist-badge-grey')) {
-            el.style.background = color;
+            el.style.borderColor = color;
+            el.style.color = color;
+            el.style.background = 'rgba(255, 255, 255, 0.9)';
         }
     });
     
     // Update resort bar bottom border
     const resortBar = document.getElementById('pintwist-resort-bar');
     if (resortBar) {
-        resortBar.style.borderBottomColor = color;
+        resortBar.style.setProperty('border-color', color, 'important');
     }
-    
+
     // Update filter bar border
     const filterBar = document.getElementById('pintwist-filter-bar');
     if (filterBar) {
-        filterBar.style.borderBottomColor = color;
+        filterBar.style.setProperty('border-color', color, 'important');
     }
     
     // Update initial bar elements
     const initialBar = document.getElementById('pintwist-initial-bar');
     if (initialBar) {
-        initialBar.style.borderBottomColor = color;
+        initialBar.style.setProperty('border-color', color, 'important');
         
         // Update SORT PINS button
         const sortBtn = document.getElementById('pintwist-sort-pins-btn');
@@ -1455,21 +1465,21 @@ function setupResortBar() {
     const badgeCheckbox = document.getElementById('pintwist-show-badges');
     if (badgeCheckbox) {
         // Load saved state
-        chrome.storage.local.get(['pintwist_show_badges'], (result) => {
+        chrome.storage.sync.get(['pintwist_show_badges'], (result) => {
             const showBadges = result.pintwist_show_badges !== false; // Default: true
             badgeCheckbox.checked = showBadges;
             toggleBadges(showBadges);
         });
-        
+
         badgeCheckbox.addEventListener('change', () => {
             const isChecked = badgeCheckbox.checked;
-            chrome.storage.local.set({ pintwist_show_badges: isChecked });
+            chrome.storage.sync.set({ pintwist_show_badges: isChecked });
             toggleBadges(isChecked);
         });
     }
-    
+
     // Load saved theme color
-    chrome.storage.local.get(['pintwist_theme_color'], (result) => {
+    chrome.storage.sync.get(['pintwist_theme_color'], (result) => {
         const savedColor = result.pintwist_theme_color || '#F48FB1';
         applyThemeColor(savedColor);
     });
@@ -2024,22 +2034,66 @@ function hideBar() {
     State.aborted = true;
 }
 
+// ===== AUTH CHECK =====
+const AUTH_KEY = 'pintwist_auth';
+
+async function checkAuth() {
+    // Fast path: read cached storage
+    try {
+        const result = await chrome.storage.local.get(AUTH_KEY);
+        const auth = result[AUTH_KEY];
+        if (auth?.signedIn) return true;
+    } catch {}
+
+    // Fallback: ask background to do a fresh cookie check
+    try {
+        const response = await chrome.runtime.sendMessage({ type: 'PINTWIST_CHECK_AUTH' });
+        return response?.signedIn === true;
+    } catch {
+        return false;
+    }
+}
+
+// React to auth changes while Pinterest tab is already open
+let initHasRun = false;
+chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local' || !changes[AUTH_KEY]) return;
+
+    const auth = changes[AUTH_KEY].newValue;
+    if (auth?.signedIn) {
+        if (!initHasRun) {
+            init();
+        }
+    } else {
+        initHasRun = false;
+        hideBar();
+    }
+});
+
 // ===== INIT =====
 async function init() {
     if (!location.href.includes('pinterest')) return;
     console.log('PinTwist 1.5.3: Initializing...');
+
+    const authenticated = await checkAuth();
+    if (!authenticated) {
+        console.log('PinTwist: Not authenticated. Sign in at iscalelabs.com to use PinTwist.');
+        return;
+    }
+
+    initHasRun = true;
     extractConfig();
     if (!State.metricsCache.size) await loadCache();
     if (!State.urlCheckInterval) startUrlMonitor();
-    
+
     // ALWAYS start badge system first (independent of bar)
     setTimeout(() => {
         processExisting();
         initObserver();
     }, 1500);
-    
+
     // Then check if bar should auto-show
-    chrome.storage.local.get(['pintwist_enabled'], (result) => {
+    chrome.storage.sync.get(['pintwist_enabled'], (result) => {
         const isEnabled = result.pintwist_enabled !== false; // Default to ON
         if (isEnabled) {
             // Auto-show bar after badges start loading
@@ -2050,4 +2104,9 @@ async function init() {
     });
 }
 window.addEventListener('beforeunload', saveCache);
-window.onload = init;
+// document_idle means load may have already fired, so call init() directly
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    init();
+} else {
+    window.addEventListener('load', init);
+}

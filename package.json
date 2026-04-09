@@ -5,7 +5,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc && npm run copy-files",
+    "build": "node build.cjs",
+    "build:legacy": "tsc && npm run copy-files",
     "copy-files": "node -e \"const fs=require('fs');['dist/content.js','dist/background.js','dist/popup.js'].forEach(f=>{let c=fs.readFileSync(f,'utf8');c=c.replace(/^export \\{[^}]*\\};?\\s*$/gm,'');fs.writeFileSync(f,c);});fs.cpSync('dist/background.js','js/background.js');fs.cpSync('dist/content.js','js/content.js');fs.cpSync('dist/popup.js','popup.js');console.log('Files processed and copied');\"",
     "watch": "tsc --watch",
     "test": "vitest run",
@@ -23,6 +24,10 @@
       "eslint --fix",
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "@clerk/chrome-extension": "^3.1.5",
+    "esbuild": "^0.27.4"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.287",
