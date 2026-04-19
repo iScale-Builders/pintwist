@@ -354,8 +354,8 @@ Generated on first extension launch (`crypto.randomUUID()`), persisted in `chrom
 
 ### Retention
 
-- **`pin_snapshots`:** 30 days rolling. At ≥ 2 GB table size, migrate to monthly partitioning so retention becomes a partition drop.
-- **`pin_daily`:** permanent. It's tiny.
+- **`pin_snapshots`:** kept forever as of 2026-04-19 (retention cron removed via migration 00005). Re-evaluate at ~500k rows — at that scale push aggregation into SQL functions rather than Node-in-memory.
+- **`pin_daily`:** permanent. It's tiny. Rollup still runs nightly.
 - **`ingest_rate_limits`:** cleaned every 10 min by `pg_cron`, rows older than 5 min dropped.
 - **`pins`:** permanent. One row per unique pin ever seen.
 
