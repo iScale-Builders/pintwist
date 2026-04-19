@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.iscalelabs.com https://*.clerk.accounts.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://clerk.iscalelabs.com https://*.clerk.accounts.dev https://*.supabase.co; img-src 'self' data: https: https://img.clerk.com https://*.pinimg.com; frame-src https://clerk.iscalelabs.com https://*.clerk.accounts.dev; frame-ancestors 'none';">
+<title>Insights — Pintwist</title>
+<meta name="description" content="Cross-niche overlap, week-over-week momentum, and save-density leaders across Pintwist's dataset.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#e60023">
+<link rel="canonical" href="https://pintwist.iscalelabs.com/insights.html">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/icon-16.png">
+<link rel="icon" type="image/png" sizes="48x48" href="/images/icon-48.png">
+<link rel="icon" type="image/png" sizes="128x128" href="/images/icon-128.png">
+<link rel="apple-touch-icon" sizes="128x128" href="/images/icon-128.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<script async crossorigin="anonymous" data-clerk-publishable-key="pk_live_Y2xlcmsuaXNjYWxlbGFicy5jb20k" src="https://clerk.iscalelabs.com/npm/@clerk/clerk-js@5/dist/clerk.browser.js" type="text/javascript"></script>
+<script src="/auth.js" defer></script>
+<script src="/insights.js" defer></script>
+</head>
+<body>
+<div id="app">
+  <div class="loading" data-auth-loading>
+    <div class="spinner"></div>
+    Loading...
+  </div>
+</div>
+
+<template id="page-template">
+  <div id="topbar-host"></div>
+  <div id="stats-bar-host"></div>
+  <main class="page">
+    <header class="page-header">
+      <h1 class="page-title">Insights</h1>
+      <p class="page-subtitle">Cross-niche signal, week-over-week momentum, and demand density.</p>
+    </header>
+
+    <div class="filters">
+      <div class="filter-group">
+        <span class="filter-label">Window</span>
+        <div class="filter-chips" id="window-chips">
+          <button class="chip" data-window="14">14d</button>
+          <button class="chip active" data-window="30">30d</button>
+          <button class="chip" data-window="60">60d</button>
+          <button class="chip" data-window="90">90d</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="insights-root">
+      <div class="loading"><div class="spinner"></div>Computing insights...</div>
+    </div>
+  </main>
+</template>
+</body>
+</html>

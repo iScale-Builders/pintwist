@@ -1,0 +1,14 @@
+{
+  "name": "pintwist-api",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "description": "Vercel serverless functions for pintwist.iscalelabs.com",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "jose": "^5.9.6"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

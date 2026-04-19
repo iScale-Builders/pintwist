@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.iscalelabs.com https://*.clerk.accounts.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://clerk.iscalelabs.com https://*.clerk.accounts.dev https://*.supabase.co; img-src 'self' data: https: https://img.clerk.com https://*.pinimg.com; frame-src https://clerk.iscalelabs.com https://*.clerk.accounts.dev; frame-ancestors 'none';">
+<title>Trending Pins — Pintwist</title>
+<meta name="description" content="Fleet-powered Pinterest trend detection. See what's surging across the Pintwist user base.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#e60023">
+<link rel="canonical" href="https://pintwist.iscalelabs.com/trending.html">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/icon-16.png">
+<link rel="icon" type="image/png" sizes="48x48" href="/images/icon-48.png">
+<link rel="icon" type="image/png" sizes="128x128" href="/images/icon-128.png">
+<link rel="apple-touch-icon" sizes="128x128" href="/images/icon-128.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pintwist — Pinterest Trend Detection">
+<meta property="og:description" content="Fleet-powered Pinterest trend detection. See what's surging across the Pintwist user base.">
+<meta property="og:url" content="https://pintwist.iscalelabs.com/trending.html">
+<meta property="og:site_name" content="Pintwist">
+<meta property="og:image" content="https://pintwist.iscalelabs.com/images/icon-128.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Pintwist — Pinterest Trend Detection">
+<meta name="twitter:description" content="Fleet-powered Pinterest trend detection. See what's surging across the Pintwist user base.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<script async crossorigin="anonymous" data-clerk-publishable-key="pk_live_Y2xlcmsuaXNjYWxlbGFicy5jb20k" src="https://clerk.iscalelabs.com/npm/@clerk/clerk-js@5/dist/clerk.browser.js" type="text/javascript"></script>
+<script src="/auth.js" defer></script>
+<script src="/trending.js" defer></script>
+</head>
+<body>
+<div id="app">
+  <div class="loading" data-auth-loading>
+    <div class="spinner"></div>
+    Loading...
+  </div>
+</div>
+
+<template id="page-template">
+  <div id="topbar-host"></div>
+  <div id="stats-bar-host"></div>
+  <main class="page">
+    <header class="page-header">
+      <h1 class="page-title">Trending Pinterest Pins</h1>
+      <p class="page-subtitle">Ranked by cross-user reach across the Pintwist fleet.</p>
+    </header>
+
+    <div class="seed-banner" id="seed-banner" style="display:none;">
+      <strong>Early days:</strong> Pintwist's fleet is small so most pins show a reach of 1.
+      As more users install the extension, cross-user signals sharpen. You're seeing seed data from your own browsing until then.
+    </div>
+
+    <div class="filters">
+      <div class="filter-search">
+        <span aria-hidden="true" style="opacity:.5">&#128269;</span>
+        <input id="search-input" type="search" placeholder="Search pin ID, niche, or source URL..." />
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Sort</span>
+        <select class="filter-select" id="sort-select">
+          <option value="reach">Cross-user reach</option>
+          <option value="saves">Max saves</option>
+          <option value="comments">Max comments</option>
+          <option value="repins">Max repins</option>
+          <option value="reactions">Max reactions</option>
+          <option value="shares">Max shares</option>
+          <option value="velocity">Velocity (saves/observer)</option>
+          <option value="newest">Most recent</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Window</span>
+        <div class="filter-chips" id="window-chips">
+          <button class="chip" data-window="1">24h</button>
+          <button class="chip active" data-window="7">7d</button>
+          <button class="chip" data-window="30">30d</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Min saves</span>
+        <div class="filter-chips" id="minsaves-chips">
+          <button class="chip active" data-minsaves="0">Any</button>
+          <button class="chip" data-minsaves="1000">1K+</button>
+          <button class="chip" data-minsaves="10000">10K+</button>
+          <button class="chip" data-minsaves="50000">50K+</button>
+        </div>
+      </div>
+      <button class="chip" id="toggle-advanced" type="button">▶ Advanced</button>
+    </div>
+
+    <div class="advanced-filters" id="advanced-filters" style="display:none;">
+      <div class="adv-grid">
+        <div class="adv-row">
+          <label>Saves</label>
+          <input class="adv-input" id="f-saves-min" type="text" placeholder="Min" inputmode="decimal">
+          <span class="adv-sep">–</span>
+          <input class="adv-input" id="f-saves-max" type="text" placeholder="Max" inputmode="decimal">
+        </div>
+        <div class="adv-row">
+          <label>Comments</label>
+          <input class="adv-input" id="f-comments-min" type="text" placeholder="Min" inputmode="decimal">
+          <span class="adv-sep">–</span>
+          <input class="adv-input" id="f-comments-max" type="text" placeholder="Max" inputmode="decimal">
+        </div>
+        <div class="adv-row">
+          <label>Repins</label>
+          <input class="adv-input" id="f-repins-min" type="text" placeholder="Min" inputmode="decimal">
+          <span class="adv-sep">–</span>
+          <input class="adv-input" id="f-repins-max" type="text" placeholder="Max" inputmode="decimal">
+        </div>
+        <div class="adv-row">
+          <label>Reactions</label>
+          <input class="adv-input" id="f-reactions-min" type="text" placeholder="Min" inputmode="decimal">
+          <span class="adv-sep">–</span>
+          <input class="adv-input" id="f-reactions-max" type="text" placeholder="Max" inputmode="decimal">
+        </div>
+        <div class="adv-row">
+          <label>Shares</label>
+          <input class="adv-input" id="f-shares-min" type="text" placeholder="Min" inputmode="decimal">
+          <span class="adv-sep">–</span>
+          <input class="adv-input" id="f-shares-max" type="text" placeholder="Max" inputmode="decimal">
+        </div>
+        <div class="adv-row">
+          <label>Pin created</label>
+          <input class="adv-input adv-input-date" id="f-created-min" type="date">
+          <span class="adv-sep">–</span>
+          <input class="adv-input adv-input-date" id="f-created-max" type="date">
+        </div>
+      </div>
+      <div class="adv-actions">
+        <span class="adv-hint">Use K or M (e.g. <code>10K</code>, <code>1.5M</code>).</span>
+        <button class="chip" id="btn-reset-adv" type="button">Reset all</button>
+        <button class="chip chip-primary" id="btn-apply-adv" type="button">Apply</button>
+      </div>
+    </div>
+
+    <div id="results">
+      <div class="loading"><div class="spinner"></div>Loading trending pins...</div>
+    </div>
+
+    <div class="pagination" id="pagination" style="display:none;">
+      <button class="btn-load-more" id="load-more" type="button">Load more</button>
+    </div>
+  </main>
+</template>
+</body>
+</html>

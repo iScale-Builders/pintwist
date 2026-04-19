@@ -1,0 +1,24 @@
+{
+  "buildCommand": "cd api && npm install --omit=dev --no-audit --no-fund --ignore-scripts",
+  "installCommand": "echo 'deferred to build command'",
+  "outputDirectory": "public-website",
+  "framework": null,
+  "functions": {
+    "api/**/*.js": {
+      "includeFiles": "api/node_modules/**"
+    }
+  },
+  "redirects": [
+    { "source": "/", "destination": "/trending.html", "statusCode": 302 }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}

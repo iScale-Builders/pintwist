@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /
+
+# Pintwist is a private gated tool. No public indexing.

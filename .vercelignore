@@ -1,0 +1,43 @@
+# Vercel only needs public-website/ (static site) and api/ (serverless functions).
+# Everything else below is extension-only or local-only and should not ship to Vercel.
+
+# Extension build + sources (extension ships as pintwist.zip, not via Vercel)
+# Root extension package.json needed so Vercel runs install.
+# pnpm-lock excluded to force npm install.
+package-lock.json
+pnpm-lock.yaml
+src/
+js/
+css/
+images/
+dist/
+manifest.json
+popup.html
+popup.js
+build.cjs
+tsconfig.json
+eslint.config.js
+vitest.config.ts
+pintwist.zip
+
+# Local ops tooling
+dashboard/
+cabinet/
+memory/
+tests/
+supabase/
+
+# Planning + docs (keep local, not public)
+PLAN*.md
+DEPLOYMENT.md
+DISTRIBUTION.md
+AGENTS.md
+CLAUDE.md
+PROJECT_CARD.md
+README.md
+SKILL_MOVED.md
+rules.md
+
+# Local dev artifacts (Vercel default-excludes root node_modules anyway)
+.env
+.env.local
