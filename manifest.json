@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "PinTwist – Pinterest Analytics",
     "description": "Advanced Pinterest analytics with bulk data extraction, pin sorting, smart filtering, and HD image downloads.",
-    "version": "1.5.3",
+    "version": "1.6.0",
     "author": {
         "name": "Adeel Ahmad",
         "url": "https://www.fiverr.com/adeelahmad848"
@@ -99,7 +99,8 @@
         "*://*.pinterest.pt/*",
         "*://*.pinterest.ru/*",
         "*://*.pinterest.se/*",
-        "*://*.pinimg.com/*"
+        "*://*.pinimg.com/*",
+        "https://tzuvthfkdguxisquxlnb.supabase.co/*"
     ],
     "web_accessible_resources": [
         {

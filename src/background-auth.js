@@ -4,6 +4,163 @@
 const AUTH_KEY = 'pintwist_auth';
 const AUTH_DOMAIN = 'https://www.iscalelabs.com';
 
+// ===== INGEST: anonymous pin observation telemetry =====
+const INGEST_SUPABASE_URL = 'https://tzuvthfkdguxisquxlnb.supabase.co';
+const INGEST_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dXZ0aGZrZGd1eGlzcXV4bG5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NjAyODgsImV4cCI6MjA5MjEzNjI4OH0.DEaCLE030q5B2snqe1rCfy1qJLjqswYaMuwlhy_424o';
+const INGEST_URL = INGEST_SUPABASE_URL + '/functions/v1/ingest';
+const INGEST_FLUSH_INTERVAL_MS = 10_000;
+const INGEST_MAX_BUFFER = 50;
+const INGEST_OFFLINE_CAP = 500;
+const INGEST_SESSION_DEDUP_TTL_MS = 60 * 60 * 1000;
+
+const ingestState = {
+  installId: null,
+  buffer: new Map(),
+  sessionSeen: new Map(),
+  flushTimer: null,
+  flushing: false,
+  bootstrapped: false,
+};
+
+async function ingestEnsureInstallId() {
+  if (ingestState.installId) return ingestState.installId;
+  const { pintwist_install_id: existing } = await chrome.storage.local.get('pintwist_install_id');
+  if (existing) {
+    ingestState.installId = existing;
+    return existing;
+  }
+  const newId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+  await chrome.storage.local.set({ pintwist_install_id: newId });
+  ingestState.installId = newId;
+  return newId;
+}
+
+async function ingestBootstrap() {
+  if (ingestState.bootstrapped) return;
+  ingestState.bootstrapped = true;
+  await ingestEnsureInstallId();
+}
+
+function ingestScheduleFlush() {
+  if (ingestState.flushTimer) return;
+  ingestState.flushTimer = setTimeout(() => {
+    ingestState.flushTimer = null;
+    ingestFlush();
+  }, INGEST_FLUSH_INTERVAL_MS);
+}
+
+function ingestEnqueue(obs) {
+  const pinId = obs && obs.pin && obs.pin.pin_id;
+  if (!pinId) return;
+  const now = Date.now();
+  const last = ingestState.sessionSeen.get(pinId);
+  if (last && now - last < INGEST_SESSION_DEDUP_TTL_MS) return;
+  ingestState.sessionSeen.set(pinId, now);
+
+  if (ingestState.sessionSeen.size > 5000) {
+    const cutoff = now - INGEST_SESSION_DEDUP_TTL_MS;
+    for (const [id, t] of ingestState.sessionSeen) {
+      if (t < cutoff) ingestState.sessionSeen.delete(id);
+    }
+  }
+
+  ingestState.buffer.set(pinId, {
+    pin_id: pinId,
+    saves: obs.pin.saves ?? null,
+    reactions: obs.pin.reactions ?? null,
+    shares: obs.pin.shares ?? null,
+    repins: obs.pin.repins ?? null,
+    comments: obs.pin.comments ?? null,
+    pin_created_at: obs.pin.pin_created_at || null,
+    image_url: obs.pin.image_url || null,
+    is_video: typeof obs.pin.is_video === 'boolean' ? obs.pin.is_video : null,
+    source_url: obs.source_url || null,
+    search_terms: obs.search_terms || null,
+    seen_at: obs.seen_at || new Date().toISOString(),
+  });
+
+  if (ingestState.buffer.size >= INGEST_MAX_BUFFER) {
+    ingestFlush();
+  } else {
+    ingestScheduleFlush();
+  }
+}
+
+async function ingestFlush() {
+  if (ingestState.flushing) return;
+  ingestState.flushing = true;
+  try {
+    await ingestBootstrap();
+    await ingestDrainOfflineQueue();
+
+    if (ingestState.buffer.size === 0) return;
+
+    const batch = Array.from(ingestState.buffer.values());
+    ingestState.buffer.clear();
+
+    const ok = await ingestSendBatch(batch);
+    if (!ok) await ingestPersistOffline(batch);
+  } finally {
+    ingestState.flushing = false;
+  }
+}
+
+async function ingestSendBatch(batch) {
+  try {
+    const res = await fetch(INGEST_URL, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        apikey: INGEST_ANON_KEY,
+        authorization: 'Bearer ' + INGEST_ANON_KEY,
+      },
+      body: JSON.stringify({ install_id: ingestState.installId, batch }),
+    });
+    if (res.ok) return true;
+    if (res.status === 429 || res.status >= 500) return false;
+    console.warn('[PinTwist] Ingest rejected:', res.status);
+    return true;
+  } catch (err) {
+    console.warn('[PinTwist] Ingest network error:', err);
+    return false;
+  }
+}
+
+async function ingestPersistOffline(batch) {
+  const { pintwist_offline_queue = [] } = await chrome.storage.local.get('pintwist_offline_queue');
+  const combined = pintwist_offline_queue.concat(batch);
+  const trimmed = combined.length > INGEST_OFFLINE_CAP
+    ? combined.slice(combined.length - INGEST_OFFLINE_CAP)
+    : combined;
+  await chrome.storage.local.set({ pintwist_offline_queue: trimmed });
+}
+
+async function ingestDrainOfflineQueue() {
+  const { pintwist_offline_queue = [] } = await chrome.storage.local.get('pintwist_offline_queue');
+  if (!pintwist_offline_queue.length) return;
+  const queue = pintwist_offline_queue.slice();
+  await chrome.storage.local.set({ pintwist_offline_queue: [] });
+
+  const failed = [];
+  const CHUNK = 50;
+  for (let i = 0; i < queue.length; i += CHUNK) {
+    const chunk = queue.slice(i, i + CHUNK);
+    const ok = await ingestSendBatch(chunk);
+    if (!ok) failed.push.apply(failed, chunk);
+  }
+  if (failed.length) await ingestPersistOffline(failed);
+}
+
+// Bootstrap as soon as the worker wakes
+ingestBootstrap();
+
 async function syncAuthState() {
   try {
     const cookie = await chrome.cookies.get({
@@ -39,6 +196,7 @@ chrome.runtime.onInstalled.addListener(() => {
     pintwist_theme_color: '#F48FB1',
   });
   chrome.storage.local.set({ sortOption: 'saves' });
+  ingestBootstrap();
   console.log('PinTwist: Installed');
 });
 
@@ -104,6 +262,13 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   if (request.action === 'downloadImage') {
     handleDownload(request.url, request.filename);
     sendResponse({ success: true });
+    return true;
+  }
+
+  // Anonymous pin observation (ingest)
+  if (request.action === 'recordPinObservation') {
+    ingestEnqueue(request);
+    sendResponse({ ok: true });
     return true;
   }
 

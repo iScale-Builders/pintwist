@@ -1,3 +1,8 @@
+// DO NOT COMPILE THIS FILE. It is an incomplete TypeScript port and does
+// not include the bar UI. The live content script is js/content.js, which
+// is hand-maintained (minified). Running `tsc` on this file will clobber
+// js/content.js and break the bar. Modify js/content.js directly instead.
+
 // ===== PINTWIST 1.5.3 - PERFORMANCE OPTIMIZED =====
 // 35 Concurrent Requests | 40ms Delays | 2x Retry Safety | Maximum Speed
 // Safe & Fast: 50-75% faster while avoiding rate limits
@@ -510,6 +515,50 @@ function extractMetrics(data: any, pinID: string): PinMetrics {
   };
 }
 
+// ===== INGEST TELEMETRY =====
+// Forwards a pin observation to the background worker which buffers and sends
+// batches to our ingest endpoint. User can opt out via the popup toggle; the
+// background respects the setting. Errors are swallowed — telemetry never
+// interferes with the overlay flow.
+function recordPinObservation(pinID: string, metrics: PinMetrics): void {
+  try {
+    let searchTerms: string | null = null;
+    try {
+      const parsed = new URL(window.location.href);
+      if (parsed.pathname.startsWith('/search/')) {
+        searchTerms = parsed.searchParams.get('q');
+      }
+    } catch { /* ignore URL parse error */ }
+
+    chrome.runtime.sendMessage(
+      {
+        action: 'recordPinObservation',
+        pin: {
+          pin_id: pinID,
+          saves: metrics.saves,
+          reactions: metrics.reactions,
+          shares: metrics.shares,
+          repins: metrics.repins,
+          comments: metrics.comments,
+          pin_created_at: metrics.createdAt,
+          image_url: metrics.imageUrl,
+          is_video: metrics.isVideo,
+        },
+        source_url: window.location.href,
+        search_terms: searchTerms,
+        seen_at: new Date().toISOString(),
+      },
+      () => {
+        if (chrome.runtime.lastError) {
+          // Background may be restarting; ignore.
+        }
+      }
+    );
+  } catch {
+    // Never let telemetry break the overlay flow.
+  }
+}
+
 // ===== OVERLAY CREATION =====
 function createOverlayHTML(metrics: PinMetrics): string {
   const dateStr = metrics.createdAt ? formatDate(metrics.createdAt) : 'Unknown';
@@ -617,6 +666,7 @@ async function processPinsBulk(elements: Element[]): Promise<void> {
     const metrics = results.get(pinID);
     if (metrics) {
       element.insertAdjacentHTML('beforeend', createOverlayHTML(metrics));
+      recordPinObservation(pinID, metrics);
       const btn = element.querySelector('.pintwist-download-btn') as HTMLButtonElement;
       if (btn) {
         btn.addEventListener('click', (e) => {

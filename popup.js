@@ -120727,6 +120727,8 @@ Clerk Trace ID: ${this.clerkTraceId}`;
   var colorPicker = document.getElementById("color-picker");
   var colorPresets = document.querySelectorAll(".color-preset");
   var wordmarkFill = document.getElementById("popup-wordmark-fill");
+  var dsNotice = document.getElementById("ds-notice");
+  var dsNoticeDismiss = document.getElementById("ds-notice-dismiss");
   var clerk2 = createClerkClient2({
     publishableKey: PUBLISHABLE_KEY,
     syncHost: "https://www.iscalelabs.com"
@@ -120795,6 +120797,11 @@ Clerk Trace ID: ${this.clerkTraceId}`;
         updatePresetSelection(themeColor);
       }
     );
+    chrome.storage.local.get(["pintwist_data_sharing_notified"], (res) => {
+      if (!res.pintwist_data_sharing_notified && dsNotice) {
+        dsNotice.style.display = "block";
+      }
+    });
   }
   btnOff.addEventListener("click", () => {
     chrome.storage.sync.set({ pintwist_enabled: false }, () => {
@@ -120839,6 +120846,12 @@ Clerk Trace ID: ${this.clerkTraceId}`;
       notifyContentScript("updateThemeColor", color);
     });
   });
+  if (dsNoticeDismiss) {
+    dsNoticeDismiss.addEventListener("click", () => {
+      chrome.storage.local.set({ pintwist_data_sharing_notified: true });
+      if (dsNotice) dsNotice.style.display = "none";
+    });
+  }
   function updateUI(isEnabled2) {
     const themeColor = getComputedStyle(document.documentElement).getPropertyValue("--theme-color").trim() || colorPicker.value;
     if (isEnabled2) {

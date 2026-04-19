@@ -22,6 +22,8 @@ const overlaysOn = document.getElementById('overlays-on');
 const colorPicker = document.getElementById('color-picker');
 const colorPresets = document.querySelectorAll('.color-preset');
 const wordmarkFill = document.getElementById('popup-wordmark-fill');
+const dsNotice = document.getElementById('ds-notice');
+const dsNoticeDismiss = document.getElementById('ds-notice-dismiss');
 
 // ===== CLERK INIT =====
 const clerk = createClerkClient({
@@ -110,6 +112,13 @@ function loadPreferences() {
       updatePresetSelection(themeColor);
     }
   );
+
+  // First-launch disclosure notice: shown once, then dismissed for good.
+  chrome.storage.local.get(['pintwist_data_sharing_notified'], (res) => {
+    if (!res.pintwist_data_sharing_notified && dsNotice) {
+      dsNotice.style.display = 'block';
+    }
+  });
 }
 
 // ===== TOGGLE HANDLERS =====
@@ -163,6 +172,14 @@ colorPresets.forEach((preset) => {
     notifyContentScript('updateThemeColor', color);
   });
 });
+
+// ===== DISCLOSURE NOTICE =====
+if (dsNoticeDismiss) {
+  dsNoticeDismiss.addEventListener('click', () => {
+    chrome.storage.local.set({ pintwist_data_sharing_notified: true });
+    if (dsNotice) dsNotice.style.display = 'none';
+  });
+}
 
 // ===== UI HELPERS =====
 function updateUI(isEnabled) {
