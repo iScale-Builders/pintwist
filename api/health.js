@@ -85,7 +85,7 @@ export default async function handler(req, res) {
       ];
     }
 
-    res.setHeader("cache-control", "private, max-age=15");
+    res.setHeader("cache-control", "no-store");
     return res.status(200).json({
       generated_at: new Date().toISOString(),
       totals: {

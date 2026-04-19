@@ -1,5 +1,8 @@
 // ===== PINTWIST WEB - Niches Page =====
 
+const AUTO_REFRESH_MS = 60_000;
+let refreshTimer = null;
+
 const state = {
   query: "",
   sort: "volume",
@@ -217,13 +220,22 @@ function renderPageShell() {
   wireFilters();
 }
 
+function startAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => {
+    if (document.visibilityState !== "visible") return;
+    fetchPage({ reset: true });
+  }, AUTO_REFRESH_MS);
+}
+
 window.addEventListener("load", async () => {
   await window.Pintwist.auth.gate({
     container: document.getElementById("app"),
-    requireAdmin: false,
+    requireAdmin: true,
     onReady: () => {
       renderPageShell();
       fetchPage({ reset: true });
+      startAutoRefresh();
     },
   });
 });

@@ -1,5 +1,8 @@
 // ===== PINTWIST WEB - Insights Page =====
 
+const AUTO_REFRESH_MS = 120_000;
+let refreshTimer = null;
+
 const state = {
   window: 30,
   loading: false,
@@ -233,13 +236,22 @@ function renderPageShell() {
   wireFilters();
 }
 
+function startAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => {
+    if (document.visibilityState !== "visible") return;
+    fetchInsights();
+  }, AUTO_REFRESH_MS);
+}
+
 window.addEventListener("load", async () => {
   await window.Pintwist.auth.gate({
     container: document.getElementById("app"),
-    requireAdmin: false,
+    requireAdmin: true,
     onReady: () => {
       renderPageShell();
       fetchInsights();
+      startAutoRefresh();
     },
   });
 });

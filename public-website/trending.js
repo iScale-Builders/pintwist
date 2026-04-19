@@ -1,5 +1,8 @@
 // ===== PINTWIST WEB - Trending Page =====
 
+const AUTO_REFRESH_MS = 60_000;
+let refreshTimer = null;
+
 const state = {
   query: "",
   sort: "reach",
@@ -291,13 +294,23 @@ function renderPageShell() {
   wireFilters();
 }
 
+function startAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => {
+    if (document.visibilityState !== "visible") return;
+    // Auto-refresh only the first page (don't re-paginate), no scroll jump.
+    fetchPage({ reset: true });
+  }, AUTO_REFRESH_MS);
+}
+
 window.addEventListener("load", async () => {
   const allowed = await window.Pintwist.auth.gate({
     container: document.getElementById("app"),
-    requireAdmin: false,
+    requireAdmin: true,
     onReady: () => {
       renderPageShell();
       fetchPage({ reset: true });
+      startAutoRefresh();
     },
   });
   // gate() handles the redirect/render; if allowed is false, nothing more to do

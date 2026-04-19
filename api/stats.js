@@ -5,11 +5,11 @@
 //
 // Auth: signed-in Clerk user (any role).
 
-import { requireAuth, supabase, jsonError } from "./_lib/auth.js";
+import { requireAdmin, supabase, jsonError } from "./_lib/auth.js";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return jsonError(res, 405, "method_not_allowed");
-  const auth = await requireAuth(req, res);
+  const auth = await requireAdmin(req, res);
   if (!auth) return;
 
   try {
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     const unique7d = new Set((installsRows || []).map((r) => r.install_id)).size;
     const unique24h = new Set((installs24hRows || []).map((r) => r.install_id)).size;
 
-    res.setHeader("cache-control", "private, max-age=30");
+    res.setHeader("cache-control", "no-store");
     return res.status(200).json({
       total_pins: pins ?? 0,
       total_snapshots: snapshots ?? 0,
