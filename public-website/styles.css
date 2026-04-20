@@ -592,6 +592,237 @@ textarea {
   background: rgba(230, 0, 35, 0.04);
 }
 
+.data-table tbody td.col-clickable {
+  cursor: pointer;
+}
+.data-table tbody td.col-clickable:hover {
+  background: rgba(230, 0, 35, 0.04);
+}
+
+.data-table .col-action {
+  text-align: right;
+  padding: 6px 10px;
+}
+
+.btn-analyze {
+  padding: 5px 12px;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-analyze:hover {
+  background: var(--pin-red);
+  color: var(--white);
+  border-color: var(--pin-red);
+}
+
+/* ===== MODAL ===== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 17, 17, 0.5);
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 16px;
+  overflow-y: auto;
+  animation: modal-fade 0.15s ease-out;
+}
+
+@keyframes modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  max-width: 520px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.modal-wide {
+  max-width: 880px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--gray-lighter);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.modal-title em {
+  font-style: normal;
+  color: var(--pin-red);
+}
+
+.modal-subtitle {
+  color: var(--gray);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--gray);
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.modal-close:hover {
+  color: var(--pin-red);
+}
+
+.modal-body {
+  padding: 20px 24px 24px;
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
+/* ===== SUGGESTIONS ===== */
+.suggest-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.suggest-summary {
+  background: var(--gray-lightest);
+  border-left: 3px solid var(--pin-red);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+}
+
+.suggest-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+
+.suggest-summary-text {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.suggest-concepts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.suggest-concept {
+  border: 1px solid var(--gray-lighter);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  background: var(--white);
+}
+
+.suggest-concept-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--gray-lighter);
+}
+
+.suggest-concept-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.suggest-conf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--gray-dark);
+  flex-shrink: 0;
+}
+
+.suggest-conf-bar {
+  width: 80px;
+  height: 6px;
+  background: var(--gray-lighter);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.suggest-conf-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--pin-red-light), var(--pin-red));
+}
+
+.suggest-conf-num {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.suggest-field {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.suggest-field-label {
+  flex: 0 0 110px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray);
+  padding-top: 2px;
+}
+
+.suggest-field-val {
+  flex: 1;
+  color: var(--ink-soft);
+}
+
+.signal-pin-link {
+  display: inline-block;
+  padding: 1px 6px;
+  background: var(--gray-lightest);
+  border-radius: 3px;
+  font-size: 11px;
+  margin-right: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.signal-pin-link:hover {
+  background: var(--pin-red);
+  color: var(--white) !important;
+}
+
 .data-table .col-num {
   text-align: right;
   font-variant-numeric: tabular-nums;
