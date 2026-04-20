@@ -11,6 +11,10 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { createClient } from "@supabase/supabase-js";
 
 const ADMIN_EMAIL = (process.env.PINTWIST_ADMIN_EMAIL || "contact@iscalelabs.com").toLowerCase();
+const ADMIN_USER_IDS = (process.env.PINTWIST_ADMIN_USER_IDS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 const FRONTEND_API = (process.env.CLERK_FRONTEND_API_URL || "https://clerk.iscalelabs.com").replace(/\/$/, "");
 
 let _supabase = null;
@@ -49,16 +53,17 @@ export async function verifyAuth(req) {
     const userId = payload.sub;
     if (!userId) return null;
 
-    // Clerk session tokens include primary email in the default template as
-    // `email` (if present) or can require a JWT template to include it.
-    // Fall back to the reserved `primary_email_address` claim.
+    // Clerk default session tokens don't include `email` — you'd need a
+    // JWT template to add it. Match on user ID allowlist (PINTWIST_ADMIN_USER_IDS)
+    // as the primary admin check; email match is a fallback for when a
+    // JWT template is eventually set up.
     const email = ((payload.email || payload.primary_email_address || "") + "").toLowerCase();
 
-    return {
-      userId,
-      email,
-      isAdmin: email === ADMIN_EMAIL,
-    };
+    const isAdmin =
+      ADMIN_USER_IDS.includes(userId) ||
+      (email && email === ADMIN_EMAIL);
+
+    return { userId, email, isAdmin };
   } catch (err) {
     console.warn("verifyAuth failed:", err.message);
     return null;
