@@ -349,6 +349,31 @@ function wireFilters() {
   handleChips(minvolChips, "minVolume", Number);
 
   loadMore.addEventListener("click", () => fetchPage());
+
+  const btnExport = document.getElementById("btn-export-csv");
+  if (btnExport) {
+    btnExport.addEventListener("click", async () => {
+      const prev = btnExport.textContent;
+      btnExport.disabled = true;
+      btnExport.textContent = "⤓ Exporting…";
+      try {
+        const params = new URLSearchParams({
+          sort: state.sort,
+          days: String(state.window),
+          min_volume: String(state.minVolume),
+          limit: "5000",
+          format: "csv",
+        });
+        await window.Pintwist.auth.downloadCsv("/api/niches?" + params.toString());
+      } catch (err) {
+        console.error("CSV export failed:", err);
+        alert("CSV export failed: " + err.message);
+      } finally {
+        btnExport.disabled = false;
+        btnExport.textContent = prev;
+      }
+    });
+  }
 }
 
 function renderPageShell() {

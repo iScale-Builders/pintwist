@@ -72,6 +72,30 @@
     return fetch(path, Object.assign({}, opts, { headers }));
   }
 
+  // Download a CSV export via an auth'd fetch. filename can include {timestamp}.
+  async function downloadCsv(path, fallbackFilename) {
+    const res = await apiFetch(path);
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error("HTTP " + res.status + ": " + body.slice(0, 200));
+    }
+    const cd = res.headers.get("content-disposition") || "";
+    const m = cd.match(/filename="?([^";]+)"?/i);
+    const filename = m ? m[1] : fallbackFilename || "pintwist-export.csv";
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      a.remove();
+      URL.revokeObjectURL(url);
+    }, 0);
+  }
+
   function renderAuthGate(container) {
     container.innerHTML = `
       <div class="auth-gate">
@@ -261,6 +285,7 @@
     isAdmin,
     getSessionToken,
     apiFetch,
+    downloadCsv,
     gate,
     signOut,
     renderTopbar,

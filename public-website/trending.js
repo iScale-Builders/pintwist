@@ -281,6 +281,41 @@ function wireFilters() {
       }
     });
   });
+
+  // CSV export: send all current filters + format=csv, with a bigger limit
+  const btnExport = document.getElementById("btn-export-csv");
+  if (btnExport) {
+    btnExport.addEventListener("click", async () => {
+      const prev = btnExport.textContent;
+      btnExport.disabled = true;
+      btnExport.textContent = "⤓ Exporting…";
+      try {
+        const params = new URLSearchParams({
+          q: state.query,
+          sort: state.sort,
+          days: String(state.window),
+          limit: "5000",
+          format: "csv",
+        });
+        if (state.minSaves > 0 && state.advanced.saves.min === null) params.set("min_saves", String(state.minSaves));
+        for (const m of ["saves", "comments", "repins", "reactions", "shares"]) {
+          const { min, max } = state.advanced[m];
+          if (min !== null) params.set("min_" + m, String(min));
+          if (max !== null) params.set("max_" + m, String(max));
+        }
+        if (state.advanced.created.min) params.set("min_pin_created", state.advanced.created.min);
+        if (state.advanced.created.max) params.set("max_pin_created", state.advanced.created.max);
+
+        await window.Pintwist.auth.downloadCsv("/api/trending?" + params.toString());
+      } catch (err) {
+        console.error("CSV export failed:", err);
+        alert("CSV export failed: " + err.message);
+      } finally {
+        btnExport.disabled = false;
+        btnExport.textContent = prev;
+      }
+    });
+  }
 }
 
 function renderPageShell() {
