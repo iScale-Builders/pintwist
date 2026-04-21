@@ -2,7 +2,7 @@
 
 Pintwist is a Chrome extension for Pinterest research. It overlays public pin metrics (saves, comments, date) on every pin and contributes anonymous pin data to a shared trend-detection dataset.
 
-**Version:** 1.6.0
+**Version:** 1.6.1
 **Requires:** an iScaleLabs account (sign-in link shown on first open)
 
 ## Install
@@ -34,7 +34,7 @@ Pintwist is a Chrome extension for Pinterest research. It overlays public pin me
 - Anything from sites other than pinterest.com
 - Images, private boards, or personal pins
 
-This is part of the free-tool deal. Sharing is required; there is no opt-out. If you prefer not to contribute data, please don't use the extension.
+We collect data *from Pinterest*, not *about you*. Sharing is required; there is no opt-out. If you prefer not to contribute, please don't install the extension.
 
 ## Updating
 
