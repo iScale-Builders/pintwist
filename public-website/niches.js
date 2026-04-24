@@ -186,6 +186,12 @@ async function openSuggestionsModal(niche) {
       body.innerHTML = `<div class="error">Admin access required.</div>`;
       return;
     }
+    if (res.status === 429) {
+      const txt = await res.text();
+      const isDaily = /daily/i.test(txt);
+      body.innerHTML = `<div class="error">${isDaily ? "Daily AI suggest limit reached (200/day). Try again tomorrow." : "Too many suggest requests (10/min). Wait a minute and try again."}</div>`;
+      return;
+    }
     if (!res.ok) {
       const txt = await res.text();
       body.innerHTML = `<div class="error">Analysis failed (HTTP ${res.status}). ${esc(txt.slice(0, 200))}</div>`;
@@ -291,7 +297,8 @@ async function fetchPage({ reset = false } = {}) {
       return;
     }
     if (!res.ok) {
-      document.getElementById("results").innerHTML = `<div class="error">Couldn't load niches (HTTP ${res.status}).</div>`;
+      document.getElementById("results").innerHTML = window.Pintwist.auth.renderApiError(res, "niches");
+      if (res.status === 429) setTimeout(() => fetchPage({ reset: true }), 10_000);
       return;
     }
     const body = await res.json();

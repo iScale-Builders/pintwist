@@ -170,7 +170,10 @@ function renderHealth(data) {
   `;
 }
 
+let _healthInFlight = false;
 async function fetchHealth() {
+  if (_healthInFlight) return;
+  _healthInFlight = true;
   try {
     const res = await window.Pintwist.auth.apiFetch("/api/health");
     if (res.status === 401) {
@@ -182,7 +185,8 @@ async function fetchHealth() {
       return;
     }
     if (!res.ok) {
-      document.getElementById("dashboard-root").innerHTML = `<div class="error">Couldn't load health (HTTP ${res.status}).</div>`;
+      document.getElementById("dashboard-root").innerHTML = window.Pintwist.auth.renderApiError(res, "dashboard");
+      if (res.status === 429) setTimeout(() => fetchHealth(), 10_000);
       return;
     }
     const data = await res.json();
@@ -190,6 +194,8 @@ async function fetchHealth() {
   } catch (err) {
     console.error("health fetch error:", err);
     document.getElementById("dashboard-root").innerHTML = `<div class="error">Network error.</div>`;
+  } finally {
+    _healthInFlight = false;
   }
 }
 

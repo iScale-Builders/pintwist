@@ -276,6 +276,23 @@
     `;
   }
 
+  // Friendly error HTML for API failures. Returns the string to inject into
+  // your error container. Pairs with the per-API rate limiting added in v1.6.2:
+  // 429 gets a "slow down" message; other statuses get a generic retry nudge.
+  function renderApiError(res, label) {
+    const thing = label || "data";
+    if (res.status === 429) {
+      return `<div class="error">Slow down — too many requests. Auto-retrying in a few seconds.</div>`;
+    }
+    if (res.status === 403) {
+      return `<div class="error">Access denied. You may not have permission to view ${thing}.</div>`;
+    }
+    if (res.status >= 500) {
+      return `<div class="error">Server hiccup loading ${thing} (HTTP ${res.status}). Retrying shortly.</div>`;
+    }
+    return `<div class="error">Couldn't load ${thing} (HTTP ${res.status}). Try again in a moment.</div>`;
+  }
+
   window.Pintwist = window.Pintwist || {};
   window.Pintwist.auth = {
     init,
@@ -290,6 +307,7 @@
     signOut,
     renderTopbar,
     mountStatsBar,
+    renderApiError,
     ADMIN_EMAIL,
   };
 })();

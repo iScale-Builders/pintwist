@@ -73,6 +73,32 @@ function cleanPinterestUrl(s: unknown): string | null {
   }
 }
 
+// image_url must be a Pinterest CDN URL. If we ever render these as <img src>
+// anywhere, unrestricted strings are a stored-content vector (tracking pixel,
+// IP leak via attacker-controlled host). Lock to *.pinimg.com only.
+function cleanPinimgUrl(s: unknown): string | null {
+  const str = cleanString(s, 512);
+  if (!str) return null;
+  try {
+    const u = new URL(str);
+    if (u.protocol !== "https:") return null;
+    if (!/(^|\.)pinimg\.com$/i.test(u.hostname)) return null;
+    return str;
+  } catch {
+    return null;
+  }
+}
+
+// pin_created_at must be parseable as a date; reject garbage 64-char strings.
+// Returns the original ISO string (truncated to 64) or null.
+function cleanDateString(s: unknown): string | null {
+  const str = cleanString(s, 64);
+  if (!str) return null;
+  const t = Date.parse(str);
+  if (!Number.isFinite(t)) return null;
+  return str;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -103,7 +129,10 @@ Deno.serve(async (req: Request) => {
   });
 
   // Atomic rate limit: single INSERT ... ON CONFLICT DO UPDATE RETURNING.
-  // Fail-open on infra error — better to accept a batch than drop legit data.
+  // Fail-CLOSED on infra error — previously fail-open, but an attacker who can
+  // reliably force the RPC to error (DB pressure, pathological input that slips
+  // past our UUID regex) could bypass the rate limit entirely. 503 is better
+  // than unbounded ingest. Extension retries via offline queue.
   const windowStartMs =
     Math.floor(Date.now() / (RATE_LIMIT_WINDOW_SEC * 1000)) *
     RATE_LIMIT_WINDOW_SEC *
@@ -119,8 +148,13 @@ Deno.serve(async (req: Request) => {
     .single();
 
   if (rlErr) {
-    console.error("rate_limit rpc error:", rlErr);
-  } else if (rl && rl.allowed === false) {
+    console.error("rate_limit rpc error:", rlErr.message);
+    return jsonResponse(
+      { error: "rate_limit_unavailable", retry_after: RATE_LIMIT_WINDOW_SEC },
+      503,
+    );
+  }
+  if (rl && rl.allowed === false) {
     return jsonResponse(
       { error: "rate_limited", retry_after: RATE_LIMIT_WINDOW_SEC },
       429,
@@ -151,9 +185,9 @@ Deno.serve(async (req: Request) => {
 
   const pinRows = [...pinMap.values()].map((p) => ({
     pin_id: p.pin_id,
-    image_url: cleanString(p.image_url, 512),
+    image_url: cleanPinimgUrl(p.image_url),
     is_video: typeof p.is_video === "boolean" ? p.is_video : null,
-    pin_created_at: cleanString(p.pin_created_at, 64),
+    pin_created_at: cleanDateString(p.pin_created_at),
     last_seen: new Date().toISOString(),
   }));
 
@@ -161,7 +195,7 @@ Deno.serve(async (req: Request) => {
     .from("pins")
     .upsert(pinRows, { onConflict: "pin_id", ignoreDuplicates: false });
   if (pinsErr) {
-    console.error("pins upsert error:", pinsErr);
+    console.error("pins upsert error:", pinsErr.message);
     return jsonResponse({ error: "db_error", stage: "pins" }, 500);
   }
 
@@ -182,7 +216,7 @@ Deno.serve(async (req: Request) => {
     .from("pin_snapshots")
     .insert(snapshotRows);
   if (snapErr) {
-    console.error("snapshots insert error:", snapErr);
+    console.error("snapshots insert error:", snapErr.message);
     return jsonResponse({ error: "db_error", stage: "snapshots" }, 500);
   }
 

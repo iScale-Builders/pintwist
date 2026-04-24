@@ -124,8 +124,15 @@ async function ingestSendBatch(batch) {
       body: JSON.stringify({ install_id: ingestState.installId, batch }),
     });
     if (res.ok) return true;
-    if (res.status === 429 || res.status >= 500) return false;
-    console.warn('[PinTwist] Ingest rejected:', res.status);
+    // 429 = rate limited, 5xx = server error → persist offline and retry later.
+    // 4xx other than 429 = request rejected (bad payload, bad auth, schema drift).
+    // Previously these returned true, silently dropping the batch. Now we persist
+    // offline so data isn't lost before we notice the underlying issue — bounded
+    // by INGEST_OFFLINE_CAP (500 pins), so a persistent 4xx won't balloon storage.
+    if (res.status >= 400) {
+      console.warn('[PinTwist] Ingest non-ok status:', res.status);
+      return false;
+    }
     return true;
   } catch (err) {
     console.warn('[PinTwist] Ingest network error:', err);

@@ -31,3 +31,6 @@ nul
 # Reference files (if any)
 ref/
 .vercel
+
+# Dashboard-generated report (sensitive — cross-user trend positions)
+dashboard/report.html

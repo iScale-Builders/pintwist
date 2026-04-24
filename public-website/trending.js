@@ -97,7 +97,7 @@ function renderCard(pin) {
         </div>
         <div class="pin-footer">
           <span>${niche ? escapeHtml(niche) : "—"}</span>
-          <span class="pin-reach-badge" title="Distinct installs that saw this pin">${SVG.users}${pin.reach}</span>
+          <span class="pin-reach-badge" title="Distinct installs that saw this pin">${SVG.users}${fmtNum(pin.reach)}</span>
         </div>
       </div>
     </article>
@@ -164,7 +164,8 @@ async function fetchPage({ reset = false } = {}) {
       return;
     }
     if (!res.ok) {
-      host.innerHTML = `<div class="error">Couldn't load pins (HTTP ${res.status}). Try again in a moment.</div>`;
+      host.innerHTML = window.Pintwist.auth.renderApiError(res, "pins");
+      if (res.status === 429) setTimeout(() => fetchPage({ reset: true }), 10_000);
       return;
     }
     const body = await res.json();

@@ -103,8 +103,10 @@ async function ingestSendBatch(batch) {
       body: JSON.stringify({ install_id: ingestState.installId, batch })
     });
     if (res.ok) return true;
-    if (res.status === 429 || res.status >= 500) return false;
-    console.warn("[PinTwist] Ingest rejected:", res.status);
+    if (res.status >= 400) {
+      console.warn("[PinTwist] Ingest non-ok status:", res.status);
+      return false;
+    }
     return true;
   } catch (err) {
     console.warn("[PinTwist] Ingest network error:", err);

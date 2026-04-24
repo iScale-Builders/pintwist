@@ -200,7 +200,8 @@ async function fetchInsights() {
       return;
     }
     if (!res.ok) {
-      document.getElementById("insights-root").innerHTML = `<div class="error">Couldn't load insights (HTTP ${res.status}).</div>`;
+      document.getElementById("insights-root").innerHTML = window.Pintwist.auth.renderApiError(res, "insights");
+      if (res.status === 429) setTimeout(() => fetchInsights(), 10_000);
       return;
     }
     state.data = await res.json();
