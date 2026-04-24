@@ -5,12 +5,15 @@
 //
 // Auth: signed-in Clerk user (any role).
 
-import { requireAdmin, supabase, jsonError } from "./_lib/auth.js";
+import { requireAdmin, supabase, jsonError, checkRateLimit } from "./_lib/auth.js";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return jsonError(res, 405, "method_not_allowed");
   const auth = await requireAdmin(req, res);
   if (!auth) return;
+
+  const rl = await checkRateLimit(auth, "stats", { perMinute: 240 });
+  if (!rl.allowed) return jsonError(res, 429, "rate_limited", { retry_after: 60 });
 
   try {
     const sb = supabase();

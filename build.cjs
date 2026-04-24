@@ -1,6 +1,37 @@
 const esbuild = require('esbuild');
 const path = require('path');
 const fs = require('fs');
+const JavaScriptObfuscator = require('javascript-obfuscator');
+
+// Obfuscation settings for content.js — tuned to raise the cost of copying
+// the Pinterest scraping logic without runtime penalties or CWS red flags.
+// NO controlFlowFlattening (slow), NO debugProtection / selfDefending (CWS
+// sometimes flags as "hiding malicious behavior").
+const OBFUSCATOR_OPTS = {
+  compact: true,
+  controlFlowFlattening: false,
+  deadCodeInjection: false,
+  debugProtection: false,
+  disableConsoleOutput: false,
+  identifierNamesGenerator: 'hexadecimal',
+  log: false,
+  numbersToExpressions: false,
+  renameGlobals: false,
+  rotateStringArray: true,
+  selfDefending: false,
+  shuffleStringArray: true,
+  simplify: true,
+  splitStrings: true,
+  splitStringsChunkLength: 10,
+  stringArray: true,
+  stringArrayEncoding: ['base64'],
+  stringArrayIndexShift: true,
+  stringArrayRotate: true,
+  stringArrayThreshold: 0.5,
+  target: 'browser',
+  transformObjectKeys: false,
+  unicodeEscapeSequence: false,
+};
 
 const ROOT = __dirname;
 const DIST = path.join(ROOT, 'dist');
@@ -71,15 +102,17 @@ async function build() {
     },
   });
 
-  // Minify content script (no Clerk import, just minify)
-  await esbuild.build({
-    entryPoints: [path.join(ROOT, 'js', 'content.js')],
-    outfile: path.join(DIST, 'js', 'content.js'),
-    bundle: false,
-    minify: true,
-    target: 'chrome120',
-    sourcemap: false,
-  });
+  // Obfuscate + minify content script for dist only.
+  // js/content.js stays readable during development; the shipped copy
+  // in dist/js/content.js is obfuscated via javascript-obfuscator.
+  // This is the one file worth protecting — it contains the Pinterest
+  // scraping/overlay logic. background.js and popup.js stay plain minified.
+  {
+    const src = fs.readFileSync(path.join(ROOT, 'js', 'content.js'), 'utf8');
+    const obf = JavaScriptObfuscator.obfuscate(src, OBFUSCATOR_OPTS).getObfuscatedCode();
+    fs.writeFileSync(path.join(DIST, 'js', 'content.js'), obf);
+    console.log(`content.js obfuscated: ${src.length} -> ${obf.length} bytes`);
+  }
 
   // Minify CSS
   await esbuild.build({

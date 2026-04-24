@@ -1,7 +1,7 @@
 // GET /api/niches
 // Thin wrapper around public.niches_agg() Postgres function.
 
-import { requireAdmin, supabase, jsonError } from "./_lib/auth.js";
+import { requireAdmin, supabase, jsonError, checkRateLimit } from "./_lib/auth.js";
 
 const MAX_LIMIT = 200;
 const DEFAULT_LIMIT = 60;
@@ -46,6 +46,9 @@ export default async function handler(req, res) {
   if (req.method !== "GET") return jsonError(res, 405, "method_not_allowed");
   const auth = await requireAdmin(req, res);
   if (!auth) return;
+
+  const rl = await checkRateLimit(auth, "niches", { perMinute: 120 });
+  if (!rl.allowed) return jsonError(res, 429, "rate_limited", { retry_after: 60 });
 
   const format = (req.query.format || "json").toString().toLowerCase();
   const isCsv = format === "csv";

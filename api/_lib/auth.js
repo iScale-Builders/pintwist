@@ -92,3 +92,60 @@ export async function requireAdmin(req, res) {
 export function jsonError(res, status, message, extra = {}) {
   res.status(status).json(Object.assign({ error: message }, extra));
 }
+
+/**
+ * Atomic per-user rate limit check via bump_api_rate_limit.
+ * Returns { allowed: bool, count: int } — caller should 429 if !allowed.
+ *
+ * Usage:
+ *   const rl = await checkRateLimit({ userId }, "trending", { perMinute: 60 });
+ *   if (!rl.allowed) return jsonError(res, 429, "rate_limited", { retry_after: 60 });
+ *
+ * Buckets are minute-based by default. For longer windows pass { perDay: N }.
+ */
+export async function checkRateLimit(auth, route, opts = {}) {
+  if (!auth || !auth.userId) return { allowed: false, count: 0 };
+  const sb = supabase();
+
+  // Minute bucket (default). Converts timestamp to integer minute count.
+  if (opts.perMinute) {
+    const minute = Math.floor(Date.now() / 60_000);
+    const windowKey = `m:${route}:${minute}`;
+    const expires = new Date((minute + 2) * 60_000).toISOString(); // 2 min TTL
+    const { data, error } = await sb
+      .rpc("bump_api_rate_limit", {
+        p_user_id: auth.userId,
+        p_window_key: windowKey,
+        p_expires_at: expires,
+        p_limit: opts.perMinute,
+      })
+      .single();
+    if (error) {
+      console.warn("rate_limit rpc error (fail-open):", error.message);
+      return { allowed: true, count: 0 };
+    }
+    if (!data || !data.allowed) return { allowed: false, count: data?.current_count ?? 0 };
+  }
+
+  // Daily bucket (for expensive endpoints like /api/suggest)
+  if (opts.perDay) {
+    const day = new Date().toISOString().slice(0, 10);
+    const windowKey = `d:${route}:${day}`;
+    const expires = new Date(Date.now() + 2 * 86_400_000).toISOString(); // 2 day TTL
+    const { data, error } = await sb
+      .rpc("bump_api_rate_limit", {
+        p_user_id: auth.userId,
+        p_window_key: windowKey,
+        p_expires_at: expires,
+        p_limit: opts.perDay,
+      })
+      .single();
+    if (error) {
+      console.warn("rate_limit rpc error (fail-open):", error.message);
+      return { allowed: true, count: 0 };
+    }
+    if (!data || !data.allowed) return { allowed: false, count: data?.current_count ?? 0, daily: true };
+  }
+
+  return { allowed: true };
+}

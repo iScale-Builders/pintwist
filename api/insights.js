@@ -1,7 +1,7 @@
 // GET /api/insights
 // Thin wrapper around public.insights_agg() which returns {cross_niche, momentum, velocity}.
 
-import { requireAdmin, supabase, jsonError } from "./_lib/auth.js";
+import { requireAdmin, supabase, jsonError, checkRateLimit } from "./_lib/auth.js";
 
 const DEFAULT_DAYS = 30;
 const MAX_DAYS = 90;
@@ -10,6 +10,9 @@ export default async function handler(req, res) {
   if (req.method !== "GET") return jsonError(res, 405, "method_not_allowed");
   const auth = await requireAdmin(req, res);
   if (!auth) return;
+
+  const rl = await checkRateLimit(auth, "insights", { perMinute: 60 });
+  if (!rl.allowed) return jsonError(res, 429, "rate_limited", { retry_after: 60 });
 
   const days = Math.min(MAX_DAYS, Math.max(7, Number(req.query.days) || DEFAULT_DAYS));
 

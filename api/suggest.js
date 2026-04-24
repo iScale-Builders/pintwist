@@ -8,7 +8,7 @@
 //
 // Auth: admin only.
 
-import { requireAdmin, supabase, jsonError } from "./_lib/auth.js";
+import { requireAdmin, supabase, jsonError, checkRateLimit } from "./_lib/auth.js";
 
 const DEFAULT_DAYS = 30;
 const DEFAULT_LIMIT = 20;
@@ -35,6 +35,12 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return jsonError(res, 405, "method_not_allowed");
   const auth = await requireAdmin(req, res);
   if (!auth) return;
+
+  // Expensive endpoint — Claude tokens cost money. Tight per-minute + daily cap.
+  const rlMin = await checkRateLimit(auth, "suggest", { perMinute: 10 });
+  if (!rlMin.allowed) return jsonError(res, 429, "rate_limited", { retry_after: 60 });
+  const rlDay = await checkRateLimit(auth, "suggest", { perDay: 200 });
+  if (!rlDay.allowed) return jsonError(res, 429, "daily_limit_exceeded", { retry_after: 86400 });
 
   const body = req.body || {};
   const niche = (body.niche || "").toString().trim();
