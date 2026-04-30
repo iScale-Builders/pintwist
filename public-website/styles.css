@@ -459,6 +459,42 @@ textarea {
   display: block;
 }
 
+.pin-download-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, transform 0.1s;
+  padding: 0;
+}
+.pin-card:hover .pin-download-btn,
+.pin-download-btn:focus-visible {
+  opacity: 1;
+}
+.pin-download-btn:hover {
+  background: var(--red, #e60023);
+  transform: scale(1.05);
+}
+.pin-download-btn:disabled,
+.pin-download-btn.loading {
+  opacity: 0.6;
+  cursor: wait;
+}
+@media (hover: none) {
+  .pin-download-btn { opacity: 1; }
+}
+
 .pin-body {
   padding: 10px 12px 12px;
   display: flex;

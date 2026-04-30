@@ -276,6 +276,32 @@
     `;
   }
 
+  // Client-side image download. Pinterest's i.pinimg.com sends
+  // Access-Control-Allow-Origin: *, so we can fetch → blob → save without
+  // a backend proxy. Falls back to opening in a new tab if CORS ever tightens.
+  async function downloadPinImage(url, pinId) {
+    if (!url) return false;
+    try {
+      const res = await fetch(url, { mode: "cors", credentials: "omit" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const blob = await res.blob();
+      const ext = (url.match(/\.([a-z0-9]+)(?:\?|$)/i)?.[1] || "jpg").toLowerCase();
+      const a = document.createElement("a");
+      const objectUrl = URL.createObjectURL(blob);
+      a.href = objectUrl;
+      a.download = "pintwist_" + (pinId || "pin") + "." + ext;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      return true;
+    } catch (err) {
+      console.warn("downloadPinImage failed, opening in new tab:", err);
+      window.open(url, "_blank", "noopener");
+      return false;
+    }
+  }
+
   // Friendly error HTML for API failures. Returns the string to inject into
   // your error container. Pairs with the per-API rate limiting added in v1.6.2:
   // 429 gets a "slow down" message; other statuses get a generic retry nudge.
@@ -308,6 +334,7 @@
     renderTopbar,
     mountStatsBar,
     renderApiError,
+    downloadPinImage,
     ADMIN_EMAIL,
   };
 })();
