@@ -24,6 +24,15 @@ interface PinSubmission {
   source_url?: string | null;
   search_terms?: string | null;
   seen_at?: string;
+  // Rich metadata (v1.6.3+) — identity-stable, stored on pins table.
+  title?: string | null;
+  description?: string | null;
+  link?: string | null;
+  domain?: string | null;
+  dominant_color?: string | null;
+  alt_text?: string | null;
+  board_name?: string | null;
+  pinner_username?: string | null;
 }
 
 interface IngestPayload {
@@ -97,6 +106,29 @@ function cleanDateString(s: unknown): string | null {
   const t = Date.parse(str);
   if (!Number.isFinite(t)) return null;
   return str;
+}
+
+// External link URL — must be http/https. We allow any domain (this is the
+// link the pin points to, e.g. an Etsy listing or blog post; could be anywhere).
+// Captured as `link`; the hostname is captured separately as `domain`.
+function cleanHttpUrl(s: unknown): string | null {
+  const str = cleanString(s, 2048);
+  if (!str) return null;
+  try {
+    const u = new URL(str);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+    return str;
+  } catch {
+    return null;
+  }
+}
+
+// Hex color sanity check (#rrggbb or #rgb), case-insensitive.
+function cleanHexColor(s: unknown): string | null {
+  const str = cleanString(s, 16);
+  if (!str) return null;
+  if (!/^#?[0-9a-f]{3}([0-9a-f]{3})?$/i.test(str)) return null;
+  return str.startsWith("#") ? str : "#" + str;
 }
 
 Deno.serve(async (req: Request) => {
@@ -188,6 +220,14 @@ Deno.serve(async (req: Request) => {
     image_url: cleanPinimgUrl(p.image_url),
     is_video: typeof p.is_video === "boolean" ? p.is_video : null,
     pin_created_at: cleanDateString(p.pin_created_at),
+    title: cleanString(p.title, 512),
+    description: cleanString(p.description, 4096),
+    link: cleanHttpUrl(p.link),
+    domain: cleanString(p.domain, 253),
+    dominant_color: cleanHexColor(p.dominant_color),
+    alt_text: cleanString(p.alt_text, 1024),
+    board_name: cleanString(p.board_name, 256),
+    pinner_username: cleanString(p.pinner_username, 64),
     last_seen: new Date().toISOString(),
   }));
 

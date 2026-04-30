@@ -66,6 +66,15 @@ function ingestEnqueue(obs) {
     pin_created_at: obs.pin.pin_created_at || null,
     image_url: obs.pin.image_url || null,
     is_video: typeof obs.pin.is_video === "boolean" ? obs.pin.is_video : null,
+    // Rich metadata (v1.6.3+).
+    title: obs.pin.title || null,
+    description: obs.pin.description || null,
+    link: obs.pin.link || null,
+    domain: obs.pin.domain || null,
+    dominant_color: obs.pin.dominant_color || null,
+    alt_text: obs.pin.alt_text || null,
+    board_name: obs.pin.board_name || null,
+    pinner_username: obs.pin.pinner_username || null,
     source_url: obs.source_url || null,
     search_terms: obs.search_terms || null,
     seen_at: obs.seen_at || (/* @__PURE__ */ new Date()).toISOString()

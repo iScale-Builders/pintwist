@@ -22,20 +22,21 @@ function toCsvCell(v) {
 
 function rowsToCsv(rows) {
   const headers = [
-    "pin_id", "reach", "obs",
+    "pin_id", "title", "description", "link", "domain", "board_name", "pinner_username",
+    "dominant_color", "reach",
     "max_saves", "max_comments", "max_repins", "max_reactions", "max_shares",
-    "velocity", "pin_url", "latest_search_terms", "latest_source",
-    "latest_seen", "pin_created_at", "image_url", "is_video",
+    "pin_url", "latest_search_terms", "latest_source",
+    "latest_seen", "pin_created_at", "image_url",
   ];
   const lines = [headers.join(",")];
   for (const r of rows) {
     lines.push([
-      r.pin_id, r.reach, r.obs,
+      r.pin_id, r.title, r.description, r.link, r.domain, r.board_name, r.pinner_username,
+      r.dominant_color, r.reach,
       r.max_saves, r.max_comments, r.max_repins, r.max_reactions, r.max_shares,
-      r.velocity,
       `https://www.pinterest.com/pin/${r.pin_id}/`,
       r.latest_search_terms, r.latest_source,
-      r.latest_seen, r.pin_created_at, r.image_url, r.is_video,
+      r.latest_seen, r.pin_created_at, r.image_url,
     ].map(toCsvCell).join(","));
   }
   return lines.join("\r\n");
@@ -117,19 +118,24 @@ export default async function handler(req, res) {
     const items = rows.map((r) => ({
       pin_id: r.pin_id,
       reach: r.reach,
-      obs: r.obs,
       max_saves: r.max_saves,
       max_comments: r.max_comments,
       max_repins: r.max_repins,
       max_reactions: r.max_reactions,
       max_shares: r.max_shares,
-      velocity: r.velocity,
       latest_source: r.latest_source,
       latest_search_terms: r.latest_search_terms,
       latest_seen: r.latest_seen,
       image_url: r.image_url,
-      is_video: r.is_video,
       pin_created_at: r.pin_created_at,
+      // Rich metadata (v1.6.3+) — null for older pins ingested before extension upgrade.
+      title: r.title,
+      description: r.description,
+      link: r.link,
+      domain: r.domain,
+      dominant_color: r.dominant_color,
+      board_name: r.board_name,
+      pinner_username: r.pinner_username,
     }));
 
     const nextOffset = offset + items.length;

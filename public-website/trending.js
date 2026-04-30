@@ -79,11 +79,20 @@ function renderCard(pin) {
   const url = "https://www.pinterest.com/pin/" + encodeURIComponent(pin.pin_id) + "/";
   const img = pin.image_url || null;
   const niche = parseSearchTermsFromUrl(pin.latest_source);
+  const title = pin.title || "";
+  const domain = pin.domain || "";
   const imgTag = img
-    ? `<img class="pin-img" src="${escapeHtml(img)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+    ? `<img class="pin-img" src="${escapeHtml(img)}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.style.display='none'">`
     : `<div class="pin-img" style="display:flex;align-items:center;justify-content:center;color:var(--gray)">No preview</div>`;
   const dlBtn = img
     ? `<button class="pin-download-btn" type="button" data-img="${escapeHtml(img)}" data-pin-id="${escapeHtml(pin.pin_id)}" title="Download image" aria-label="Download image"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>`
+    : "";
+  const detailsBtn = `<button class="pin-details-btn" type="button" data-pin-id="${escapeHtml(pin.pin_id)}" title="View snapshot timeline" aria-label="View details"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></button>`;
+  const titleLine = title
+    ? `<div class="pin-title" title="${escapeHtml(title)}">${escapeHtml(title)}</div>`
+    : "";
+  const domainChip = domain
+    ? `<span class="pin-domain" title="External link">↗ ${escapeHtml(domain)}</span>`
     : "";
 
   return `
@@ -91,7 +100,9 @@ function renderCard(pin) {
       <a class="pin-card-link" href="${url}" target="_blank" rel="noopener noreferrer"></a>
       ${imgTag}
       ${dlBtn}
+      ${detailsBtn}
       <div class="pin-body">
+        ${titleLine}
         <div class="pin-metrics">
           <span class="pin-metric" title="Max saves">${SVG.heart}<strong>${fmtNum(pin.max_saves)}</strong></span>
           <span class="pin-metric" title="Max repins">${SVG.repin}<strong>${fmtNum(pin.max_repins)}</strong></span>
@@ -101,6 +112,7 @@ function renderCard(pin) {
         </div>
         <div class="pin-footer">
           <span>${niche ? escapeHtml(niche) : "—"}</span>
+          ${domainChip}
           <span class="pin-reach-badge" title="Distinct installs that saw this pin">${SVG.users}${fmtNum(pin.reach)}</span>
         </div>
       </div>
@@ -113,6 +125,15 @@ function wireDownloadButtons() {
   if (!host || host.dataset.dlWired === "1") return;
   host.dataset.dlWired = "1";
   host.addEventListener("click", async (e) => {
+    // Details button
+    const detailsBtn = e.target.closest(".pin-details-btn");
+    if (detailsBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      openPinDetail(detailsBtn.dataset.pinId);
+      return;
+    }
+    // Download button
     const btn = e.target.closest(".pin-download-btn");
     if (!btn) return;
     e.preventDefault();
@@ -130,6 +151,137 @@ function wireDownloadButtons() {
     }
   });
 }
+
+// ===== Pin detail modal =====
+async function openPinDetail(pinId) {
+  let modal = document.getElementById("pin-modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "pin-modal";
+    modal.className = "pin-modal";
+    modal.innerHTML = `<div class="pin-modal-backdrop"></div><div class="pin-modal-content" role="dialog" aria-modal="true"><button class="pin-modal-close" aria-label="Close">×</button><div class="pin-modal-body"><div class="loading"><div class="spinner"></div>Loading...</div></div></div>`;
+    document.body.appendChild(modal);
+    modal.querySelector(".pin-modal-backdrop").addEventListener("click", closePinModal);
+    modal.querySelector(".pin-modal-close").addEventListener("click", closePinModal);
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePinModal(); });
+  }
+  modal.classList.add("open");
+  const body = modal.querySelector(".pin-modal-body");
+  body.innerHTML = `<div class="loading"><div class="spinner"></div>Loading snapshot timeline...</div>`;
+
+  try {
+    const res = await window.Pintwist.auth.apiFetch("/api/snapshots?pin_id=" + encodeURIComponent(pinId));
+    if (!res.ok) {
+      body.innerHTML = window.Pintwist.auth.renderApiError(res, "snapshot timeline");
+      return;
+    }
+    const data = await res.json();
+    body.innerHTML = renderPinDetail(data);
+  } catch (err) {
+    console.error("openPinDetail error:", err);
+    body.innerHTML = `<div class="error">Network error loading details.</div>`;
+  }
+}
+
+function closePinModal() {
+  const modal = document.getElementById("pin-modal");
+  if (modal) modal.classList.remove("open");
+}
+
+function renderPinDetail({ pin, snapshots, snapshot_count, reach }) {
+  const url = "https://www.pinterest.com/pin/" + encodeURIComponent(pin.pin_id) + "/";
+  const img = pin.image_url || null;
+  const meta = [
+    pin.title && `<h2 class="pin-detail-title">${escapeHtml(pin.title)}</h2>`,
+    pin.description && `<p class="pin-detail-desc">${escapeHtml(pin.description)}</p>`,
+    pin.alt_text && pin.alt_text !== pin.description && `<p class="pin-detail-alt">Alt: ${escapeHtml(pin.alt_text)}</p>`,
+  ].filter(Boolean).join("");
+
+  const facts = [
+    pin.link && `<div class="pin-fact"><span class="pin-fact-k">Link</span><a class="pin-fact-v" href="${escapeHtml(pin.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(pin.link.length > 80 ? pin.link.slice(0, 80) + "…" : pin.link)}</a></div>`,
+    pin.domain && `<div class="pin-fact"><span class="pin-fact-k">Domain</span><span class="pin-fact-v">${escapeHtml(pin.domain)}</span></div>`,
+    pin.board_name && `<div class="pin-fact"><span class="pin-fact-k">Board</span><span class="pin-fact-v">${escapeHtml(pin.board_name)}</span></div>`,
+    pin.pinner_username && `<div class="pin-fact"><span class="pin-fact-k">Pinner</span><span class="pin-fact-v">@${escapeHtml(pin.pinner_username)}</span></div>`,
+    pin.dominant_color && `<div class="pin-fact"><span class="pin-fact-k">Color</span><span class="pin-fact-v"><span class="color-swatch" style="background:${escapeHtml(pin.dominant_color)}"></span>${escapeHtml(pin.dominant_color)}</span></div>`,
+    pin.pin_created_at && `<div class="pin-fact"><span class="pin-fact-k">Pinned</span><span class="pin-fact-v">${new Date(pin.pin_created_at).toLocaleDateString()}</span></div>`,
+    pin.is_video && `<div class="pin-fact"><span class="pin-fact-k">Type</span><span class="pin-fact-v">Video</span></div>`,
+    `<div class="pin-fact"><span class="pin-fact-k">First seen</span><span class="pin-fact-v">${pin.first_seen ? new Date(pin.first_seen).toLocaleString() : "—"}</span></div>`,
+    `<div class="pin-fact"><span class="pin-fact-k">Last seen</span><span class="pin-fact-v">${pin.last_seen ? new Date(pin.last_seen).toLocaleString() : "—"}</span></div>`,
+  ].filter(Boolean).join("");
+
+  // Build a tiny inline SVG sparkline of saves over time.
+  let sparkSvg = "";
+  if (snapshots.length >= 2) {
+    const values = snapshots.map((s) => s.saves || 0);
+    const min = Math.min(...values), max = Math.max(...values);
+    const range = max - min || 1;
+    const w = 100, h = 24;
+    const pts = values.map((v, i) => {
+      const x = (i / (values.length - 1)) * w;
+      const y = h - ((v - min) / range) * h;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+    sparkSvg = `<svg class="pin-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`;
+  }
+
+  const timelineRows = snapshots.length === 0
+    ? `<tr><td colspan="7" style="text-align:center;color:var(--gray)">No snapshots yet</td></tr>`
+    : snapshots.map((s) => `
+        <tr>
+          <td>${new Date(s.seen_at).toLocaleString()}</td>
+          <td><code class="pin-install-badge">${escapeHtml(s.install_id_short)}</code></td>
+          <td>${fmtNum(s.saves)}</td>
+          <td>${fmtNum(s.repins)}</td>
+          <td>${fmtNum(s.comments)}</td>
+          <td>${fmtNum(s.reactions)}</td>
+          <td>${escapeHtml(s.search_terms || "—")}</td>
+        </tr>
+      `).join("");
+
+  return `
+    <div class="pin-detail-grid">
+      <div class="pin-detail-image-col">
+        ${img ? `<img src="${escapeHtml(img)}" alt="" class="pin-detail-img"/>` : ""}
+        <div class="pin-detail-actions">
+          <a class="btn btn-secondary" href="${url}" target="_blank" rel="noopener noreferrer">Open on Pinterest ↗</a>
+          ${img ? `<button class="btn btn-primary" data-pin-detail-dl data-img="${escapeHtml(img)}" data-pin-id="${escapeHtml(pin.pin_id)}">Download image</button>` : ""}
+        </div>
+      </div>
+      <div class="pin-detail-info-col">
+        ${meta || ""}
+        <div class="pin-stats-row">
+          <span class="pin-stat"><strong>${snapshot_count}</strong> snapshots</span>
+          <span class="pin-stat"><strong>${reach}</strong> installs</span>
+          ${sparkSvg ? `<span class="pin-stat" title="Saves over time">${sparkSvg}</span>` : ""}
+        </div>
+        <div class="pin-facts">${facts}</div>
+        <h3 class="pin-detail-h3">Snapshot timeline</h3>
+        <div class="pin-timeline-wrap">
+          <table class="pin-timeline">
+            <thead><tr><th>Seen at</th><th>Install</th><th>Saves</th><th>Repins</th><th>Comments</th><th>Reactions</th><th>Search</th></tr></thead>
+            <tbody>${timelineRows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Delegate the in-modal download button (re-using the same helper).
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-pin-detail-dl]");
+  if (!btn) return;
+  e.preventDefault();
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = "Downloading…";
+  try {
+    await window.Pintwist.auth.downloadPinImage(btn.dataset.img, btn.dataset.pinId);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+});
 
 function renderResults() {
   const host = document.getElementById("results");
