@@ -1796,7 +1796,6 @@ button:focus-visible {
 }
 
 .pintwist-auto-countdown {
-    margin-left: auto;
     font-size: 12px;
     color: #555;
     font-variant-numeric: tabular-nums;
@@ -1806,6 +1805,7 @@ button:focus-visible {
     min-width: 130px;
     text-align: center;
 }
+.pintwist-auto-stats { margin-left: auto; font-size: 12px; color: #777; }
 .pintwist-auto-countdown strong { color: #1a1a1a; font-variant-numeric: tabular-nums; }
 .pintwist-auto-cd--scanning { color: var(--pintwist-primary-dark, #E91E63); font-weight: 600; }
 .pintwist-auto-cd--cooldown { color: #d93025; }

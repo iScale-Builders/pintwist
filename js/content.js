@@ -786,6 +786,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       '<label class="pintwist-auto-inline-field">Pages ' + numField("pintwist-auto-pages", 1, 100, 1, (prev.pages || state.pagesPerTerm)) + '</label>' +
       '<label class="pintwist-auto-inline-field">Interval&nbsp;(min) ' + numField("pintwist-auto-interval", 0.25, 180, 0.25, (prev.interval || state.intervalMin)) + '</label>' +
       '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-randomize" ' + (state.randomize ? "checked" : "") + '> Randomize &plusmn;' + numField("pintwist-auto-randomize-pct", 0, 95, 1, (prev.pct || state.randomizePct), "pintwist-auto-num--xs") + '%</label>' +
+      '<span class="pintwist-auto-countdown" id="pintwist-auto-countdown"></span>' +
       '<span class="pintwist-auto-divider"></span>' +
       '<label class="pintwist-auto-switch">' +
       '<input type="checkbox" id="pintwist-auto-running"' + (state.running ? " checked" : "") + (inCooldown ? " disabled" : "") + '>' +
@@ -797,7 +798,6 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       '<button id="pintwist-auto-cancel" class="pintwist-auto-btn pintwist-auto-btn--danger"' + (state.running ? "" : " disabled") + '>Cancel scan</button>' +
       '<button id="pintwist-auto-clear" class="pintwist-auto-btn">Clear queue</button>' +
       '<button id="pintwist-auto-resume-cd" class="pintwist-auto-btn"' + (inCooldown ? "" : " disabled") + '>Skip cooldown</button>' +
-      '<span class="pintwist-auto-countdown" id="pintwist-auto-countdown"></span>' +
       '<span class="pintwist-auto-stats" id="pintwist-auto-stats"></span>' +
       '</div>';
 
