@@ -519,13 +519,27 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
   }
 
   function ensurePanel() {
-    if (document.getElementById("pintwist-automation-panel")) return;
     const initialBar = document.getElementById("pintwist-initial-bar");
     if (!initialBar) return;
-    const wrap = document.createElement("div");
-    wrap.id = "pintwist-automation-panel";
-    wrap.className = "pintwist-automation-panel";
-    initialBar.insertAdjacentElement("afterend", wrap);
+    // Toggle button — appended as last child of the bar; CSS pushes it right
+    // via margin-left:auto so it always sits at the far right of the toolbar.
+    let toggle = document.getElementById("pintwist-auto-toggle");
+    if (!toggle || !initialBar.contains(toggle)) {
+      toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.id = "pintwist-auto-toggle";
+      toggle.className = "pintwist-auto-toggle";
+      initialBar.appendChild(toggle);
+    }
+    // Body dropdown — child of the bar, absolute-positioned right under it
+    // so it visually appears as the toolbar "expanding downward".
+    let body = document.getElementById("pintwist-auto-body");
+    if (!body || !initialBar.contains(body)) {
+      body = document.createElement("div");
+      body.id = "pintwist-auto-body";
+      body.className = "pintwist-auto-body";
+      initialBar.appendChild(body);
+    }
     renderPanel();
   }
 
@@ -543,27 +557,33 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
   }
 
   function renderPanel() {
-    const wrap = document.getElementById("pintwist-automation-panel");
-    if (!wrap || !state) return;
+    const toggle = document.getElementById("pintwist-auto-toggle");
+    const body = document.getElementById("pintwist-auto-body");
+    if (!toggle || !body || !state) return;
 
     const cooldownLeft = state.cooldownUntil ? state.cooldownUntil - Date.now() : 0;
     const inCooldown = cooldownLeft > 0;
 
-    const header =
-      '<div class="pintwist-auto-header">' +
-      '<button class="pintwist-auto-toggle" type="button">' +
+    // Toggle (rightmost button on the toolbar)
+    toggle.innerHTML =
       (state.panelExpanded ? "&#9660;" : "&#9654;") +
       ' &#129302; Automation' +
       (state.running ? ' <span class="pintwist-auto-dot"></span>' : '') +
-      '</button>' +
-      (inCooldown ? '<span class="pintwist-auto-cooldown">Cooldown: ' + fmtCountdown(cooldownLeft) + '</span>' : '') +
-      '</div>';
+      (inCooldown ? ' <span class="pintwist-auto-cooldown">' + fmtCountdown(cooldownLeft) + '</span>' : '');
+    toggle.classList.toggle("pintwist-auto-toggle--open", !!state.panelExpanded);
+    toggle.onclick = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      await saveState({ panelExpanded: !state.panelExpanded });
+    };
 
+    // Body (downward dropdown). Hidden when collapsed.
     if (!state.panelExpanded) {
-      wrap.innerHTML = header;
-      wireHeader(wrap);
+      body.style.display = "none";
+      body.innerHTML = "";
       return;
     }
+    body.style.display = "block";
 
     const queueRows = state.terms.map((t, i) => {
       const icon = t.status === "done" ? "&#10003;"
@@ -581,9 +601,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     const doneCount = state.terms.filter((x) => x.status === "done").length;
     const failedCount = state.terms.filter((x) => x.status === "failed").length;
 
-    wrap.innerHTML =
-      header +
-      '<div class="pintwist-auto-body">' +
+    body.innerHTML =
       '<div class="pintwist-auto-row-fields">' +
       '<label class="pintwist-auto-label">Search terms (comma or newline separated):</label>' +
       '<textarea id="pintwist-auto-terms" class="pintwist-auto-textarea" rows="3" placeholder="boho wall art, vintage florals, cottagecore prints">' + escAuto(state.terms.map((t) => t.term).join(", ")) + '</textarea>' +
@@ -601,16 +619,9 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       '<button id="pintwist-auto-resume-cd" class="pintwist-auto-btn"' + (inCooldown ? "" : " disabled") + '>Skip cooldown</button>' +
       '<span class="pintwist-auto-stats">' + doneCount + '/' + state.terms.length + ' done' + (failedCount ? ' &middot; ' + failedCount + ' failed' : '') + '</span>' +
       '</div>' +
-      '<div class="pintwist-auto-queue">' + (queueRows || '<div class="pintwist-auto-empty">No queue. Paste terms above and click Start.</div>') + '</div>' +
-      '</div>';
+      '<div class="pintwist-auto-queue">' + (queueRows || '<div class="pintwist-auto-empty">No queue. Paste terms above and click Start.</div>') + '</div>';
 
-    wireHeader(wrap);
-    wireBody(wrap);
-  }
-
-  function wireHeader(wrap) {
-    const t = wrap.querySelector(".pintwist-auto-toggle");
-    if (t) t.addEventListener("click", async () => { await saveState({ panelExpanded: !state.panelExpanded }); });
+    wireBody(body);
   }
 
   function wireBody(wrap) {
@@ -665,19 +676,20 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
   async function bootstrap() {
     await loadState();
     const tryMount = () => {
-      if (document.getElementById("pintwist-initial-bar")) {
+      const bar = document.getElementById("pintwist-initial-bar");
+      if (!bar) return false;
+      // Re-attach when bar exists but our toggle is missing (bar got recreated).
+      if (!bar.querySelector("#pintwist-auto-toggle")) {
         ensurePanel();
         renderPanel();
         runOnceForCurrentPage();
-        return true;
       }
-      return false;
+      return true;
     };
-    if (!tryMount()) {
-      const obs = new MutationObserver(() => { if (tryMount()) obs.disconnect(); });
-      obs.observe(document.body, { childList: true, subtree: true });
-      setTimeout(() => obs.disconnect(), 60000);
-    }
+    tryMount();
+    // Permanent observer: re-attach across SPA navigations + sort_all rebuilds.
+    const obs = new MutationObserver(() => { tryMount(); });
+    obs.observe(document.body, { childList: true, subtree: true });
   }
 
   if (document.readyState === "complete" || document.readyState === "interactive") {

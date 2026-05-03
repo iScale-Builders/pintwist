@@ -1441,38 +1441,53 @@ button:focus-visible {
 
 
 
-/* ===== Automation panel (v1.7.0) =================================== */
-.pintwist-automation-panel {
-    position: fixed;
-    top: 60px;
+/* ===== Automation (v1.7.0 — lives inside pintwist-initial-bar) =====
+ * Toggle button: sits as the rightmost child of the toolbar via margin-left:auto.
+ * Body: absolute-positioned dropdown anchored to the bar's bottom edge so the
+ * toolbar visually "expands downward" when opened.
+ * (Color theming via --pintwist-primary will be wired in a follow-up; using
+ * the same variable now where it makes sense so swap-in is one-line.)
+ */
+#pintwist-auto-toggle {
+    margin-left: auto;
+    background: var(--pintwist-primary, #F48FB1);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    height: 36px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+}
+#pintwist-auto-toggle:hover { background: var(--pintwist-primary-dark, #E91E63); }
+#pintwist-auto-toggle.pintwist-auto-toggle--open { background: var(--pintwist-primary-dark, #E91E63); }
+
+#pintwist-auto-body {
+    position: absolute;
+    top: 100%;
     left: 0;
     right: 0;
-    z-index: 9999;
-    background: #fff;
-    border-bottom: 1px solid #e0e0e0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    z-index: 1;
+    background: #FFFFFF;
+    border-top: 1.5px solid var(--pintwist-primary, #F48FB1);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    padding: 14px 18px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 13px;
     color: #1a1a1a;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
 }
-.pintwist-auto-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 16px;
-    background: #fafafa;
-}
-.pintwist-auto-toggle {
-    background: none;
-    border: none;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    color: #1a1a1a;
-}
-.pintwist-auto-toggle:hover { background: #efefef; }
+
 .pintwist-auto-dot {
     display: inline-block;
     width: 8px;
@@ -1490,14 +1505,8 @@ button:focus-visible {
 .pintwist-auto-cooldown {
     color: #d93025;
     font-weight: 600;
-    font-size: 12px;
-}
-.pintwist-auto-body {
-    padding: 12px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    border-top: 1px solid #f0f0f0;
+    font-size: 11px;
+    margin-left: 4px;
 }
 .pintwist-auto-row-fields {
     display: flex;
@@ -1531,7 +1540,7 @@ button:focus-visible {
     resize: vertical;
     box-sizing: border-box;
 }
-.pintwist-auto-textarea:focus { border-color: #e60023; outline: none; }
+.pintwist-auto-textarea:focus { border-color: var(--pintwist-primary, #F48FB1); outline: none; }
 .pintwist-auto-num {
     width: 64px;
     padding: 4px 6px;
@@ -1555,11 +1564,14 @@ button:focus-visible {
 .pintwist-auto-btn:hover:not(:disabled) { background: #f5f5f5; }
 .pintwist-auto-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .pintwist-auto-btn--primary {
-    background: #e60023;
+    background: var(--pintwist-primary, #F48FB1);
     color: #fff;
-    border-color: #e60023;
+    border-color: var(--pintwist-primary, #F48FB1);
 }
-.pintwist-auto-btn--primary:hover:not(:disabled) { background: #cc001f; border-color: #cc001f; }
+.pintwist-auto-btn--primary:hover:not(:disabled) {
+    background: var(--pintwist-primary-dark, #E91E63);
+    border-color: var(--pintwist-primary-dark, #E91E63);
+}
 .pintwist-auto-stats {
     margin-left: auto;
     font-size: 12px;
@@ -1590,7 +1602,7 @@ button:focus-visible {
 .pintwist-auto-row:last-child { border-bottom: none; }
 .pintwist-auto-row--done .pintwist-auto-icon { color: #2eb872; }
 .pintwist-auto-row--failed .pintwist-auto-icon { color: #d93025; }
-.pintwist-auto-row--running .pintwist-auto-icon { color: #e60023; }
+.pintwist-auto-row--running .pintwist-auto-icon { color: var(--pintwist-primary, #F48FB1); }
 .pintwist-auto-icon { text-align: center; font-weight: bold; }
 .pintwist-auto-term { font-weight: 500; color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pintwist-auto-detail { color: #777; font-size: 11px; white-space: nowrap; }
