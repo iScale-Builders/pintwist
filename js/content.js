@@ -828,7 +828,6 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       '</label>' +
       '<button id="pintwist-auto-runnow" class="pintwist-auto-iconbtn pintwist-auto-iconbtn--play" type="button" title="Run next term now (skip countdown)" aria-label="Run now">&#9654;</button>' +
       '<button id="pintwist-auto-off" class="pintwist-auto-iconbtn pintwist-auto-iconbtn--x" type="button" title="Turn automation off" aria-label="Turn off">&#10005;</button>' +
-      '<button id="pintwist-auto-cancel" class="pintwist-auto-btn pintwist-auto-btn--danger"' + (state.running ? "" : " disabled") + '>Cancel scan</button>' +
       '<button id="pintwist-auto-clear" class="pintwist-auto-btn">Clear queue</button>' +
       '<button id="pintwist-auto-resume-cd" class="pintwist-auto-btn"' + (inCooldown ? "" : " disabled") + '>Skip cooldown</button>' +
       '<span class="pintwist-auto-stats" id="pintwist-auto-stats"></span>' +
@@ -910,7 +909,6 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     const $ = (id) => wrap.querySelector("#" + id);
     const addBtn = $("pintwist-auto-add");
     const runningSwitch = $("pintwist-auto-running");
-    const cancelBtn = $("pintwist-auto-cancel");
     const clearBtn = $("pintwist-auto-clear");
     const skipCd = $("pintwist-auto-resume-cd");
     const randomize = $("pintwist-auto-randomize");
@@ -1030,17 +1028,6 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
         await saveState({ terms: newTerms, currentIdx: Math.max(0, newIdx) });
         return;
       }
-    });
-
-    // Cancel scan: immediate abort + pause queue. (See state-machine notes.)
-    if (cancelBtn) cancelBtn.addEventListener("click", async () => {
-      try { if (typeof State !== "undefined") State.aborted = true; } catch {}
-      clearPending();
-      if (state.terms[state.currentIdx] && state.terms[state.currentIdx].status === "running") {
-        state.terms[state.currentIdx].status = "cancelled";
-        state.terms[state.currentIdx].error = "user cancelled";
-      }
-      await saveState({ running: false });
     });
 
     if (clearBtn) clearBtn.addEventListener("click", async () => {
