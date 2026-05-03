@@ -160,11 +160,14 @@
             </div>
             <div style="margin-top: 20px; text-align: center;">
                 <button id="pintwist-progress-cancel" type="button" style="
-                    background: #d93025; color: #fff; border: none;
+                    background: ${i}; color: #fff; border: none;
                     padding: 8px 22px; border-radius: 8px;
                     font-size: 13px; font-weight: 600; cursor: pointer;
-                    transition: background 0.15s ease;
-                ">Cancel scan</button>
+                    transition: background 0.15s ease, transform 0.1s ease;
+                "
+                onmouseover="this.style.background='${adjustColorBrightness(i,-20)}'"
+                onmouseout="if(!this.disabled)this.style.background='${i}'"
+                >Cancel scan</button>
             </div>
         </div>
     `,document.body.appendChild(s),State.selectedMetric=t,State.sortedPinIDs.clear(),State.insertedNodes=[],State.count=0,State.aborted=!1;document.getElementById("pintwist-progress-cancel").addEventListener("click",()=>{State.aborted=!0;const _b=document.getElementById("pintwist-progress-cancel");if(_b){_b.disabled=!0;_b.textContent="Cancelling…";_b.style.background="#999";_b.style.cursor="wait"}});const a=document.getElementById("pintwist-progress-bar"),r=document.getElementById("pintwist-progress-current"),m=document.getElementById("pintwist-progress-pct"),o=document.getElementById("pintwist-progress-status"),p=e;let l=0;for(let d=1;d<=p;d++){if(State.aborted){o.textContent="Cancelled",setTimeout(()=>s.remove(),2e3);return}r.textContent=d,m.textContent=Math.round(d/p*100),a.style.width=`${d/p*100}%`,o.textContent=`Page ${d}: Scanning...`;const h=document.querySelectorAll("[data-test-pin-id]"),f=Array.from(h).filter(c=>{const u=c.getAttribute("data-test-pin-id");return u&&!State.sortedPinIDs.has(u)});if(f.length>0){l=0,o.textContent=`Page ${d}: Fetching ${f.length} pins...`;const c=f.map(g=>g.getAttribute("data-test-pin-id")),u=await fetchBulk(c);for(const g of f){const w=g.getAttribute("data-test-pin-id");if(State.sortedPinIDs.has(w))continue;State.sortedPinIDs.add(w);const v=u.get(w);if(!v)continue;let y,x;State.selectedMetric==="date"?(y=new Date(v.createdAt).getTime()||0,x=new Date(v.createdAt).toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})):(y=v[METRIC_MAP[State.selectedMetric]]||0,x=formatNumber(y)),g.setAttribute("rel",y),g.dataset.pinId=w,g.classList.add("pinbox"),g.insertAdjacentHTML("beforeend",createOverlayHTML(v)),recordPinObservation(w,v);const b=g.closest('[data-grid-item="true"]')?.cloneNode(!0);b&&State.insertedNodes.push(b),State.count++}o.textContent=`Page ${d}: Done! (${f.length} pins processed)`}else if(l++,o.textContent=`Page ${d}: No new pins found`,l>=2){o.textContent="No more new pins found - stopping early";break}d<p&&(window.scrollTo(0,document.body.scrollHeight),await sleep(2500))}o.textContent="Building sorted view...",await sleep(500),s.remove(),showSortedBar()}catch(i){console.error("PinTwist: Error in startSortingProcess:",i),alert("PinTwist Error: "+i.message+`
