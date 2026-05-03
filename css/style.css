@@ -1581,6 +1581,23 @@ button:focus-visible {
     background: #b3261e;
     border-color: #b3261e;
 }
+
+/* Cancel button injected into the scan-progress popup. */
+.pintwist-progress-cancel {
+    display: block;
+    margin: 16px auto 0 auto;
+    padding: 8px 18px;
+    background: #d93025;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.pintwist-progress-cancel:hover:not(:disabled) { background: #b3261e; }
+.pintwist-progress-cancel:disabled { background: #999; cursor: wait; }
 .pintwist-auto-stats {
     margin-left: auto;
     font-size: 12px;

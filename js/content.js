@@ -543,6 +543,41 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
         || document.getElementById("pintwist-initial-bar");
   }
 
+  // Inject a Cancel button into the scan-progress popup (#pintwist-progress-panel).
+  // The popup is what's visible during a scan ("Page X of 40"); the toolbar is
+  // hidden. Setting State.aborted is all the existing scan engine needs — it
+  // already shows "Cancelled" and removes the popup. If automation is running,
+  // we also mark the current queue term as cancelled and pause the queue.
+  function ensureProgressCancelButton() {
+    const panel = document.getElementById("pintwist-progress-panel");
+    if (!panel) return;
+    if (panel.querySelector("#pintwist-progress-cancel")) return;
+    const btn = document.createElement("button");
+    btn.id = "pintwist-progress-cancel";
+    btn.type = "button";
+    btn.textContent = "Cancel scan";
+    btn.className = "pintwist-progress-cancel";
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      try { if (typeof State !== "undefined") State.aborted = true; } catch {}
+      btn.disabled = true;
+      btn.textContent = "Cancelling…";
+      // If automation queue is running, mark current term cancelled + pause.
+      try {
+        await loadState();
+        if (state && state.running) {
+          if (state.terms[state.currentIdx] && state.terms[state.currentIdx].status === "running") {
+            state.terms[state.currentIdx].status = "cancelled";
+            state.terms[state.currentIdx].error = "user cancelled";
+          }
+          await saveState({ running: false });
+        }
+      } catch (err) { console.warn("[PinTwist Automation] cancel save failed:", err); }
+    });
+    panel.appendChild(btn);
+  }
+
   function ensurePanel() {
     const bar = getActiveBar();
     if (!bar) return;
@@ -801,15 +836,16 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     await loadState();
     const tryMount = () => {
       const bar = getActiveBar();
-      if (!bar) return false;
-      // Re-attach when bar exists but our toggle is missing (or it's on a
-      // different bar than the active one).
-      if (!bar.querySelector("#pintwist-auto-toggle")) {
+      if (bar && !bar.querySelector("#pintwist-auto-toggle")) {
         ensurePanel();
         renderPanel();
         runOnceForCurrentPage();
       }
-      return true;
+      // Also inject a Cancel button into the scan-progress popup whenever it
+      // appears. This is visible during the actual scan when the toolbar is
+      // hidden. Works for both manual sorts and automation runs.
+      ensureProgressCancelButton();
+      return !!bar;
     };
     tryMount();
     // Permanent observer: re-attach across SPA navigations + sort_all rebuilds.
