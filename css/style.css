@@ -1750,6 +1750,35 @@ button:focus-visible {
     color: #1a1a1a;
 }
 
+/* ▶ / ✗ icon buttons sitting next to the master toggle. Match the pill
+ * buttons visually so users recognize the same affordance. */
+.pintwist-auto-iconbtn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid #d0d0d0;
+    background: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    color: #555;
+    padding: 0;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.pintwist-auto-iconbtn--play:hover {
+    background: var(--pintwist-primary, #F48FB1);
+    color: #fff;
+    border-color: var(--pintwist-primary, #F48FB1);
+}
+.pintwist-auto-iconbtn--x:hover {
+    background: #d93025;
+    color: #fff;
+    border-color: #d93025;
+}
+
 .pintwist-auto-countdown {
     font-size: 13px;
     color: #555;

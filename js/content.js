@@ -765,13 +765,17 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       '<label>Interval (min) ' + numField("pintwist-auto-interval", 0.25, 180, 0.25, (prev.interval || state.intervalMin)) + '</label>' +
       '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-randomize" ' + (state.randomize ? "checked" : "") + '> Randomize &plusmn;' + numField("pintwist-auto-randomize-pct", 0, 95, 1, (prev.pct || state.randomizePct), "pintwist-auto-num--xs") + ' %</label>' +
       '</div>' +
-      // Master ON/OFF toggle + secondary actions + live countdown
+      // Master ON/OFF toggle + ▶/✗ shortcuts + secondary actions + countdown.
+      // ▶ skips the countdown and runs the current term right now.
+      // ✗ turns the toggle off (mirrors the pill buttons' semantics).
       '<div class="pintwist-auto-master-row">' +
       '<label class="pintwist-auto-switch">' +
       '<input type="checkbox" id="pintwist-auto-running"' + (state.running ? " checked" : "") + (inCooldown ? " disabled" : "") + '>' +
       '<span class="pintwist-auto-switch-track"><span class="pintwist-auto-switch-thumb"></span></span>' +
       '<span class="pintwist-auto-switch-label">Run automation</span>' +
       '</label>' +
+      '<button id="pintwist-auto-runnow" class="pintwist-auto-iconbtn pintwist-auto-iconbtn--play" type="button" title="Run next term now (skip countdown)" aria-label="Run now">&#9654;</button>' +
+      '<button id="pintwist-auto-off" class="pintwist-auto-iconbtn pintwist-auto-iconbtn--x" type="button" title="Turn automation off" aria-label="Turn off">&#10005;</button>' +
       '<span class="pintwist-auto-countdown" id="pintwist-auto-countdown"></span>' +
       '<span class="pintwist-auto-stats" id="pintwist-auto-stats"></span>' +
       '<button id="pintwist-auto-cancel" class="pintwist-auto-btn pintwist-auto-btn--danger"' + (state.running ? "" : " disabled") + '>Cancel scan</button>' +
@@ -884,9 +888,13 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       }
     });
 
-    // Master ON/OFF toggle. ON = save running=true, parse settings, kick off
-    // the runner. OFF = save running=false, cancel any pending next-term
-    // timeout (does NOT abort an in-progress scan; use Cancel scan for that).
+    // Master ON/OFF toggle.
+    //   ON  → save running=true, persist settings, schedule first scan after
+    //         the configured interval (with jitter). The countdown is visible
+    //         immediately so the user can see what's coming + has a window to
+    //         hit ▶ (run now) or ✗ (off) before anything fires.
+    //   OFF → save running=false, cancel any pending timeout. Does NOT abort
+    //         an in-progress scan; use Cancel scan for that.
     if (runningSwitch) runningSwitch.addEventListener("change", async (e) => {
       const on = !!e.target.checked;
       if (on) {
@@ -895,7 +903,6 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
             e.target.checked = false;
             return;
           }
-          // Reset cancelled/failed so user can retry
           state.terms = state.terms.map((t) => (t.status === "cancelled" || t.status === "failed") ? { term: t.term, status: "pending" } : t);
           state.currentIdx = state.terms.findIndex((x) => x.status !== "done");
           if (state.currentIdx === -1) state.currentIdx = 0;
@@ -903,11 +910,49 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
         try { if (typeof State !== "undefined") State.aborted = false; } catch {}
         await persistSettingsFromInputs(wrap);
         await saveState({ running: true, cooldownUntil: 0 });
-        runOnceForCurrentPage();
+        // Schedule first scan with a countdown (instead of firing immediately)
+        // so the user sees what's about to happen + can ▶/✗ before it runs.
+        const delay = jitterDelayMs();
+        if (_pendingNextTimeout) clearTimeout(_pendingNextTimeout);
+        _pendingNextDeadline = Date.now() + delay;
+        _pendingNextTimeout = setTimeout(() => {
+          _pendingNextTimeout = null;
+          _pendingNextDeadline = 0;
+          runOnceForCurrentPage();
+        }, delay);
+        renderQueueAndStats();
       } else {
         if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
         await saveState({ running: false });
       }
+    });
+
+    // ▶ Run now: cancel any pending countdown, kick off immediately.
+    const runNowBtn = $("pintwist-auto-runnow");
+    if (runNowBtn) runNowBtn.addEventListener("click", async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
+      try { if (typeof State !== "undefined") State.aborted = false; } catch {}
+      // Make sure we're running and persist settings before kicking off.
+      if (state.terms.filter((t) => t.status !== "done" && t.status !== "failed" && t.status !== "cancelled").length === 0) {
+        // Reset cancelled/failed so a Run now after everything's done still works.
+        state.terms = state.terms.map((t) => (t.status === "cancelled" || t.status === "failed") ? { term: t.term, status: "pending" } : t);
+        state.currentIdx = state.terms.findIndex((x) => x.status !== "done");
+        if (state.currentIdx === -1) state.currentIdx = 0;
+      }
+      await persistSettingsFromInputs(wrap);
+      await saveState({ running: true, cooldownUntil: 0 });
+      runOnceForCurrentPage();
+    });
+
+    // ✗ Turn off: same effect as flipping the toggle to off.
+    const offBtn = $("pintwist-auto-off");
+    if (offBtn) offBtn.addEventListener("click", async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
+      await saveState({ running: false });
+      // Reflect on the toggle UI (state-change re-render handles the rest).
+      if (runningSwitch) runningSwitch.checked = false;
     });
 
     // Pill clicks (delegated): ▶ = run now, ✗ = remove
