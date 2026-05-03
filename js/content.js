@@ -298,18 +298,20 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
 (function pintwistAutomation() {
   const QKEY = "pintwist_queue";
   const DEFAULTS = {
-    enabled: false,
     running: false,
     terms: [],
     currentIdx: 0,
     pagesPerTerm: 40,
-    intervalSec: 60,
+    intervalMin: 1,         // minutes (was intervalSec; migrated on load)
     randomize: false,
     randomizePct: 40,
     cooldownUntil: 0,
     lastNavAt: 0,
     panelExpanded: false,
   };
+  // Module-local — survives across same-page renders, resets on navigation.
+  let _pendingNextTimeout = null;
+  let _pendingNextDeadline = 0;
   const COOLDOWN_MS = 60 * 60 * 1000;
   const SCAN_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -318,6 +320,16 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
   async function loadState() {
     const out = await chrome.storage.local.get(QKEY);
     state = Object.assign({}, DEFAULTS, out[QKEY] || {});
+    // Migrate legacy intervalSec → intervalMin
+    if (typeof state.intervalSec === "number") {
+      state.intervalMin = Math.max(0.25, Math.round((state.intervalSec / 60) * 4) / 4);
+      delete state.intervalSec;
+    }
+    if (typeof state.intervalMin !== "number" || !isFinite(state.intervalMin)) {
+      state.intervalMin = DEFAULTS.intervalMin;
+    }
+    // enabled is dropped — running is the single source of truth now
+    delete state.enabled;
     return state;
   }
   async function saveState(patch) {
@@ -351,7 +363,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
   }
 
   function jitterDelayMs() {
-    const base = Math.max(1, state.intervalSec) * 1000;
+    const base = Math.max(0.25, state.intervalMin) * 60 * 1000;
     if (!state.randomize) return base;
     const pct = Math.max(0, Math.min(95, state.randomizePct)) / 100;
     const min = base * (1 - pct);
@@ -441,7 +453,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
 
   async function runOnceForCurrentPage() {
     await loadState();
-    if (!state.enabled || !state.running) return;
+    if (!state.running) return;
     if (state.cooldownUntil && Date.now() < state.cooldownUntil) return;
     if (state.currentIdx >= state.terms.length) return;
 
@@ -514,8 +526,14 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
 
       if (state.currentIdx < state.terms.length) {
         const delay = jitterDelayMs();
-        console.log("[PinTwist Automation] Next search in " + (delay/1000).toFixed(1) + "s");
-        setTimeout(() => advanceAndNavigate(), delay);
+        console.log("[PinTwist Automation] Next search in " + (delay/60000).toFixed(2) + " min");
+        _pendingNextDeadline = Date.now() + delay;
+        if (_pendingNextTimeout) clearTimeout(_pendingNextTimeout);
+        _pendingNextTimeout = setTimeout(() => {
+          _pendingNextTimeout = null;
+          _pendingNextDeadline = 0;
+          advanceAndNavigate();
+        }, delay);
       } else {
         await saveState({ running: false });
         try { alert("PinTwist: Queue complete. " + state.terms.filter((x) => x.status === "done").length + " searches saved."); } catch {}
@@ -712,24 +730,37 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     const initialTerms = (typeof prev.terms === "string") ? prev.terms : state.terms.map((t) => t.term).join(", ");
 
     body.innerHTML =
+      // Search-term entry: textarea + Add button. Adding APPENDS to queue
+      // (deduped) instead of replacing — terms accumulate as pills below.
       '<div class="pintwist-auto-row-fields">' +
-      '<label class="pintwist-auto-label">Search terms (comma or newline separated):</label>' +
-      '<textarea id="pintwist-auto-terms" class="pintwist-auto-textarea" rows="3" placeholder="boho wall art, vintage florals, cottagecore prints">' + escAuto(initialTerms) + '</textarea>' +
+      '<label class="pintwist-auto-label">Add search terms (comma or newline separated):</label>' +
+      '<div class="pintwist-auto-add-row">' +
+      '<textarea id="pintwist-auto-terms" class="pintwist-auto-textarea" rows="2" placeholder="boho wall art, vintage florals, cottagecore prints">' + escAuto(typeof prev.terms === "string" ? prev.terms : "") + '</textarea>' +
+      '<button id="pintwist-auto-add" type="button" class="pintwist-auto-btn pintwist-auto-btn--primary">+ Add to queue</button>' +
       '</div>' +
+      '</div>' +
+      // Pill bar — each term renders as a pill in #pintwist-auto-queue, with
+      // X to remove + ▶ to run that one immediately. Re-rendered each tick.
+      '<div class="pintwist-auto-pills" id="pintwist-auto-queue"></div>' +
+      // Settings row
       '<div class="pintwist-auto-row-fields">' +
       '<label>Pages/search <input type="number" id="pintwist-auto-pages" min="1" max="100" value="' + (prev.pages || state.pagesPerTerm) + '" class="pintwist-auto-num"></label>' +
-      '<label>Interval (sec) <input type="number" id="pintwist-auto-interval" min="5" max="3600" value="' + (prev.interval || state.intervalSec) + '" class="pintwist-auto-num"></label>' +
+      '<label>Interval (min) <input type="number" id="pintwist-auto-interval" min="0.25" max="180" step="0.25" value="' + (prev.interval || state.intervalMin) + '" class="pintwist-auto-num"></label>' +
       '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-randomize" ' + (state.randomize ? "checked" : "") + '> Randomize &plusmn;<input type="number" id="pintwist-auto-randomize-pct" min="0" max="95" value="' + (prev.pct || state.randomizePct) + '" class="pintwist-auto-num pintwist-auto-num--xs"> %</label>' +
-      '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-enabled" ' + (state.enabled ? "checked" : "") + '> Auto Mode</label>' +
       '</div>' +
-      '<div class="pintwist-auto-row-fields">' +
-      '<button id="pintwist-auto-start" class="pintwist-auto-btn pintwist-auto-btn--primary"' + (inCooldown ? " disabled" : "") + '>' + (state.running ? "Running..." : "Start") + '</button>' +
+      // Master ON/OFF toggle + secondary actions + live countdown
+      '<div class="pintwist-auto-master-row">' +
+      '<label class="pintwist-auto-switch">' +
+      '<input type="checkbox" id="pintwist-auto-running"' + (state.running ? " checked" : "") + (inCooldown ? " disabled" : "") + '>' +
+      '<span class="pintwist-auto-switch-track"><span class="pintwist-auto-switch-thumb"></span></span>' +
+      '<span class="pintwist-auto-switch-label">Run automation</span>' +
+      '</label>' +
+      '<span class="pintwist-auto-countdown" id="pintwist-auto-countdown"></span>' +
+      '<span class="pintwist-auto-stats" id="pintwist-auto-stats"></span>' +
       '<button id="pintwist-auto-cancel" class="pintwist-auto-btn pintwist-auto-btn--danger"' + (state.running ? "" : " disabled") + '>Cancel scan</button>' +
       '<button id="pintwist-auto-clear" class="pintwist-auto-btn">Clear queue</button>' +
       '<button id="pintwist-auto-resume-cd" class="pintwist-auto-btn"' + (inCooldown ? "" : " disabled") + '>Skip cooldown</button>' +
-      '<span class="pintwist-auto-stats" id="pintwist-auto-stats"></span>' +
-      '</div>' +
-      '<div class="pintwist-auto-queue" id="pintwist-auto-queue"></div>';
+      '</div>';
 
     wireBody(body);
     renderQueueAndStats();
@@ -739,27 +770,53 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     if (!state || !state.panelExpanded) return;
     const queueEl = document.getElementById("pintwist-auto-queue");
     const statsEl = document.getElementById("pintwist-auto-stats");
-    if (!queueEl || !statsEl) return;
+    const cdEl = document.getElementById("pintwist-auto-countdown");
+    if (!queueEl) return;
 
-    const queueRows = state.terms.map((t, i) => {
+    // Pills: each term = a pill with status icon + label + ▶ + ✗.
+    const pills = state.terms.map((t, i) => {
+      const isCurrent = i === state.currentIdx && state.running;
       const icon = t.status === "done" ? "&#10003;"
                  : t.status === "failed" ? "&#10007;"
                  : t.status === "cancelled" ? "&#9209;"
-                 : i === state.currentIdx && state.running ? "&#9654;"
+                 : isCurrent ? "&#9654;"
                  : "&#8987;";
-      const cls = "pintwist-auto-row pintwist-auto-row--" + t.status;
-      const detail = t.status === "done" ? ((t.pinCount || 0) + " pins &middot; CSV saved")
-                   : t.status === "failed" ? (t.error || "failed")
+      const cls = "pintwist-auto-pill pintwist-auto-pill--" + t.status + (isCurrent ? " pintwist-auto-pill--current" : "");
+      const detail = t.status === "done" ? (t.pinCount || 0) + " pins"
+                   : t.status === "failed" ? "failed"
                    : t.status === "cancelled" ? "cancelled"
-                   : i === state.currentIdx && state.running ? "running..."
-                   : "pending";
-      return '<div class="' + cls + '"><span class="pintwist-auto-icon">' + icon + '</span><span class="pintwist-auto-term">' + escAuto(t.term) + '</span><span class="pintwist-auto-detail">' + escAuto(detail) + '</span></div>';
+                   : isCurrent ? "scanning…"
+                   : "";
+      return '' +
+        '<span class="' + cls + '" data-idx="' + i + '" data-term="' + escAuto(t.term) + '">' +
+        '<span class="pintwist-auto-pill-icon">' + icon + '</span>' +
+        '<span class="pintwist-auto-pill-text">' + escAuto(t.term) + (detail ? ' <em>(' + escAuto(detail) + ')</em>' : '') + '</span>' +
+        '<button type="button" class="pintwist-auto-pill-play" data-idx="' + i + '" title="Run this term now">&#9654;</button>' +
+        '<button type="button" class="pintwist-auto-pill-x" data-idx="' + i + '" title="Remove">&#10005;</button>' +
+        '</span>';
     }).join("");
-    queueEl.innerHTML = queueRows || '<div class="pintwist-auto-empty">No queue. Paste terms above and click Start.</div>';
+    queueEl.innerHTML = pills || '<div class="pintwist-auto-empty">No queue. Add some search terms above.</div>';
 
-    const doneCount = state.terms.filter((x) => x.status === "done").length;
-    const failedCount = state.terms.filter((x) => x.status === "failed").length;
-    statsEl.innerHTML = doneCount + '/' + state.terms.length + ' done' + (failedCount ? ' &middot; ' + failedCount + ' failed' : '');
+    if (statsEl) {
+      const doneCount = state.terms.filter((x) => x.status === "done").length;
+      const failedCount = state.terms.filter((x) => x.status === "failed").length;
+      statsEl.innerHTML = state.terms.length === 0 ? "" : (doneCount + '/' + state.terms.length + ' done' + (failedCount ? ' &middot; ' + failedCount + ' failed' : ''));
+    }
+
+    // Live countdown — shows time until next scan, or scan-in-progress, or
+    // cooldown remaining, or idle. Updates every 1s via the existing tick.
+    if (cdEl) {
+      const cooldownLeft = state.cooldownUntil ? state.cooldownUntil - Date.now() : 0;
+      const inCooldown = cooldownLeft > 0;
+      const isScanning = !!document.getElementById("pintwist-progress-panel");
+      let txt = "";
+      if (inCooldown) txt = '<span class="pintwist-auto-cd--cooldown">Cooldown: <strong>' + fmtCountdown(cooldownLeft) + '</strong></span>';
+      else if (isScanning) txt = '<span class="pintwist-auto-cd--scanning">Scanning now…</span>';
+      else if (_pendingNextDeadline > Date.now()) txt = 'Next scan in <strong>' + fmtCountdown(_pendingNextDeadline - Date.now()) + '</strong>';
+      else if (state.running) txt = '<span class="pintwist-auto-cd--idle">Starting…</span>';
+      else txt = '<span class="pintwist-auto-cd--off">Off</span>';
+      cdEl.innerHTML = txt;
+    }
   }
 
   function renderPanel() {
@@ -767,52 +824,112 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     renderBodyScaffold();
   }
 
+  // Read the current settings inputs (pages / interval / randomize) and
+  // persist them. Called from the toggle + the "Add" button + ▶ pill click.
+  async function persistSettingsFromInputs(wrap) {
+    const $ = (id) => wrap.querySelector("#" + id);
+    const pagesPerTerm = Math.max(1, Math.min(100, parseInt($("pintwist-auto-pages").value, 10) || 40));
+    const intervalMin = Math.max(0.25, Math.min(180, parseFloat($("pintwist-auto-interval").value) || 1));
+    const randomizePct = Math.max(0, Math.min(95, parseInt($("pintwist-auto-randomize-pct").value, 10) || 40));
+    await saveState({ pagesPerTerm, intervalMin, randomizePct, randomize: !!$("pintwist-auto-randomize").checked });
+  }
+
   function wireBody(wrap) {
     const $ = (id) => wrap.querySelector("#" + id);
-    const startBtn = $("pintwist-auto-start");
+    const addBtn = $("pintwist-auto-add");
+    const runningSwitch = $("pintwist-auto-running");
     const cancelBtn = $("pintwist-auto-cancel");
     const clearBtn = $("pintwist-auto-clear");
     const skipCd = $("pintwist-auto-resume-cd");
-    const enabled = $("pintwist-auto-enabled");
     const randomize = $("pintwist-auto-randomize");
+    const queueEl = $("pintwist-auto-queue");
 
-    if (startBtn) startBtn.addEventListener("click", async () => {
-      const terms = parseTerms($("pintwist-auto-terms").value);
+    // Add to queue: APPEND new terms (deduped against existing), don't replace.
+    const doAdd = async () => {
+      const ta = $("pintwist-auto-terms");
+      const terms = parseTerms(ta.value);
       if (terms.length === 0) { alert("Paste at least one search term."); return; }
-      const pagesPerTerm = Math.max(1, Math.min(100, parseInt($("pintwist-auto-pages").value, 10) || 40));
-      const intervalSec = Math.max(5, Math.min(3600, parseInt($("pintwist-auto-interval").value, 10) || 60));
-      const randomizePct = Math.max(0, Math.min(95, parseInt($("pintwist-auto-randomize-pct").value, 10) || 40));
-      const existing = new Map(state.terms.map((t) => [t.term, t]));
-      const items = terms.map((t) => {
-        const ex = existing.get(t);
-        if (!ex) return { term: t, status: "pending" };
-        // Restart cancelled terms when user hits Start again — keep done/failed.
-        if (ex.status === "cancelled") return { term: t, status: "pending" };
-        return ex;
-      });
-      let firstPending = items.findIndex((x) => x.status !== "done" && x.status !== "failed");
-      if (firstPending === -1) firstPending = 0;
-      // Clear the existing extension's abort flag so the new run isn't
-      // immediately killed by a stale State.aborted from an earlier cancel.
-      try { if (typeof State !== "undefined") State.aborted = false; } catch {}
-      await saveState({
-        terms: items,
-        currentIdx: firstPending,
-        pagesPerTerm, intervalSec, randomizePct,
-        randomize: $("pintwist-auto-randomize").checked,
-        enabled: $("pintwist-auto-enabled").checked,
-        running: true,
-        cooldownUntil: 0,
-      });
-      runOnceForCurrentPage();
+      const existing = new Set(state.terms.map((t) => t.term.trim().toLowerCase()));
+      const toAdd = terms.filter((t) => !existing.has(t.trim().toLowerCase()));
+      if (toAdd.length === 0) { ta.value = ""; alert("All those terms are already in the queue."); return; }
+      const newItems = toAdd.map((t) => ({ term: t, status: "pending" }));
+      ta.value = "";
+      await persistSettingsFromInputs(wrap);
+      await saveState({ terms: state.terms.concat(newItems) });
+    };
+    if (addBtn) addBtn.addEventListener("click", doAdd);
+    // Enter submits (Shift+Enter inserts newline, the standard convention).
+    const ta = $("pintwist-auto-terms");
+    if (ta) ta.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        doAdd();
+      }
     });
 
-    // Cancel scan: immediate abort. Sets the existing extension's State.aborted
-    // flag (which the scrolling/scan engine already checks) AND pauses the
-    // queue. The plateau loop in runOnceForCurrentPage also watches this flag
-    // so the auto-runner returns without triggering a cooldown.
+    // Master ON/OFF toggle. ON = save running=true, parse settings, kick off
+    // the runner. OFF = save running=false, cancel any pending next-term
+    // timeout (does NOT abort an in-progress scan; use Cancel scan for that).
+    if (runningSwitch) runningSwitch.addEventListener("change", async (e) => {
+      const on = !!e.target.checked;
+      if (on) {
+        if (state.terms.filter((t) => t.status !== "done" && t.status !== "failed" && t.status !== "cancelled").length === 0) {
+          if (!confirm("Queue has no pending terms. Reset cancelled/failed terms and start over?")) {
+            e.target.checked = false;
+            return;
+          }
+          // Reset cancelled/failed so user can retry
+          state.terms = state.terms.map((t) => (t.status === "cancelled" || t.status === "failed") ? { term: t.term, status: "pending" } : t);
+          state.currentIdx = state.terms.findIndex((x) => x.status !== "done");
+          if (state.currentIdx === -1) state.currentIdx = 0;
+        }
+        try { if (typeof State !== "undefined") State.aborted = false; } catch {}
+        await persistSettingsFromInputs(wrap);
+        await saveState({ running: true, cooldownUntil: 0 });
+        runOnceForCurrentPage();
+      } else {
+        if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
+        await saveState({ running: false });
+      }
+    });
+
+    // Pill clicks (delegated): ▶ = run now, ✗ = remove
+    if (queueEl) queueEl.addEventListener("click", async (e) => {
+      const playBtn = e.target.closest(".pintwist-auto-pill-play");
+      const xBtn = e.target.closest(".pintwist-auto-pill-x");
+      if (playBtn) {
+        e.preventDefault(); e.stopPropagation();
+        const idx = parseInt(playBtn.dataset.idx, 10);
+        if (isNaN(idx) || !state.terms[idx]) return;
+        // Reset this term's status if it was done/failed/cancelled, then jump
+        // currentIdx to it and turn on running.
+        if (state.terms[idx].status !== "pending") {
+          state.terms[idx] = { term: state.terms[idx].term, status: "pending" };
+        }
+        if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
+        try { if (typeof State !== "undefined") State.aborted = false; } catch {}
+        await persistSettingsFromInputs(wrap);
+        await saveState({ currentIdx: idx, running: true, cooldownUntil: 0 });
+        runOnceForCurrentPage();
+        return;
+      }
+      if (xBtn) {
+        e.preventDefault(); e.stopPropagation();
+        const idx = parseInt(xBtn.dataset.idx, 10);
+        if (isNaN(idx)) return;
+        const newTerms = state.terms.slice(0, idx).concat(state.terms.slice(idx + 1));
+        let newIdx = state.currentIdx;
+        if (idx < state.currentIdx) newIdx -= 1;
+        else if (idx === state.currentIdx) newIdx = Math.min(newIdx, newTerms.length - 1);
+        await saveState({ terms: newTerms, currentIdx: Math.max(0, newIdx) });
+        return;
+      }
+    });
+
+    // Cancel scan: immediate abort + pause queue. (See state-machine notes.)
     if (cancelBtn) cancelBtn.addEventListener("click", async () => {
       try { if (typeof State !== "undefined") State.aborted = true; } catch {}
+      if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
       if (state.terms[state.currentIdx] && state.terms[state.currentIdx].status === "running") {
         state.terms[state.currentIdx].status = "cancelled";
         state.terms[state.currentIdx].error = "user cancelled";
@@ -821,8 +938,9 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     });
 
     if (clearBtn) clearBtn.addEventListener("click", async () => {
-      if (state.running && !confirm("Stop and clear the queue?")) return;
+      if ((state.running || state.terms.length > 0) && !confirm("Clear the entire queue?")) return;
       try { if (typeof State !== "undefined") State.aborted = true; } catch {}
+      if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
       await saveState({ terms: [], currentIdx: 0, running: false });
     });
 
@@ -831,7 +949,6 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       await saveState({ cooldownUntil: 0 });
     });
 
-    if (enabled) enabled.addEventListener("change", async (e) => { await saveState({ enabled: e.target.checked }); });
     if (randomize) randomize.addEventListener("change", async (e) => { await saveState({ randomize: e.target.checked }); });
   }
 

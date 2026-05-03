@@ -1582,6 +1582,144 @@ button:focus-visible {
     border-color: #b3261e;
 }
 
+/* ===== Add row + Pills + ON/OFF switch + countdown (v1.7+) ===== */
+.pintwist-auto-add-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    width: 100%;
+}
+.pintwist-auto-add-row .pintwist-auto-textarea { flex: 1; }
+.pintwist-auto-add-row .pintwist-auto-btn { white-space: nowrap; align-self: flex-start; }
+
+.pintwist-auto-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 6px;
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    min-height: 44px;
+}
+.pintwist-auto-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 4px 4px 10px;
+    background: #fff;
+    border: 1px solid #d0d0d0;
+    border-radius: 999px;
+    font-size: 12px;
+    color: #333;
+    max-width: 320px;
+    transition: border-color 0.15s, background 0.15s;
+}
+.pintwist-auto-pill--current {
+    border-color: var(--pintwist-primary, #F48FB1);
+    background: rgba(244, 143, 177, 0.08);
+}
+.pintwist-auto-pill--done { background: #f0f9f3; border-color: #c8e6d0; color: #2eb872; }
+.pintwist-auto-pill--failed { background: #fdeeed; border-color: #f4c5c2; color: #b3261e; }
+.pintwist-auto-pill--cancelled { color: #888; }
+.pintwist-auto-pill-icon { font-weight: bold; font-size: 11px; }
+.pintwist-auto-pill-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pintwist-auto-pill-text em { font-style: normal; opacity: 0.7; font-size: 11px; }
+.pintwist-auto-pill-play,
+.pintwist-auto-pill-x {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    color: #666;
+    padding: 0;
+}
+.pintwist-auto-pill-play:hover {
+    background: var(--pintwist-primary, #F48FB1);
+    color: #fff;
+}
+.pintwist-auto-pill-x:hover {
+    background: #d93025;
+    color: #fff;
+}
+
+/* Master row: ON/OFF switch + secondary buttons + countdown. */
+.pintwist-auto-master-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding-top: 6px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.pintwist-auto-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+.pintwist-auto-switch input { position: absolute; opacity: 0; pointer-events: none; }
+.pintwist-auto-switch-track {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    border-radius: 999px;
+    background: #ccc;
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+}
+.pintwist-auto-switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: left 0.2s ease;
+}
+.pintwist-auto-switch input:checked + .pintwist-auto-switch-track {
+    background: var(--pintwist-primary, #F48FB1);
+}
+.pintwist-auto-switch input:checked + .pintwist-auto-switch-track .pintwist-auto-switch-thumb {
+    left: 25px;
+}
+.pintwist-auto-switch input:disabled + .pintwist-auto-switch-track {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.pintwist-auto-switch-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #1a1a1a;
+}
+
+.pintwist-auto-countdown {
+    font-size: 13px;
+    color: #555;
+    font-variant-numeric: tabular-nums;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #f5f5f5;
+    min-width: 140px;
+    text-align: center;
+}
+.pintwist-auto-countdown strong { color: #1a1a1a; font-variant-numeric: tabular-nums; }
+.pintwist-auto-cd--scanning { color: var(--pintwist-primary-dark, #E91E63); font-weight: 600; }
+.pintwist-auto-cd--cooldown { color: #d93025; }
+.pintwist-auto-cd--off { color: #999; }
+.pintwist-auto-cd--idle { color: #888; }
+
 /* Cancel button injected into the scan-progress popup. */
 .pintwist-progress-cancel {
     display: block;
