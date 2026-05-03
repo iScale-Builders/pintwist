@@ -1572,6 +1572,15 @@ button:focus-visible {
     background: var(--pintwist-primary-dark, #E91E63);
     border-color: var(--pintwist-primary-dark, #E91E63);
 }
+.pintwist-auto-btn--danger {
+    background: #d93025;
+    color: #fff;
+    border-color: #d93025;
+}
+.pintwist-auto-btn--danger:hover:not(:disabled) {
+    background: #b3261e;
+    border-color: #b3261e;
+}
 .pintwist-auto-stats {
     margin-left: auto;
     font-size: 12px;
@@ -1603,6 +1612,7 @@ button:focus-visible {
 .pintwist-auto-row--done .pintwist-auto-icon { color: #2eb872; }
 .pintwist-auto-row--failed .pintwist-auto-icon { color: #d93025; }
 .pintwist-auto-row--running .pintwist-auto-icon { color: var(--pintwist-primary, #F48FB1); }
+.pintwist-auto-row--cancelled .pintwist-auto-icon { color: #999; }
 .pintwist-auto-icon { text-align: center; font-weight: bold; }
 .pintwist-auto-term { font-weight: 500; color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pintwist-auto-detail { color: #777; font-size: 11px; white-space: nowrap; }

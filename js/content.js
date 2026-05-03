@@ -435,7 +435,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     if (state.currentIdx >= state.terms.length) return;
 
     const term = state.terms[state.currentIdx];
-    if (!term || term.status === "done" || term.status === "failed") {
+    if (!term || term.status === "done" || term.status === "failed" || term.status === "cancelled") {
       return advanceAndNavigate();
     }
 
@@ -461,13 +461,31 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
 
       let lastSize = -1, lastChange = Date.now();
       const start = Date.now();
+      let cancelled = false;
       while (Date.now() - start < SCAN_TIMEOUT_MS) {
         await new Promise((r) => setTimeout(r, 1000));
+        // User clicked Cancel scan? — bail without cooldown, without saving CSV.
+        if (typeof State !== "undefined" && State.aborted) { cancelled = true; break; }
+        // Re-read queue state in case Pause/Clear was clicked from the panel.
+        try {
+          const live = (await chrome.storage.local.get(QKEY))[QKEY];
+          if (!live || !live.running) { cancelled = true; break; }
+        } catch {}
         const size = (window.State && window.State.sortedPinIDs && window.State.sortedPinIDs.size)
                   || (typeof State !== "undefined" && State.sortedPinIDs && State.sortedPinIDs.size) || 0;
         if (size !== lastSize) { lastSize = size; lastChange = Date.now(); }
         if (looksLikeCaptcha()) return triggerCooldown("Captcha during scan");
         if (lastSize > 0 && Date.now() - lastChange > 8000) break;
+      }
+
+      if (cancelled) {
+        // Mark cancelled if not already marked, leave queue paused.
+        if (state.terms[state.currentIdx] && state.terms[state.currentIdx].status !== "cancelled") {
+          state.terms[state.currentIdx].status = "cancelled";
+          state.terms[state.currentIdx].error = "user cancelled";
+        }
+        await saveState({ running: false });
+        return;
       }
 
       if (lastSize === 0) return triggerCooldown("No pins loaded - likely rate-limited");
@@ -506,7 +524,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     if (!state.running) return;
     while (state.currentIdx < state.terms.length) {
       const t = state.terms[state.currentIdx];
-      if (t && t.status !== "done" && t.status !== "failed") break;
+      if (t && t.status !== "done" && t.status !== "failed" && t.status !== "cancelled") break;
       state.currentIdx += 1;
     }
     if (state.currentIdx >= state.terms.length) {
@@ -518,27 +536,44 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     location.href = searchUrlFor(t.term);
   }
 
+  // Mount on whichever toolbar is currently visible — initial bar (before sort)
+  // or resort bar (after sort completes). Both behave as positioning contexts.
+  function getActiveBar() {
+    return document.getElementById("pintwist-resort-bar")
+        || document.getElementById("pintwist-initial-bar");
+  }
+
   function ensurePanel() {
-    const initialBar = document.getElementById("pintwist-initial-bar");
-    if (!initialBar) return;
+    const bar = getActiveBar();
+    if (!bar) return;
     // Toggle button — appended as last child of the bar; CSS pushes it right
     // via margin-left:auto so it always sits at the far right of the toolbar.
     let toggle = document.getElementById("pintwist-auto-toggle");
-    if (!toggle || !initialBar.contains(toggle)) {
+    if (toggle && !bar.contains(toggle)) {
+      // bar changed (initial -> resort or vice versa) — relocate
+      toggle.remove();
+      toggle = null;
+    }
+    if (!toggle) {
       toggle = document.createElement("button");
       toggle.type = "button";
       toggle.id = "pintwist-auto-toggle";
       toggle.className = "pintwist-auto-toggle";
-      initialBar.appendChild(toggle);
+      bar.appendChild(toggle);
     }
     // Body dropdown — child of the bar, absolute-positioned right under it
     // so it visually appears as the toolbar "expanding downward".
     let body = document.getElementById("pintwist-auto-body");
-    if (!body || !initialBar.contains(body)) {
+    if (body && !bar.contains(body)) {
+      body.remove();
+      body = null;
+      _bodyBuiltFor = null;
+    }
+    if (!body) {
       body = document.createElement("div");
       body.id = "pintwist-auto-body";
       body.className = "pintwist-auto-body";
-      initialBar.appendChild(body);
+      bar.appendChild(body);
       _bodyBuiltFor = null; // force a fresh scaffold on the new bar
     }
     renderPanel();
@@ -643,7 +678,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       '</div>' +
       '<div class="pintwist-auto-row-fields">' +
       '<button id="pintwist-auto-start" class="pintwist-auto-btn pintwist-auto-btn--primary"' + (inCooldown ? " disabled" : "") + '>' + (state.running ? "Running..." : "Start") + '</button>' +
-      '<button id="pintwist-auto-pause" class="pintwist-auto-btn">Pause</button>' +
+      '<button id="pintwist-auto-cancel" class="pintwist-auto-btn pintwist-auto-btn--danger"' + (state.running ? "" : " disabled") + '>Cancel scan</button>' +
       '<button id="pintwist-auto-clear" class="pintwist-auto-btn">Clear queue</button>' +
       '<button id="pintwist-auto-resume-cd" class="pintwist-auto-btn"' + (inCooldown ? "" : " disabled") + '>Skip cooldown</button>' +
       '<span class="pintwist-auto-stats" id="pintwist-auto-stats"></span>' +
@@ -663,11 +698,13 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     const queueRows = state.terms.map((t, i) => {
       const icon = t.status === "done" ? "&#10003;"
                  : t.status === "failed" ? "&#10007;"
+                 : t.status === "cancelled" ? "&#9209;"
                  : i === state.currentIdx && state.running ? "&#9654;"
                  : "&#8987;";
       const cls = "pintwist-auto-row pintwist-auto-row--" + t.status;
       const detail = t.status === "done" ? ((t.pinCount || 0) + " pins &middot; CSV saved")
                    : t.status === "failed" ? (t.error || "failed")
+                   : t.status === "cancelled" ? "cancelled"
                    : i === state.currentIdx && state.running ? "running..."
                    : "pending";
       return '<div class="' + cls + '"><span class="pintwist-auto-icon">' + icon + '</span><span class="pintwist-auto-term">' + escAuto(t.term) + '</span><span class="pintwist-auto-detail">' + escAuto(detail) + '</span></div>';
@@ -687,7 +724,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
   function wireBody(wrap) {
     const $ = (id) => wrap.querySelector("#" + id);
     const startBtn = $("pintwist-auto-start");
-    const pauseBtn = $("pintwist-auto-pause");
+    const cancelBtn = $("pintwist-auto-cancel");
     const clearBtn = $("pintwist-auto-clear");
     const skipCd = $("pintwist-auto-resume-cd");
     const enabled = $("pintwist-auto-enabled");
@@ -700,9 +737,18 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       const intervalSec = Math.max(5, Math.min(3600, parseInt($("pintwist-auto-interval").value, 10) || 60));
       const randomizePct = Math.max(0, Math.min(95, parseInt($("pintwist-auto-randomize-pct").value, 10) || 40));
       const existing = new Map(state.terms.map((t) => [t.term, t]));
-      const items = terms.map((t) => existing.get(t) || { term: t, status: "pending" });
+      const items = terms.map((t) => {
+        const ex = existing.get(t);
+        if (!ex) return { term: t, status: "pending" };
+        // Restart cancelled terms when user hits Start again — keep done/failed.
+        if (ex.status === "cancelled") return { term: t, status: "pending" };
+        return ex;
+      });
       let firstPending = items.findIndex((x) => x.status !== "done" && x.status !== "failed");
       if (firstPending === -1) firstPending = 0;
+      // Clear the existing extension's abort flag so the new run isn't
+      // immediately killed by a stale State.aborted from an earlier cancel.
+      try { if (typeof State !== "undefined") State.aborted = false; } catch {}
       await saveState({
         terms: items,
         currentIdx: firstPending,
@@ -715,10 +761,22 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       runOnceForCurrentPage();
     });
 
-    if (pauseBtn) pauseBtn.addEventListener("click", async () => { await saveState({ running: false }); });
+    // Cancel scan: immediate abort. Sets the existing extension's State.aborted
+    // flag (which the scrolling/scan engine already checks) AND pauses the
+    // queue. The plateau loop in runOnceForCurrentPage also watches this flag
+    // so the auto-runner returns without triggering a cooldown.
+    if (cancelBtn) cancelBtn.addEventListener("click", async () => {
+      try { if (typeof State !== "undefined") State.aborted = true; } catch {}
+      if (state.terms[state.currentIdx] && state.terms[state.currentIdx].status === "running") {
+        state.terms[state.currentIdx].status = "cancelled";
+        state.terms[state.currentIdx].error = "user cancelled";
+      }
+      await saveState({ running: false });
+    });
 
     if (clearBtn) clearBtn.addEventListener("click", async () => {
       if (state.running && !confirm("Stop and clear the queue?")) return;
+      try { if (typeof State !== "undefined") State.aborted = true; } catch {}
       await saveState({ terms: [], currentIdx: 0, running: false });
     });
 
@@ -742,9 +800,10 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
   async function bootstrap() {
     await loadState();
     const tryMount = () => {
-      const bar = document.getElementById("pintwist-initial-bar");
+      const bar = getActiveBar();
       if (!bar) return false;
-      // Re-attach when bar exists but our toggle is missing (bar got recreated).
+      // Re-attach when bar exists but our toggle is missing (or it's on a
+      // different bar than the active one).
       if (!bar.querySelector("#pintwist-auto-toggle")) {
         ensurePanel();
         renderPanel();
