@@ -1696,15 +1696,31 @@ button:focus-visible {
     color: #fff;
 }
 
-/* Master row: ON/OFF switch + secondary buttons + countdown. */
+/* Master row: settings + ON/OFF + actions + countdown all on one line. */
 .pintwist-auto-master-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
-    padding-top: 6px;
+    gap: 8px 10px;
+    padding-top: 8px;
     border-top: 1px solid #f0f0f0;
 }
+.pintwist-auto-inline-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #555;
+    white-space: nowrap;
+}
+.pintwist-auto-divider {
+    width: 1px;
+    height: 24px;
+    background: #e0e0e0;
+    margin: 0 4px;
+}
+.pintwist-auto-master-row .pintwist-auto-checkbox { white-space: nowrap; font-size: 12px; }
+.pintwist-auto-master-row .pintwist-auto-btn { padding: 5px 10px; font-size: 12px; }
 
 .pintwist-auto-switch {
     display: inline-flex;
@@ -1780,13 +1796,14 @@ button:focus-visible {
 }
 
 .pintwist-auto-countdown {
-    font-size: 13px;
+    margin-left: auto;
+    font-size: 12px;
     color: #555;
     font-variant-numeric: tabular-nums;
     padding: 4px 10px;
     border-radius: 6px;
     background: #f5f5f5;
-    min-width: 140px;
+    min-width: 130px;
     text-align: center;
 }
 .pintwist-auto-countdown strong { color: #1a1a1a; font-variant-numeric: tabular-nums; }

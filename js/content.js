@@ -312,6 +312,33 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
   // Module-local — survives across same-page renders, resets on navigation.
   let _pendingNextTimeout = null;
   let _pendingNextDeadline = 0;
+  let _pendingNextCallback = null; // remembered so settings changes can reschedule
+
+  // Schedule the next pending action (run-now-after-delay, or advance-after-delay)
+  // and remember the callback so rescheduleIfPending can re-fire it with a fresh
+  // delay when the user tweaks interval/randomize while waiting.
+  function schedulePending(callback, delay) {
+    if (_pendingNextTimeout) clearTimeout(_pendingNextTimeout);
+    _pendingNextCallback = callback;
+    _pendingNextDeadline = Date.now() + delay;
+    _pendingNextTimeout = setTimeout(() => {
+      _pendingNextTimeout = null;
+      _pendingNextDeadline = 0;
+      const cb = _pendingNextCallback;
+      _pendingNextCallback = null;
+      if (cb) cb();
+    }, delay);
+  }
+  function clearPending() {
+    if (_pendingNextTimeout) clearTimeout(_pendingNextTimeout);
+    _pendingNextTimeout = null;
+    _pendingNextDeadline = 0;
+    _pendingNextCallback = null;
+  }
+  function rescheduleIfPending() {
+    if (!_pendingNextTimeout || !_pendingNextCallback) return;
+    schedulePending(_pendingNextCallback, jitterDelayMs());
+  }
   const COOLDOWN_MS = 60 * 60 * 1000;
   const SCAN_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -527,13 +554,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       if (state.currentIdx < state.terms.length) {
         const delay = jitterDelayMs();
         console.log("[PinTwist Automation] Next search in " + (delay/60000).toFixed(2) + " min");
-        _pendingNextDeadline = Date.now() + delay;
-        if (_pendingNextTimeout) clearTimeout(_pendingNextTimeout);
-        _pendingNextTimeout = setTimeout(() => {
-          _pendingNextTimeout = null;
-          _pendingNextDeadline = 0;
-          advanceAndNavigate();
-        }, delay);
+        schedulePending(advanceAndNavigate, delay);
       } else {
         await saveState({ running: false });
         try { alert("PinTwist: Queue complete. " + state.terms.filter((x) => x.status === "done").length + " searches saved."); } catch {}
@@ -757,18 +778,15 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       // Pill bar — each term renders as a pill in #pintwist-auto-queue, with
       // X to remove + ▶ to run that one immediately. Re-rendered each tick.
       '<div class="pintwist-auto-pills" id="pintwist-auto-queue"></div>' +
-      // Settings row — number inputs use a custom spinner (▲▼) wrapper for
-      // consistent styling across browsers; the helper emits the input + the
-      // stacked button column. Click handlers are delegated below.
-      '<div class="pintwist-auto-row-fields">' +
-      '<label>Pages/search ' + numField("pintwist-auto-pages", 1, 100, 1, (prev.pages || state.pagesPerTerm)) + '</label>' +
-      '<label>Interval (min) ' + numField("pintwist-auto-interval", 0.25, 180, 0.25, (prev.interval || state.intervalMin)) + '</label>' +
-      '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-randomize" ' + (state.randomize ? "checked" : "") + '> Randomize &plusmn;' + numField("pintwist-auto-randomize-pct", 0, 95, 1, (prev.pct || state.randomizePct), "pintwist-auto-num--xs") + ' %</label>' +
-      '</div>' +
-      // Master ON/OFF toggle + ▶/✗ shortcuts + secondary actions + countdown.
+      // Single combined control row: settings + master toggle + actions +
+      // countdown all on one line. Falls back to wrap on narrow viewports.
       // ▶ skips the countdown and runs the current term right now.
       // ✗ turns the toggle off (mirrors the pill buttons' semantics).
       '<div class="pintwist-auto-master-row">' +
+      '<label class="pintwist-auto-inline-field">Pages ' + numField("pintwist-auto-pages", 1, 100, 1, (prev.pages || state.pagesPerTerm)) + '</label>' +
+      '<label class="pintwist-auto-inline-field">Interval&nbsp;(min) ' + numField("pintwist-auto-interval", 0.25, 180, 0.25, (prev.interval || state.intervalMin)) + '</label>' +
+      '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-randomize" ' + (state.randomize ? "checked" : "") + '> Randomize &plusmn;' + numField("pintwist-auto-randomize-pct", 0, 95, 1, (prev.pct || state.randomizePct), "pintwist-auto-num--xs") + '%</label>' +
+      '<span class="pintwist-auto-divider"></span>' +
       '<label class="pintwist-auto-switch">' +
       '<input type="checkbox" id="pintwist-auto-running"' + (state.running ? " checked" : "") + (inCooldown ? " disabled" : "") + '>' +
       '<span class="pintwist-auto-switch-track"><span class="pintwist-auto-switch-thumb"></span></span>' +
@@ -776,11 +794,11 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       '</label>' +
       '<button id="pintwist-auto-runnow" class="pintwist-auto-iconbtn pintwist-auto-iconbtn--play" type="button" title="Run next term now (skip countdown)" aria-label="Run now">&#9654;</button>' +
       '<button id="pintwist-auto-off" class="pintwist-auto-iconbtn pintwist-auto-iconbtn--x" type="button" title="Turn automation off" aria-label="Turn off">&#10005;</button>' +
-      '<span class="pintwist-auto-countdown" id="pintwist-auto-countdown"></span>' +
-      '<span class="pintwist-auto-stats" id="pintwist-auto-stats"></span>' +
       '<button id="pintwist-auto-cancel" class="pintwist-auto-btn pintwist-auto-btn--danger"' + (state.running ? "" : " disabled") + '>Cancel scan</button>' +
       '<button id="pintwist-auto-clear" class="pintwist-auto-btn">Clear queue</button>' +
       '<button id="pintwist-auto-resume-cd" class="pintwist-auto-btn"' + (inCooldown ? "" : " disabled") + '>Skip cooldown</button>' +
+      '<span class="pintwist-auto-countdown" id="pintwist-auto-countdown"></span>' +
+      '<span class="pintwist-auto-stats" id="pintwist-auto-stats"></span>' +
       '</div>';
 
     wireBody(body);
@@ -912,17 +930,10 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
         await saveState({ running: true, cooldownUntil: 0 });
         // Schedule first scan with a countdown (instead of firing immediately)
         // so the user sees what's about to happen + can ▶/✗ before it runs.
-        const delay = jitterDelayMs();
-        if (_pendingNextTimeout) clearTimeout(_pendingNextTimeout);
-        _pendingNextDeadline = Date.now() + delay;
-        _pendingNextTimeout = setTimeout(() => {
-          _pendingNextTimeout = null;
-          _pendingNextDeadline = 0;
-          runOnceForCurrentPage();
-        }, delay);
+        schedulePending(runOnceForCurrentPage, jitterDelayMs());
         renderQueueAndStats();
       } else {
-        if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
+        clearPending();
         await saveState({ running: false });
       }
     });
@@ -931,7 +942,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     const runNowBtn = $("pintwist-auto-runnow");
     if (runNowBtn) runNowBtn.addEventListener("click", async (e) => {
       e.preventDefault(); e.stopPropagation();
-      if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
+      clearPending();
       try { if (typeof State !== "undefined") State.aborted = false; } catch {}
       // Make sure we're running and persist settings before kicking off.
       if (state.terms.filter((t) => t.status !== "done" && t.status !== "failed" && t.status !== "cancelled").length === 0) {
@@ -949,7 +960,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     const offBtn = $("pintwist-auto-off");
     if (offBtn) offBtn.addEventListener("click", async (e) => {
       e.preventDefault(); e.stopPropagation();
-      if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
+      clearPending();
       await saveState({ running: false });
       // Reflect on the toggle UI (state-change re-render handles the rest).
       if (runningSwitch) runningSwitch.checked = false;
@@ -968,7 +979,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
         if (state.terms[idx].status !== "pending") {
           state.terms[idx] = { term: state.terms[idx].term, status: "pending" };
         }
-        if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
+        clearPending();
         try { if (typeof State !== "undefined") State.aborted = false; } catch {}
         await persistSettingsFromInputs(wrap);
         await saveState({ currentIdx: idx, running: true, cooldownUntil: 0 });
@@ -991,7 +1002,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     // Cancel scan: immediate abort + pause queue. (See state-machine notes.)
     if (cancelBtn) cancelBtn.addEventListener("click", async () => {
       try { if (typeof State !== "undefined") State.aborted = true; } catch {}
-      if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
+      clearPending();
       if (state.terms[state.currentIdx] && state.terms[state.currentIdx].status === "running") {
         state.terms[state.currentIdx].status = "cancelled";
         state.terms[state.currentIdx].error = "user cancelled";
@@ -1002,7 +1013,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     if (clearBtn) clearBtn.addEventListener("click", async () => {
       if ((state.running || state.terms.length > 0) && !confirm("Clear the entire queue?")) return;
       try { if (typeof State !== "undefined") State.aborted = true; } catch {}
-      if (_pendingNextTimeout) { clearTimeout(_pendingNextTimeout); _pendingNextTimeout = null; _pendingNextDeadline = 0; }
+      clearPending();
       await saveState({ terms: [], currentIdx: 0, running: false });
     });
 
@@ -1011,7 +1022,27 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       await saveState({ cooldownUntil: 0 });
     });
 
-    if (randomize) randomize.addEventListener("change", async (e) => { await saveState({ randomize: e.target.checked }); });
+    if (randomize) randomize.addEventListener("change", async (e) => {
+      await saveState({ randomize: e.target.checked });
+      rescheduleIfPending();
+    });
+
+    // Live-reschedule the pending countdown when interval / randomize-pct changes,
+    // so the on-screen "Next scan in X" reflects the new value immediately.
+    const intervalInput = $("pintwist-auto-interval");
+    const pctInput = $("pintwist-auto-randomize-pct");
+    const onSettingChange = async () => {
+      await persistSettingsFromInputs(wrap);
+      rescheduleIfPending();
+    };
+    if (intervalInput) {
+      intervalInput.addEventListener("change", onSettingChange);
+      intervalInput.addEventListener("input", onSettingChange);
+    }
+    if (pctInput) {
+      pctInput.addEventListener("change", onSettingChange);
+      pctInput.addEventListener("input", onSettingChange);
+    }
 
     // Custom number-spinner clicks (delegated). Honors min/max/step from the
     // input's data-* attributes, fires "input" + "change" so any listeners
