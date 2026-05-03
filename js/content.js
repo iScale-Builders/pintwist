@@ -274,3 +274,415 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     </style>${a}${r}${m}`),setTimeout(()=>{reattachListeners(),setupResortBar(),setupSearchBar(),setupFilterBar(),adjustPinterestPadding()},100),window.scrollTo(0,0),saveCache()}function reattachListeners(){document.querySelectorAll(".pintwist-download-btn").forEach(e=>{const t=e.cloneNode(!0);e.parentNode.replaceChild(t,e),t.addEventListener("click",i=>{i.preventDefault(),i.stopPropagation(),downloadImage(t.dataset.pinId,t.dataset.imageUrl,t)})})}function toggleBadges(e){document.querySelectorAll(".pintwist-legacy-badge").forEach(i=>{i.style.display=e?"":"none"})}function applyThemeColor(e){const t=adjustColorBrightness(e,-20);document.documentElement.style.setProperty("--pintwist-primary",e),document.documentElement.style.setProperty("--pintwist-primary-dark",t),document.querySelectorAll(".pintwist-themed-fill").forEach(a=>{a.style.fill=e}),document.querySelectorAll(".pintwist-legacy-badge").forEach(a=>{a.classList.contains("pintwist-badge-grey")||(a.style.borderColor=e,a.style.color=e,a.style.background="rgba(255, 255, 255, 0.9)")});const i=document.getElementById("pintwist-resort-bar");i&&i.style.setProperty("border-color",e,"important");const n=document.getElementById("pintwist-filter-bar");n&&n.style.setProperty("border-color",e,"important");const s=document.getElementById("pintwist-initial-bar");if(s){s.style.setProperty("border-color",e,"important");const a=document.getElementById("pintwist-sort-pins-btn");a&&(a.style.background=e);const r=document.getElementById("pintwist-show-overlays");r&&(r.style.accentColor=e)}}function adjustColorBrightness(e,t){const i=parseInt(e.replace("#",""),16),n=Math.round(2.55*t),s=Math.max(0,Math.min(255,(i>>16)+n)),a=Math.max(0,Math.min(255,(i>>8&255)+n)),r=Math.max(0,Math.min(255,(i&255)+n));return"#"+(16777216+s*65536+a*256+r).toString(16).slice(1)}function setupResortBar(){const e=document.getElementById("resort-dropdown-btn"),t=document.getElementById("resort-dropdown-menu"),i=e?.querySelector(".dropdown-text"),n=document.getElementById("pintwist-resort-select");if(!e||!t)return;e.addEventListener("click",a=>{a.stopPropagation(),t.classList.toggle("show")}),t.querySelectorAll(".dropdown-item").forEach(a=>{a.addEventListener("click",r=>{n.value=r.target.dataset.value,i.textContent=r.target.textContent,t.classList.remove("show"),resortPins(r.target.dataset.value)})}),document.addEventListener("click",a=>{e.contains(a.target)||t.classList.remove("show")});const s=document.getElementById("pintwist-show-badges");s&&(chrome.storage.sync.get(["pintwist_show_badges"],a=>{const r=a.pintwist_show_badges!==!1;s.checked=r,toggleBadges(r)}),s.addEventListener("change",()=>{const a=s.checked;chrome.storage.sync.set({pintwist_show_badges:a}),toggleBadges(a)})),chrome.storage.sync.get(["pintwist_theme_color"],a=>{const r=a.pintwist_theme_color||"#F48FB1";applyThemeColor(r)})}function setupSearchBar(){const e=document.getElementById("pintwist-search-input"),t=document.getElementById("pintwist-search-btn");if(!e||!t)return;const i=()=>{const n=e.value.trim();n&&(window.location.href=`${window.location.origin}/search/pins/?q=${encodeURIComponent(n)}`)};t.addEventListener("click",i),e.addEventListener("keypress",n=>{n.key==="Enter"&&i()})}function resortPins(e){const t=document.getElementById("pintwist-sorted-container");if(!t)return;const i=Array.from(t.querySelectorAll(".pinterest--block"));i.forEach(s=>{const a=s.dataset.pinId||s.getAttribute("data-test-pin-id");if(!a)return;const r=getCached(a);if(!r)return;let m,o;e==="date"?(m=new Date(r.createdAt).getTime()||0,o=new Date(r.createdAt).toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})):(m={saves:r.saves,share:r.shares,reaction:r.reactions,repin:r.repins,comment:r.comments}[e]||0,o=`${e.charAt(0).toUpperCase()+e.slice(1)}: ${formatNumber(m)}`),s.setAttribute("rel",m);const p=s.querySelector(".pintwist-legacy-badge");p&&(p.textContent=o)}),i.sort((s,a)=>(parseInt(a.getAttribute("rel"))||0)-(parseInt(s.getAttribute("rel"))||0)),t.innerHTML="",i.forEach(s=>t.appendChild(s)),reattachListeners();const n=document.querySelector("#pintwist-resort-bar .resort-info");n&&(n.innerHTML=`<svg class="sorted-icon" width="14" height="14" viewBox="0 0 24 24" fill="#8e8e8e" style="vertical-align: middle; margin-right: 4px; margin-bottom: 2px;"><path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"/></svg>${i.length} PINS SORTED BY PINTWIST`)}function calculateFilterRanges(e){const t=new Set;e.forEach(n=>{const s=n.dataset.pinId;s&&State.metricsCache.has(s)&&t.add(s)});const i={saves:{min:1/0,max:-1/0},comments:{min:1/0,max:-1/0},repins:{min:1/0,max:-1/0},reactions:{min:1/0,max:-1/0},shares:{min:1/0,max:-1/0},date:{min:1/0,max:-1/0}};for(const n of t){const s=State.metricsCache.get(n);if(i.saves.min=Math.min(i.saves.min,s.saves),i.saves.max=Math.max(i.saves.max,s.saves),i.comments.min=Math.min(i.comments.min,s.comments),i.comments.max=Math.max(i.comments.max,s.comments),i.repins.min=Math.min(i.repins.min,s.repins),i.repins.max=Math.max(i.repins.max,s.repins),i.reactions.min=Math.min(i.reactions.min,s.reactions),i.reactions.max=Math.max(i.reactions.max,s.reactions),i.shares.min=Math.min(i.shares.min,s.shares),i.shares.max=Math.max(i.shares.max,s.shares),s.createdAt){let a;if(typeof s.createdAt=="number"?a=s.createdAt:a=new Date(s.createdAt).getTime(),a&&!isNaN(a)){const m=new Date(new Date(a).toISOString().split("T")[0]).getTime();i.date.min=Math.min(i.date.min,m),i.date.max=Math.max(i.date.max,m)}}}if(i.date.min===1/0||i.date.max===-1/0){console.warn("PinTwist: No valid dates found in pins, using defaults");const n=new Date,s=new Date;s.setFullYear(n.getFullYear()-1),i.date.min=new Date(s.toISOString().split("T")[0]).getTime(),i.date.max=new Date(n.toISOString().split("T")[0]).getTime()}return State.filterRanges=i,State.activeFilters=JSON.parse(JSON.stringify(i)),i}function parseFilterValue(e){if(!e)return null;const t=e.toString().toUpperCase();return t.includes("M")?parseFloat(t)*1e6:t.includes("K")?parseFloat(t)*1e3:parseFloat(t)||0}function applyFilters(){const e=(p,l)=>{if(!p)return l;const h=new Date(p).getTime();return isNaN(h)?l:h},t={saves:{min:parseFilterValue(document.getElementById("filter-saves-min").value),max:parseFilterValue(document.getElementById("filter-saves-max").value)},comments:{min:parseFilterValue(document.getElementById("filter-comments-min").value),max:parseFilterValue(document.getElementById("filter-comments-max").value)},repins:{min:parseFilterValue(document.getElementById("filter-repins-min").value),max:parseFilterValue(document.getElementById("filter-repins-max").value)},reactions:{min:parseFilterValue(document.getElementById("filter-reactions-min").value),max:parseFilterValue(document.getElementById("filter-reactions-max").value)},shares:{min:parseFilterValue(document.getElementById("filter-shares-min").value),max:parseFilterValue(document.getElementById("filter-shares-max").value)},date:{min:e(document.getElementById("filter-date-min").value,0),max:e(document.getElementById("filter-date-max").value,Date.now())+86399999}};State.activeFilters=t;const i=document.getElementById("pintwist-sorted-container");if(!i)return;document.querySelector(".pintwist-filter-separator")?.remove();const n=Array.from(i.querySelectorAll(".pinterest--block")),s=[],a=[];n.forEach(p=>{const l=p.dataset.pinId,d=getCached(l);if(!d)return;const h=new Date(d.createdAt).getTime(),f=d.saves>=t.saves.min&&d.saves<=t.saves.max&&d.comments>=t.comments.min&&d.comments<=t.comments.max&&d.repins>=t.repins.min&&d.repins<=t.repins.max&&d.reactions>=t.reactions.min&&d.reactions<=t.reactions.max&&d.shares>=t.shares.min&&d.shares<=t.shares.max&&h>=t.date.min&&h<=t.date.max,c=p.querySelector(".pintwist-legacy-badge");f?(s.push(p),c&&c.classList.remove("pintwist-badge-grey")):(a.push(p),c&&c.classList.add("pintwist-badge-grey"))});const r=State.selectedMetric,m=(p,l)=>{const d=getCached(p.dataset.pinId),h=getCached(l.dataset.pinId);if(!d||!h)return 0;let f,c;if(r==="date")f=new Date(d.createdAt).getTime(),c=new Date(h.createdAt).getTime();else{const g={saves:"saves",comment:"comments",repin:"repins",reaction:"reactions",share:"shares"}[r];f=d[g]||0,c=h[g]||0}return c-f};if(s.sort(m),a.sort(m),i.innerHTML="",s.forEach(p=>i.appendChild(p)),a.length>0){const p=document.createElement("div");p.className="pintwist-filter-separator",p.innerHTML=`<span>Filtered Results (${a.length} pins)</span>`,i.appendChild(p),a.forEach(l=>i.appendChild(l))}const o=document.getElementById("pintwist-match-count");o&&(o.innerHTML=`<svg class="sorted-icon" width="14" height="14" viewBox="0 0 24 24" fill="#8e8e8e" style="vertical-align: middle; margin-right: 4px; margin-bottom: 2px;"><path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"/></svg>${s.length}/${n.length} PINS SORTED BY PINTWIST`),reattachListeners(),chrome.storage.local.set({pintwist_active_filters:t}),updateActiveFiltersDisplay()}function resetFilters(){State.filterRanges&&(document.getElementById("filter-saves-min").value=State.filterRanges.saves.min,document.getElementById("filter-saves-max").value=State.filterRanges.saves.max,document.getElementById("filter-comments-min").value=State.filterRanges.comments.min,document.getElementById("filter-comments-max").value=State.filterRanges.comments.max,document.getElementById("filter-repins-min").value=State.filterRanges.repins.min,document.getElementById("filter-repins-max").value=State.filterRanges.repins.max,document.getElementById("filter-reactions-min").value=State.filterRanges.reactions.min,document.getElementById("filter-reactions-max").value=State.filterRanges.reactions.max,document.getElementById("filter-shares-min").value=State.filterRanges.shares.min,document.getElementById("filter-shares-max").value=State.filterRanges.shares.max,document.getElementById("filter-date-min").value=new Date(State.filterRanges.date.min).toISOString().split("T")[0],document.getElementById("filter-date-max").value=new Date(State.filterRanges.date.max).toISOString().split("T")[0],resizeAllFilterInputs(),applyFilters())}function resizeAllFilterInputs(){document.querySelectorAll(".filter-input").forEach(e=>{const i=(e.value||e.placeholder||"0").length,n=Math.max(40,Math.min(100,i*8+16));e.style.width=n+"px"})}function setupFilterBar(){const e=document.getElementById("pintwist-filter-toggle"),t=document.getElementById("pintwist-filter-bar"),i=document.getElementById("pintwist-reset-all-filters");let n=null;const s=r=>{const o=(r.value||r.placeholder||"0").length,p=Math.max(40,Math.min(100,o*8+16));r.style.width=p+"px"};document.querySelectorAll(".filter-input").forEach(r=>{s(r),r.addEventListener("input",m=>{s(m.target),clearTimeout(n),n=setTimeout(()=>{applyFilters()},1e3)}),r.addEventListener("keypress",m=>{m.key==="Enter"&&(clearTimeout(n),applyFilters())})}),e?.addEventListener("click",()=>{t.classList.toggle("pintwist-filter-expanded"),e.textContent=t.classList.contains("pintwist-filter-expanded")?"\u25BC Filters":"\u25B6 Filters"}),i?.addEventListener("click",resetFilters)}function updateActiveFiltersDisplay(){if(!State.filterRanges||!State.activeFilters)return;document.querySelectorAll(".filter-pills-container").forEach(n=>{n.innerHTML=""});const e=n=>{const s=document.getElementById(`filter-${n}-min`),a=document.getElementById(`filter-${n}-max`);if(!s||!a)return!1;if(n==="date"){const r=new Date(State.filterRanges.date.min).toISOString().split("T")[0],m=new Date(State.filterRanges.date.max).toISOString().split("T")[0],o=s.value&&s.value!==r,p=a.value&&a.value!==m;return o||p}else{const r=State.filterRanges[n].min,m=State.filterRanges[n].max,o=s.value.trim()?parseFilterValue(s.value):r,p=a.value.trim()?parseFilterValue(a.value):m;return o!==r||p!==m}},t=n=>{const s=document.querySelector(`.filter-pills-container[data-metric="${n}"]`);if(!s)return;const a=document.createElement("div");a.className="filter-pill filter-reset-pill",a.innerHTML=`
             <div class="filter-pill-remove">\xD7</div>
         `,s.appendChild(a),a.querySelector(".filter-pill-remove").addEventListener("click",r=>{r.stopPropagation(),resetMetricFilter(n)})};["saves","comments","repins","reactions","shares","date"].forEach(n=>{e(n)&&t(n)})}function resetMetricFilter(e){State.filterRanges&&(e==="date"?(document.getElementById(`filter-${e}-min`).value=new Date(State.filterRanges.date.min).toISOString().split("T")[0],document.getElementById(`filter-${e}-max`).value=new Date(State.filterRanges.date.max).toISOString().split("T")[0]):(document.getElementById(`filter-${e}-min`).value=State.filterRanges[e].min,document.getElementById(`filter-${e}-max`).value=State.filterRanges[e].max),resizeAllFilterInputs(),applyFilters())}function removeIndividualFilter(e,t){if(State.filterRanges){if(e==="date"){const i=`filter-${e}-${t}`,n=State.filterRanges[e][t],s=document.getElementById(i);s.value=new Date(n).toISOString().split("T")[0];const a=s.value||"0",r=Math.max(40,Math.min(100,a.length*8+16));s.style.width=r+"px"}else{const i=`filter-${e}-${t}`,n=State.filterRanges[e][t],s=document.getElementById(i);s.value=formatNumber(n);const a=s.value||"0",r=Math.max(40,Math.min(100,a.length*8+16));s.style.width=r+"px"}applyFilters()}}function startUrlMonitor(){window.addEventListener("popstate",handleUrlChange),window.addEventListener("hashchange",handleUrlChange),State.urlCheckInterval=setInterval(()=>{window.location.href!==State.currentUrl&&handleUrlChange()},2e3)}function handleUrlChange(){window.location.href!==State.currentUrl&&(State.aborted=!0,clearState(),State.currentUrl=window.location.href,State.currentUrl.includes("pinterest")&&setTimeout(init,1e3))}function clearState(){State.loadedIDs.clear(),State.processingIDs.clear(),State.sortedPinIDs.clear(),State.insertedNodes=[],State.count=0,State.timeout&&clearTimeout(State.timeout),State.observer&&(State.observer.disconnect(),State.observer=null)}chrome.runtime.onMessage.addListener((e,t,i)=>{if(location.href.includes("pinterest"))try{e.action==="enableBar"?document.getElementById("pintwist-initial-bar")||document.getElementById("pintwist-resort-bar")||sort_all():e.action==="disableBar"?hideBar():e.action==="showOverlays"?toggleOverlays(!0):e.action==="hideOverlays"?toggleOverlays(!1):e.action==="updateThemeColor"&&applyThemeColor(e.data)}catch(n){console.warn("PinTwist: Message handler error",n)}});function hideBar(){const e=document.getElementById("pintwist-initial-bar"),t=document.getElementById("pintwist-resort-bar"),i=document.getElementById("pintwist-filter-bar"),n=document.getElementById("newgrid");e&&e.remove(),t&&t.remove(),i&&i.remove(),n&&n.remove(),removeContentOffset(),State.aborted=!0}const AUTH_KEY="pintwist_auth";async function checkAuth(){try{if((await chrome.storage.local.get(AUTH_KEY))[AUTH_KEY]?.signedIn)return!0}catch{}try{return(await chrome.runtime.sendMessage({type:"PINTWIST_CHECK_AUTH"}))?.signedIn===!0}catch{return!1}}let initHasRun=!1;chrome.storage.onChanged.addListener((e,t)=>{if(t!=="local"||!e[AUTH_KEY])return;e[AUTH_KEY].newValue?.signedIn?initHasRun||init():(initHasRun=!1,hideBar())});async function init(){if(!location.href.includes("pinterest"))return;if(console.log("PinTwist 1.5.3: Initializing..."),!await checkAuth()){console.log("PinTwist: Not authenticated. Sign in at iscalelabs.com to use PinTwist.");return}initHasRun=!0,extractConfig(),State.metricsCache.size||await loadCache(),State.urlCheckInterval||startUrlMonitor(),setTimeout(()=>{processExisting(),initObserver()},1500),chrome.storage.sync.get(["pintwist_enabled"],t=>{t.pintwist_enabled!==!1&&setTimeout(()=>{sort_all()},2e3)})}window.addEventListener("beforeunload",saveCache),document.readyState==="complete"||document.readyState==="interactive"?init():window.addEventListener("load",init);
+
+
+// =====================================================================
+// PINTWIST AUTOMATION (v1.7.0)
+// Queue runner: paste comma/newline separated search terms, automatically
+// search -> load N pages -> save CSV -> wait interval (jittered if randomize) ->
+// next term. Captcha/rate-limit detected -> 1h cooldown.
+// State persisted in chrome.storage.local["pintwist_queue"] so it survives
+// the SPA page transitions Pinterest does between searches.
+// =====================================================================
+(function pintwistAutomation() {
+  const QKEY = "pintwist_queue";
+  const DEFAULTS = {
+    enabled: false,
+    running: false,
+    terms: [],
+    currentIdx: 0,
+    pagesPerTerm: 40,
+    intervalSec: 60,
+    randomize: false,
+    randomizePct: 40,
+    cooldownUntil: 0,
+    lastNavAt: 0,
+    panelExpanded: false,
+  };
+  const COOLDOWN_MS = 60 * 60 * 1000;
+  const SCAN_TIMEOUT_MS = 5 * 60 * 1000;
+
+  let state = null;
+
+  async function loadState() {
+    const out = await chrome.storage.local.get(QKEY);
+    state = Object.assign({}, DEFAULTS, out[QKEY] || {});
+    return state;
+  }
+  async function saveState(patch) {
+    state = Object.assign(state || {}, patch || {});
+    await chrome.storage.local.set({ [QKEY]: state });
+    renderPanel();
+  }
+
+  function parseTerms(raw) {
+    if (!raw) return [];
+    return raw.split(/[\n,]+/).map((t) => t.trim()).filter(Boolean);
+  }
+
+  function searchUrlFor(term) {
+    return "https://www.pinterest.com/search/pins/?q=" + encodeURIComponent(term);
+  }
+
+  function currentSearchTerm() {
+    try {
+      const u = new URL(location.href);
+      if (!u.pathname.startsWith("/search/")) return null;
+      return u.searchParams.get("q");
+    } catch { return null; }
+  }
+
+  function isOnTermPage(idx) {
+    if (!state.terms[idx]) return false;
+    const cur = currentSearchTerm();
+    if (!cur) return false;
+    return cur.trim().toLowerCase() === state.terms[idx].term.trim().toLowerCase();
+  }
+
+  function jitterDelayMs() {
+    const base = Math.max(1, state.intervalSec) * 1000;
+    if (!state.randomize) return base;
+    const pct = Math.max(0, Math.min(95, state.randomizePct)) / 100;
+    const min = base * (1 - pct);
+    const max = base * (1 + pct);
+    return Math.floor(min + Math.random() * (max - min));
+  }
+
+  function looksLikeCaptcha() {
+    const t = (document.title || "").toLowerCase();
+    if (t.includes("security check") || t.includes("verify")) return true;
+    if (document.querySelector('[data-test-id="captcha-form"]')) return true;
+    const body = (document.body && document.body.innerText) || "";
+    if (/checking your browser|unusual activity|verify you.{1,3}re a human/i.test(body.slice(0, 4000))) return true;
+    return false;
+  }
+
+  async function triggerCooldown(reason) {
+    const until = Date.now() + COOLDOWN_MS;
+    await saveState({ cooldownUntil: until, running: false });
+    console.warn("[PinTwist Automation] Cooldown:", reason, "until", new Date(until).toISOString());
+    try { alert("PinTwist: " + reason + "\nQueue paused for 1 hour. Resume from the toolbar when ready."); } catch {}
+  }
+
+  function csvCell(v) {
+    if (v === null || v === undefined) return "";
+    const s = String(v);
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  function buildCsvForCurrentScan(term) {
+    const ids = Array.from(State.sortedPinIDs || []);
+    const rows = [];
+    const headers = [
+      "search_term", "pin_id", "pin_url", "title", "description", "link", "domain",
+      "board_name", "pinner_username", "dominant_color", "alt_text",
+      "saves", "comments", "repins", "reactions", "shares",
+      "pin_created_at", "image_url", "is_video", "scanned_at",
+    ];
+    rows.push(headers.join(","));
+    const stamp = new Date().toISOString();
+    for (const id of ids) {
+      const m = State.metricsCache.get(id);
+      if (!m) continue;
+      rows.push([
+        term, id, "https://www.pinterest.com/pin/" + id + "/",
+        m.title, m.description, m.link, m.domain,
+        m.boardName, m.pinnerUsername, m.dominantColor, m.altText,
+        m.saves, m.comments, m.repins, m.reactions, m.shares,
+        m.createdAt, m.imageUrl, m.isVideo, stamp,
+      ].map(csvCell).join(","));
+    }
+    return { csv: rows.join("\r\n"), pinCount: ids.length };
+  }
+
+  function downloadCsvBlob(csv, filename) {
+    try {
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      return true;
+    } catch (err) {
+      console.error("[PinTwist Automation] CSV download failed:", err);
+      return false;
+    }
+  }
+
+  function waitFor(predicate, opts) {
+    const o = opts || {};
+    const timeoutMs = o.timeoutMs || 30000;
+    const intervalMs = o.intervalMs || 250;
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      const tick = () => {
+        try { if (predicate()) return resolve(true); } catch {}
+        if (Date.now() - start > timeoutMs) return reject(new Error("waitFor timeout"));
+        setTimeout(tick, intervalMs);
+      };
+      tick();
+    });
+  }
+
+  async function runOnceForCurrentPage() {
+    await loadState();
+    if (!state.enabled || !state.running) return;
+    if (state.cooldownUntil && Date.now() < state.cooldownUntil) return;
+    if (state.currentIdx >= state.terms.length) return;
+
+    const term = state.terms[state.currentIdx];
+    if (!term || term.status === "done" || term.status === "failed") {
+      return advanceAndNavigate();
+    }
+
+    if (looksLikeCaptcha()) return triggerCooldown("Captcha / security check detected");
+
+    if (!isOnTermPage(state.currentIdx)) {
+      term.status = "running";
+      term.startedAt = Date.now();
+      state.terms[state.currentIdx] = term;
+      await saveState({ lastNavAt: Date.now() });
+      location.href = searchUrlFor(term.term);
+      return;
+    }
+
+    try {
+      await waitFor(() => document.getElementById("pintwist-initial-bar"), { timeoutMs: 30000 });
+      const pagesInput = document.getElementById("pintwist-pages-input");
+      const sortBtn = document.getElementById("pintwist-sort-pins-btn");
+      if (!pagesInput || !sortBtn) throw new Error("toolbar inputs missing");
+      pagesInput.value = String(state.pagesPerTerm);
+      pagesInput.dispatchEvent(new Event("change", { bubbles: true }));
+      sortBtn.click();
+
+      let lastSize = -1, lastChange = Date.now();
+      const start = Date.now();
+      while (Date.now() - start < SCAN_TIMEOUT_MS) {
+        await new Promise((r) => setTimeout(r, 1000));
+        const size = (window.State && window.State.sortedPinIDs && window.State.sortedPinIDs.size)
+                  || (typeof State !== "undefined" && State.sortedPinIDs && State.sortedPinIDs.size) || 0;
+        if (size !== lastSize) { lastSize = size; lastChange = Date.now(); }
+        if (looksLikeCaptcha()) return triggerCooldown("Captcha during scan");
+        if (lastSize > 0 && Date.now() - lastChange > 8000) break;
+      }
+
+      if (lastSize === 0) return triggerCooldown("No pins loaded - likely rate-limited");
+
+      const { csv, pinCount } = buildCsvForCurrentScan(term.term);
+      const safe = term.term.replace(/[^\w\- ]+/g, "").replace(/\s+/g, "_").slice(0, 60);
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      downloadCsvBlob(csv, "pintwist_" + safe + "_" + stamp + ".csv");
+
+      term.status = "done";
+      term.pinCount = pinCount;
+      term.finishedAt = Date.now();
+      state.terms[state.currentIdx] = term;
+      await saveState({ currentIdx: state.currentIdx + 1 });
+
+      if (state.currentIdx < state.terms.length) {
+        const delay = jitterDelayMs();
+        console.log("[PinTwist Automation] Next search in " + (delay/1000).toFixed(1) + "s");
+        setTimeout(() => advanceAndNavigate(), delay);
+      } else {
+        await saveState({ running: false });
+        try { alert("PinTwist: Queue complete. " + state.terms.filter((x) => x.status === "done").length + " searches saved."); } catch {}
+      }
+    } catch (err) {
+      console.error("[PinTwist Automation] term failed:", err);
+      term.status = "failed";
+      term.error = err && err.message ? err.message : String(err);
+      state.terms[state.currentIdx] = term;
+      await saveState({ currentIdx: state.currentIdx + 1 });
+      setTimeout(() => advanceAndNavigate(), 5000);
+    }
+  }
+
+  async function advanceAndNavigate() {
+    await loadState();
+    if (!state.running) return;
+    while (state.currentIdx < state.terms.length) {
+      const t = state.terms[state.currentIdx];
+      if (t && t.status !== "done" && t.status !== "failed") break;
+      state.currentIdx += 1;
+    }
+    if (state.currentIdx >= state.terms.length) {
+      await saveState({ running: false });
+      return;
+    }
+    await saveState({});
+    const t = state.terms[state.currentIdx];
+    location.href = searchUrlFor(t.term);
+  }
+
+  function ensurePanel() {
+    if (document.getElementById("pintwist-automation-panel")) return;
+    const initialBar = document.getElementById("pintwist-initial-bar");
+    if (!initialBar) return;
+    const wrap = document.createElement("div");
+    wrap.id = "pintwist-automation-panel";
+    wrap.className = "pintwist-automation-panel";
+    initialBar.insertAdjacentElement("afterend", wrap);
+    renderPanel();
+  }
+
+  function fmtCountdown(ms) {
+    if (ms <= 0) return "0s";
+    const m = Math.floor(ms / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    return m > 0 ? m + "m " + s + "s" : s + "s";
+  }
+
+  function escAuto(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function renderPanel() {
+    const wrap = document.getElementById("pintwist-automation-panel");
+    if (!wrap || !state) return;
+
+    const cooldownLeft = state.cooldownUntil ? state.cooldownUntil - Date.now() : 0;
+    const inCooldown = cooldownLeft > 0;
+
+    const header =
+      '<div class="pintwist-auto-header">' +
+      '<button class="pintwist-auto-toggle" type="button">' +
+      (state.panelExpanded ? "&#9660;" : "&#9654;") +
+      ' &#129302; Automation' +
+      (state.running ? ' <span class="pintwist-auto-dot"></span>' : '') +
+      '</button>' +
+      (inCooldown ? '<span class="pintwist-auto-cooldown">Cooldown: ' + fmtCountdown(cooldownLeft) + '</span>' : '') +
+      '</div>';
+
+    if (!state.panelExpanded) {
+      wrap.innerHTML = header;
+      wireHeader(wrap);
+      return;
+    }
+
+    const queueRows = state.terms.map((t, i) => {
+      const icon = t.status === "done" ? "&#10003;"
+                 : t.status === "failed" ? "&#10007;"
+                 : i === state.currentIdx && state.running ? "&#9654;"
+                 : "&#8987;";
+      const cls = "pintwist-auto-row pintwist-auto-row--" + t.status;
+      const detail = t.status === "done" ? ((t.pinCount || 0) + " pins &middot; CSV saved")
+                   : t.status === "failed" ? (t.error || "failed")
+                   : i === state.currentIdx && state.running ? "running..."
+                   : "pending";
+      return '<div class="' + cls + '"><span class="pintwist-auto-icon">' + icon + '</span><span class="pintwist-auto-term">' + escAuto(t.term) + '</span><span class="pintwist-auto-detail">' + escAuto(detail) + '</span></div>';
+    }).join("");
+
+    const doneCount = state.terms.filter((x) => x.status === "done").length;
+    const failedCount = state.terms.filter((x) => x.status === "failed").length;
+
+    wrap.innerHTML =
+      header +
+      '<div class="pintwist-auto-body">' +
+      '<div class="pintwist-auto-row-fields">' +
+      '<label class="pintwist-auto-label">Search terms (comma or newline separated):</label>' +
+      '<textarea id="pintwist-auto-terms" class="pintwist-auto-textarea" rows="3" placeholder="boho wall art, vintage florals, cottagecore prints">' + escAuto(state.terms.map((t) => t.term).join(", ")) + '</textarea>' +
+      '</div>' +
+      '<div class="pintwist-auto-row-fields">' +
+      '<label>Pages/search <input type="number" id="pintwist-auto-pages" min="1" max="100" value="' + state.pagesPerTerm + '" class="pintwist-auto-num"></label>' +
+      '<label>Interval (sec) <input type="number" id="pintwist-auto-interval" min="5" max="3600" value="' + state.intervalSec + '" class="pintwist-auto-num"></label>' +
+      '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-randomize" ' + (state.randomize ? "checked" : "") + '> Randomize &plusmn;<input type="number" id="pintwist-auto-randomize-pct" min="0" max="95" value="' + state.randomizePct + '" class="pintwist-auto-num pintwist-auto-num--xs"> %</label>' +
+      '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-enabled" ' + (state.enabled ? "checked" : "") + '> Auto Mode</label>' +
+      '</div>' +
+      '<div class="pintwist-auto-row-fields">' +
+      '<button id="pintwist-auto-start" class="pintwist-auto-btn pintwist-auto-btn--primary"' + (inCooldown ? " disabled" : "") + '>' + (state.running ? "Running..." : "Start") + '</button>' +
+      '<button id="pintwist-auto-pause" class="pintwist-auto-btn">Pause</button>' +
+      '<button id="pintwist-auto-clear" class="pintwist-auto-btn">Clear queue</button>' +
+      '<button id="pintwist-auto-resume-cd" class="pintwist-auto-btn"' + (inCooldown ? "" : " disabled") + '>Skip cooldown</button>' +
+      '<span class="pintwist-auto-stats">' + doneCount + '/' + state.terms.length + ' done' + (failedCount ? ' &middot; ' + failedCount + ' failed' : '') + '</span>' +
+      '</div>' +
+      '<div class="pintwist-auto-queue">' + (queueRows || '<div class="pintwist-auto-empty">No queue. Paste terms above and click Start.</div>') + '</div>' +
+      '</div>';
+
+    wireHeader(wrap);
+    wireBody(wrap);
+  }
+
+  function wireHeader(wrap) {
+    const t = wrap.querySelector(".pintwist-auto-toggle");
+    if (t) t.addEventListener("click", async () => { await saveState({ panelExpanded: !state.panelExpanded }); });
+  }
+
+  function wireBody(wrap) {
+    const $ = (id) => wrap.querySelector("#" + id);
+    const startBtn = $("pintwist-auto-start");
+    const pauseBtn = $("pintwist-auto-pause");
+    const clearBtn = $("pintwist-auto-clear");
+    const skipCd = $("pintwist-auto-resume-cd");
+    const enabled = $("pintwist-auto-enabled");
+    const randomize = $("pintwist-auto-randomize");
+
+    if (startBtn) startBtn.addEventListener("click", async () => {
+      const terms = parseTerms($("pintwist-auto-terms").value);
+      if (terms.length === 0) { alert("Paste at least one search term."); return; }
+      const pagesPerTerm = Math.max(1, Math.min(100, parseInt($("pintwist-auto-pages").value, 10) || 40));
+      const intervalSec = Math.max(5, Math.min(3600, parseInt($("pintwist-auto-interval").value, 10) || 60));
+      const randomizePct = Math.max(0, Math.min(95, parseInt($("pintwist-auto-randomize-pct").value, 10) || 40));
+      const existing = new Map(state.terms.map((t) => [t.term, t]));
+      const items = terms.map((t) => existing.get(t) || { term: t, status: "pending" });
+      let firstPending = items.findIndex((x) => x.status !== "done" && x.status !== "failed");
+      if (firstPending === -1) firstPending = 0;
+      await saveState({
+        terms: items,
+        currentIdx: firstPending,
+        pagesPerTerm, intervalSec, randomizePct,
+        randomize: $("pintwist-auto-randomize").checked,
+        enabled: $("pintwist-auto-enabled").checked,
+        running: true,
+        cooldownUntil: 0,
+      });
+      runOnceForCurrentPage();
+    });
+
+    if (pauseBtn) pauseBtn.addEventListener("click", async () => { await saveState({ running: false }); });
+
+    if (clearBtn) clearBtn.addEventListener("click", async () => {
+      if (state.running && !confirm("Stop and clear the queue?")) return;
+      await saveState({ terms: [], currentIdx: 0, running: false });
+    });
+
+    if (skipCd) skipCd.addEventListener("click", async () => {
+      if (!confirm("Skip the 1h cooldown and resume now? Pinterest may still rate-limit you.")) return;
+      await saveState({ cooldownUntil: 0 });
+    });
+
+    if (enabled) enabled.addEventListener("change", async (e) => { await saveState({ enabled: e.target.checked }); });
+    if (randomize) randomize.addEventListener("change", async (e) => { await saveState({ randomize: e.target.checked }); });
+  }
+
+  setInterval(() => { if (state && state.panelExpanded) renderPanel(); }, 1000);
+
+  async function bootstrap() {
+    await loadState();
+    const tryMount = () => {
+      if (document.getElementById("pintwist-initial-bar")) {
+        ensurePanel();
+        renderPanel();
+        runOnceForCurrentPage();
+        return true;
+      }
+      return false;
+    };
+    if (!tryMount()) {
+      const obs = new MutationObserver(() => { if (tryMount()) obs.disconnect(); });
+      obs.observe(document.body, { childList: true, subtree: true });
+      setTimeout(() => obs.disconnect(), 60000);
+    }
+  }
+
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    setTimeout(bootstrap, 2500);
+  } else {
+    window.addEventListener("load", () => setTimeout(bootstrap, 2500));
+  }
+})();
