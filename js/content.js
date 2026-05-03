@@ -539,6 +539,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       body.id = "pintwist-auto-body";
       body.className = "pintwist-auto-body";
       initialBar.appendChild(body);
+      _bodyBuiltFor = null; // force a fresh scaffold on the new bar
     }
     renderPanel();
   }
@@ -556,15 +557,20 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
-  function renderPanel() {
-    const toggle = document.getElementById("pintwist-auto-toggle");
-    const body = document.getElementById("pintwist-auto-body");
-    if (!toggle || !body || !state) return;
+  // Render is split in two so the 1s tick doesn't blow away inputs while the
+  // user is typing/pasting:
+  //   renderToggle()        — cheap; runs every tick + on state change
+  //   renderBodyScaffold()  — rebuilds form fields + queue ONLY when expanded
+  //                           transitions or queue contents change
+  //   renderQueueAndStats() — updates the queue rows + stats text in place
+  //                           on every tick (does NOT touch inputs)
+  let _bodyBuiltFor = null; // signature of last full body rebuild
 
+  function renderToggle() {
+    const toggle = document.getElementById("pintwist-auto-toggle");
+    if (!toggle || !state) return;
     const cooldownLeft = state.cooldownUntil ? state.cooldownUntil - Date.now() : 0;
     const inCooldown = cooldownLeft > 0;
-
-    // Toggle (rightmost button on the toolbar)
     toggle.innerHTML =
       (state.panelExpanded ? "&#9660;" : "&#9654;") +
       ' &#129302; Automation' +
@@ -576,14 +582,83 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       e.stopPropagation();
       await saveState({ panelExpanded: !state.panelExpanded });
     };
+  }
 
-    // Body (downward dropdown). Hidden when collapsed.
+  function bodySignature() {
+    // Only the things that require a full rebuild. Form-control values are
+    // intentionally NOT in the signature — the user owns them after open.
+    return JSON.stringify({
+      e: !!state.panelExpanded,
+      n: state.terms.length,
+      // include status of every term so the queue rebuilds when statuses change
+      s: state.terms.map((t) => t.status + ":" + (t.pinCount || 0)).join(","),
+    });
+  }
+
+  function renderBodyScaffold() {
+    const body = document.getElementById("pintwist-auto-body");
+    if (!body || !state) return;
+
     if (!state.panelExpanded) {
       body.style.display = "none";
       body.innerHTML = "";
+      _bodyBuiltFor = null;
       return;
     }
     body.style.display = "block";
+
+    const sig = bodySignature();
+    if (sig === _bodyBuiltFor) return; // no rebuild needed
+    _bodyBuiltFor = sig;
+
+    // Preserve any in-flight user input across rebuilds (rare path).
+    const prev = (() => {
+      const ta = document.getElementById("pintwist-auto-terms");
+      const pages = document.getElementById("pintwist-auto-pages");
+      const interval = document.getElementById("pintwist-auto-interval");
+      const pct = document.getElementById("pintwist-auto-randomize-pct");
+      return {
+        terms: ta && ta.value,
+        pages: pages && pages.value,
+        interval: interval && interval.value,
+        pct: pct && pct.value,
+      };
+    })();
+
+    const cooldownLeft = state.cooldownUntil ? state.cooldownUntil - Date.now() : 0;
+    const inCooldown = cooldownLeft > 0;
+
+    const initialTerms = (typeof prev.terms === "string") ? prev.terms : state.terms.map((t) => t.term).join(", ");
+
+    body.innerHTML =
+      '<div class="pintwist-auto-row-fields">' +
+      '<label class="pintwist-auto-label">Search terms (comma or newline separated):</label>' +
+      '<textarea id="pintwist-auto-terms" class="pintwist-auto-textarea" rows="3" placeholder="boho wall art, vintage florals, cottagecore prints">' + escAuto(initialTerms) + '</textarea>' +
+      '</div>' +
+      '<div class="pintwist-auto-row-fields">' +
+      '<label>Pages/search <input type="number" id="pintwist-auto-pages" min="1" max="100" value="' + (prev.pages || state.pagesPerTerm) + '" class="pintwist-auto-num"></label>' +
+      '<label>Interval (sec) <input type="number" id="pintwist-auto-interval" min="5" max="3600" value="' + (prev.interval || state.intervalSec) + '" class="pintwist-auto-num"></label>' +
+      '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-randomize" ' + (state.randomize ? "checked" : "") + '> Randomize &plusmn;<input type="number" id="pintwist-auto-randomize-pct" min="0" max="95" value="' + (prev.pct || state.randomizePct) + '" class="pintwist-auto-num pintwist-auto-num--xs"> %</label>' +
+      '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-enabled" ' + (state.enabled ? "checked" : "") + '> Auto Mode</label>' +
+      '</div>' +
+      '<div class="pintwist-auto-row-fields">' +
+      '<button id="pintwist-auto-start" class="pintwist-auto-btn pintwist-auto-btn--primary"' + (inCooldown ? " disabled" : "") + '>' + (state.running ? "Running..." : "Start") + '</button>' +
+      '<button id="pintwist-auto-pause" class="pintwist-auto-btn">Pause</button>' +
+      '<button id="pintwist-auto-clear" class="pintwist-auto-btn">Clear queue</button>' +
+      '<button id="pintwist-auto-resume-cd" class="pintwist-auto-btn"' + (inCooldown ? "" : " disabled") + '>Skip cooldown</button>' +
+      '<span class="pintwist-auto-stats" id="pintwist-auto-stats"></span>' +
+      '</div>' +
+      '<div class="pintwist-auto-queue" id="pintwist-auto-queue"></div>';
+
+    wireBody(body);
+    renderQueueAndStats();
+  }
+
+  function renderQueueAndStats() {
+    if (!state || !state.panelExpanded) return;
+    const queueEl = document.getElementById("pintwist-auto-queue");
+    const statsEl = document.getElementById("pintwist-auto-stats");
+    if (!queueEl || !statsEl) return;
 
     const queueRows = state.terms.map((t, i) => {
       const icon = t.status === "done" ? "&#10003;"
@@ -597,31 +672,16 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
                    : "pending";
       return '<div class="' + cls + '"><span class="pintwist-auto-icon">' + icon + '</span><span class="pintwist-auto-term">' + escAuto(t.term) + '</span><span class="pintwist-auto-detail">' + escAuto(detail) + '</span></div>';
     }).join("");
+    queueEl.innerHTML = queueRows || '<div class="pintwist-auto-empty">No queue. Paste terms above and click Start.</div>';
 
     const doneCount = state.terms.filter((x) => x.status === "done").length;
     const failedCount = state.terms.filter((x) => x.status === "failed").length;
+    statsEl.innerHTML = doneCount + '/' + state.terms.length + ' done' + (failedCount ? ' &middot; ' + failedCount + ' failed' : '');
+  }
 
-    body.innerHTML =
-      '<div class="pintwist-auto-row-fields">' +
-      '<label class="pintwist-auto-label">Search terms (comma or newline separated):</label>' +
-      '<textarea id="pintwist-auto-terms" class="pintwist-auto-textarea" rows="3" placeholder="boho wall art, vintage florals, cottagecore prints">' + escAuto(state.terms.map((t) => t.term).join(", ")) + '</textarea>' +
-      '</div>' +
-      '<div class="pintwist-auto-row-fields">' +
-      '<label>Pages/search <input type="number" id="pintwist-auto-pages" min="1" max="100" value="' + state.pagesPerTerm + '" class="pintwist-auto-num"></label>' +
-      '<label>Interval (sec) <input type="number" id="pintwist-auto-interval" min="5" max="3600" value="' + state.intervalSec + '" class="pintwist-auto-num"></label>' +
-      '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-randomize" ' + (state.randomize ? "checked" : "") + '> Randomize &plusmn;<input type="number" id="pintwist-auto-randomize-pct" min="0" max="95" value="' + state.randomizePct + '" class="pintwist-auto-num pintwist-auto-num--xs"> %</label>' +
-      '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-enabled" ' + (state.enabled ? "checked" : "") + '> Auto Mode</label>' +
-      '</div>' +
-      '<div class="pintwist-auto-row-fields">' +
-      '<button id="pintwist-auto-start" class="pintwist-auto-btn pintwist-auto-btn--primary"' + (inCooldown ? " disabled" : "") + '>' + (state.running ? "Running..." : "Start") + '</button>' +
-      '<button id="pintwist-auto-pause" class="pintwist-auto-btn">Pause</button>' +
-      '<button id="pintwist-auto-clear" class="pintwist-auto-btn">Clear queue</button>' +
-      '<button id="pintwist-auto-resume-cd" class="pintwist-auto-btn"' + (inCooldown ? "" : " disabled") + '>Skip cooldown</button>' +
-      '<span class="pintwist-auto-stats">' + doneCount + '/' + state.terms.length + ' done' + (failedCount ? ' &middot; ' + failedCount + ' failed' : '') + '</span>' +
-      '</div>' +
-      '<div class="pintwist-auto-queue">' + (queueRows || '<div class="pintwist-auto-empty">No queue. Paste terms above and click Start.</div>') + '</div>';
-
-    wireBody(body);
+  function renderPanel() {
+    renderToggle();
+    renderBodyScaffold();
   }
 
   function wireBody(wrap) {
@@ -671,7 +731,13 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     if (randomize) randomize.addEventListener("change", async (e) => { await saveState({ randomize: e.target.checked }); });
   }
 
-  setInterval(() => { if (state && state.panelExpanded) renderPanel(); }, 1000);
+  // 1s tick: only refresh the toggle (cooldown countdown) and queue/stats.
+  // Never re-render the form fields here — that destroys focus and pasted text.
+  setInterval(() => {
+    if (!state) return;
+    renderToggle();
+    if (state.panelExpanded) renderQueueAndStats();
+  }, 1000);
 
   async function bootstrap() {
     await loadState();
