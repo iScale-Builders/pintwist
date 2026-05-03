@@ -302,13 +302,25 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     terms: [],
     currentIdx: 0,
     pagesPerTerm: 40,
-    intervalMin: 1,         // minutes (was intervalSec; migrated on load)
+    intervalMin: 5,         // minutes — default delay between scans
     randomize: false,
     randomizePct: 40,
     cooldownUntil: 0,
     lastNavAt: 0,
     panelExpanded: false,
+    runNextImmediately: false, // one-shot: skip the page-load delay (set by ▶ buttons)
   };
+
+  // On script reload (extension reload), nuke any stale automation panel from
+  // the previous version so the new layout takes effect immediately. Without
+  // this, the existing body element persists and renderBodyScaffold's signature
+  // check skips rebuilds, leaving the user looking at the old layout.
+  (function nukeStale() {
+    const oldBody = document.getElementById("pintwist-auto-body");
+    if (oldBody) oldBody.remove();
+    const oldToggle = document.getElementById("pintwist-auto-toggle");
+    if (oldToggle) oldToggle.remove();
+  })();
   // Module-local — survives across same-page renders, resets on navigation.
   let _pendingNextTimeout = null;
   let _pendingNextDeadline = 0;
@@ -478,7 +490,10 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     });
   }
 
-  async function runOnceForCurrentPage() {
+  // immediate=true means "user just clicked ▶ — skip any countdown delay".
+  // Otherwise (page load, scheduled callback) we always defer the actual scan
+  // by jitterDelayMs() so opening Pinterest never auto-scans on its own.
+  async function runOnceForCurrentPage(immediate) {
     await loadState();
     if (!state.running) return;
     if (state.cooldownUntil && Date.now() < state.cooldownUntil) return;
@@ -495,8 +510,24 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       term.status = "running";
       term.startedAt = Date.now();
       state.terms[state.currentIdx] = term;
-      await saveState({ lastNavAt: Date.now() });
+      // Persist runNextImmediately so the new page knows whether to skip
+      // the delay (only when user clicked ▶).
+      await saveState({ lastNavAt: Date.now(), runNextImmediately: !!immediate });
       location.href = searchUrlFor(term.term);
+      return;
+    }
+
+    // We're on the right URL. Decide: scan now or schedule with delay?
+    const explicit = !!immediate || !!state.runNextImmediately;
+    if (state.runNextImmediately) {
+      await saveState({ runNextImmediately: false });
+    }
+    if (!explicit) {
+      // Page load with running queue → ALWAYS delay before scanning. User
+      // wants to never see auto-scan immediately on page open.
+      if (_pendingNextTimeout) return; // already scheduled
+      schedulePending(() => runOnceForCurrentPage(true), jitterDelayMs());
+      renderQueueAndStats();
       return;
     }
 
@@ -552,9 +583,11 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       await saveState({ currentIdx: state.currentIdx + 1 });
 
       if (state.currentIdx < state.terms.length) {
-        const delay = jitterDelayMs();
-        console.log("[PinTwist Automation] Next search in " + (delay/60000).toFixed(2) + " min");
-        schedulePending(advanceAndNavigate, delay);
+        // Navigate to next term immediately; the next page's content.js will
+        // automatically delay before its scan (per "never auto-scan on page
+        // open"). Single source of truth for the inter-scan delay.
+        console.log("[PinTwist Automation] Advancing to next term");
+        advanceAndNavigate();
       } else {
         await saveState({ running: false });
         try { alert("PinTwist: Queue complete. " + state.terms.filter((x) => x.status === "done").length + " searches saved."); } catch {}
@@ -930,7 +963,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
         await saveState({ running: true, cooldownUntil: 0 });
         // Schedule first scan with a countdown (instead of firing immediately)
         // so the user sees what's about to happen + can ▶/✗ before it runs.
-        schedulePending(runOnceForCurrentPage, jitterDelayMs());
+        schedulePending(() => runOnceForCurrentPage(true), jitterDelayMs());
         renderQueueAndStats();
       } else {
         clearPending();
@@ -953,7 +986,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       }
       await persistSettingsFromInputs(wrap);
       await saveState({ running: true, cooldownUntil: 0 });
-      runOnceForCurrentPage();
+      runOnceForCurrentPage(true);
     });
 
     // ✗ Turn off: same effect as flipping the toggle to off.
@@ -983,7 +1016,7 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
         try { if (typeof State !== "undefined") State.aborted = false; } catch {}
         await persistSettingsFromInputs(wrap);
         await saveState({ currentIdx: idx, running: true, cooldownUntil: 0 });
-        runOnceForCurrentPage();
+        runOnceForCurrentPage(true);
         return;
       }
       if (xBtn) {
