@@ -656,6 +656,21 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
+  // Custom-spinner number field. Emits input + ▲▼ stacked buttons. Step,
+  // min, max are stored as data-* so the click handler can clamp without
+  // re-reading the input attributes (which strip step accuracy).
+  function numField(id, min, max, step, value, extraClass) {
+    const cls = "pintwist-auto-num" + (extraClass ? " " + extraClass : "");
+    const stepStr = String(step);
+    return '<span class="pintwist-auto-num-wrap">' +
+      '<input type="number" id="' + id + '" min="' + min + '" max="' + max + '" step="' + stepStr + '" value="' + value + '" class="' + cls + '" data-step="' + stepStr + '" data-min="' + min + '" data-max="' + max + '">' +
+      '<span class="pintwist-auto-num-spin">' +
+      '<button type="button" class="pintwist-auto-num-up" data-target="' + id + '" tabindex="-1" aria-label="Increase">&#9650;</button>' +
+      '<button type="button" class="pintwist-auto-num-down" data-target="' + id + '" tabindex="-1" aria-label="Decrease">&#9660;</button>' +
+      '</span>' +
+      '</span>';
+  }
+
   // Render is split in two so the 1s tick doesn't blow away inputs while the
   // user is typing/pasting:
   //   renderToggle()        — cheap; runs every tick + on state change
@@ -742,11 +757,13 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
       // Pill bar — each term renders as a pill in #pintwist-auto-queue, with
       // X to remove + ▶ to run that one immediately. Re-rendered each tick.
       '<div class="pintwist-auto-pills" id="pintwist-auto-queue"></div>' +
-      // Settings row
+      // Settings row — number inputs use a custom spinner (▲▼) wrapper for
+      // consistent styling across browsers; the helper emits the input + the
+      // stacked button column. Click handlers are delegated below.
       '<div class="pintwist-auto-row-fields">' +
-      '<label>Pages/search <input type="number" id="pintwist-auto-pages" min="1" max="100" value="' + (prev.pages || state.pagesPerTerm) + '" class="pintwist-auto-num"></label>' +
-      '<label>Interval (min) <input type="number" id="pintwist-auto-interval" min="0.25" max="180" step="0.25" value="' + (prev.interval || state.intervalMin) + '" class="pintwist-auto-num"></label>' +
-      '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-randomize" ' + (state.randomize ? "checked" : "") + '> Randomize &plusmn;<input type="number" id="pintwist-auto-randomize-pct" min="0" max="95" value="' + (prev.pct || state.randomizePct) + '" class="pintwist-auto-num pintwist-auto-num--xs"> %</label>' +
+      '<label>Pages/search ' + numField("pintwist-auto-pages", 1, 100, 1, (prev.pages || state.pagesPerTerm)) + '</label>' +
+      '<label>Interval (min) ' + numField("pintwist-auto-interval", 0.25, 180, 0.25, (prev.interval || state.intervalMin)) + '</label>' +
+      '<label class="pintwist-auto-checkbox"><input type="checkbox" id="pintwist-auto-randomize" ' + (state.randomize ? "checked" : "") + '> Randomize &plusmn;' + numField("pintwist-auto-randomize-pct", 0, 95, 1, (prev.pct || state.randomizePct), "pintwist-auto-num--xs") + ' %</label>' +
       '</div>' +
       // Master ON/OFF toggle + secondary actions + live countdown
       '<div class="pintwist-auto-master-row">' +
@@ -950,6 +967,31 @@ Please refresh the page and try again.`),document.getElementById("pintwist-progr
     });
 
     if (randomize) randomize.addEventListener("change", async (e) => { await saveState({ randomize: e.target.checked }); });
+
+    // Custom number-spinner clicks (delegated). Honors min/max/step from the
+    // input's data-* attributes, fires "input" + "change" so any listeners
+    // wired to the input (like settings-persist) trigger normally.
+    wrap.addEventListener("click", (e) => {
+      const upBtn = e.target.closest(".pintwist-auto-num-up");
+      const downBtn = e.target.closest(".pintwist-auto-num-down");
+      const btn = upBtn || downBtn;
+      if (!btn) return;
+      e.preventDefault(); e.stopPropagation();
+      const input = wrap.querySelector("#" + btn.dataset.target);
+      if (!input) return;
+      const step = parseFloat(input.dataset.step) || 1;
+      const min = parseFloat(input.dataset.min);
+      const max = parseFloat(input.dataset.max);
+      const cur = parseFloat(input.value) || 0;
+      let next = upBtn ? cur + step : cur - step;
+      if (!isNaN(min) && next < min) next = min;
+      if (!isNaN(max) && next > max) next = max;
+      // Round-trip through step grid to avoid float drift (e.g. 0.25 + 0.25 etc.)
+      const decimals = (String(step).split(".")[1] || "").length;
+      input.value = decimals ? next.toFixed(decimals) : String(Math.round(next));
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
   }
 
   // 1s tick: only refresh the toggle (cooldown countdown) and queue/stats.
