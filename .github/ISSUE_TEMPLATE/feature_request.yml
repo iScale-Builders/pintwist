@@ -1,0 +1,41 @@
+name: Feature request
+description: Suggest an improvement for PinTwist.
+title: "[Feature]: "
+labels: ["enhancement", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please open an issue before starting large changes to permissions, data handling, the build pipeline, licensing, or branding.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user or maintainer problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should change?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Toolbar / on-page UI
+        - Sorting / filtering
+        - Local catalog
+        - Downloads / CSV export
+        - Build / tooling
+        - Documentation
+        - Other
+    validations:
+      required: true

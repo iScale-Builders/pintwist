@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+# Least-privilege default token: every job here only reads the repo
+# (checkout + build + test). No job writes contents, comments, or releases.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 10.32.1
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Verify committed build output is in sync
+        run: |
+          if ! git diff --exit-code; then
+            echo "::error::Committed build output is stale. Run 'pnpm run build' and commit the regenerated files (js/background.js, popup.js, js/pintwist-catalog-shared.js, manifest.json)."
+            exit 1
+          fi
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Format check
+        run: pnpm run format:check
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Syntax check
+        run: |
+          node --check js/content.js
+          node --check js/background.js
+          node --check popup.js
+          node --check dist/js/content.js
+          node --check dist/js/background.js
+          node --check dist/popup.js
+
+  version-bump:
+    name: Version bump check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Require a version bump when shipped output changes
+        run: |
+          base="${{ github.event.pull_request.base.sha }}"
+          changed="$(git diff --name-only "$base"...HEAD)"
+          echo "Changed files:"; echo "$changed"
+          # Files that end up in the built extension (dist/). A change to any of
+          # these must come with a package.json version bump (see CONTRIBUTING.md).
+          if echo "$changed" | grep -qE '^(js/|src/|css/|images/|catalog|popup\.html|popup-catalog\.js|manifest\.json|build\.cjs)'; then
+            new="$(node -p "require('./package.json').version")"
+            git show "$base:package.json" > /tmp/base-package.json
+            old="$(node -p "require('/tmp/base-package.json').version")"
+            echo "package.json version: $old -> $new"
+            if [ "$old" = "$new" ]; then
+              echo "::error::Shipped/build files changed but package.json version is still $new. Bump the version (package.json + manifest version_name) and add a CHANGELOG.md entry — see CONTRIBUTING.md."
+              exit 1
+            fi
+            echo "Version bumped ($old -> $new) — OK."
+          else
+            echo "No shipped/build files changed; version bump not required."
+          fi

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        :root {
+            --theme-color: #F48FB1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 280px;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #FFFFFF;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--theme-color);
+        }
+
+        .header-wordmark {
+            height: 24px;
+            width: auto;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .toggle-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #E0E0E0;
+            background: #FFFFFF;
+            color: #666;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--theme-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-btn.active {
+            background: var(--theme-color);
+            color: white;
+            border-color: var(--theme-color);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .status {
+            text-align: center;
+            padding: 12px;
+            background: #F5F5F5;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .status.on {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--theme-color);
+            font-weight: 600;
+        }
+
+        .status.off {
+            background: #F5F5F5;
+            color: #999;
+        }
+
+        /* Overlays section - shown when bar is OFF */
+        .overlays-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #E0E0E0;
+            display: none;
+        }
+
+        .overlays-section.visible {
+            display: block;
+        }
+
+        .overlays-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .overlays-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .overlays-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: 2px solid #E0E0E0;
+            background: #FFFFFF;
+            color: #666;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .overlays-btn:hover {
+            border-color: var(--theme-color);
+        }
+
+        .overlays-btn.active {
+            background: var(--theme-color);
+            color: white;
+            border-color: var(--theme-color);
+        }
+
+        /* Color picker section */
+        .color-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #E0E0E0;
+        }
+
+        .catalog-section {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #E0E0E0;
+        }
+
+        #open-catalog-btn {
+            width: 100%;
+            padding: 11px 14px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--theme-color);
+            color: #FFFFFF;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #open-catalog-btn:hover {
+            color: #FFFFFF;
+            background: var(--theme-color);
+            transform: translateY(-1px);
+        }
+
+        .color-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .color-picker-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #color-picker {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 44px;
+            height: 44px;
+            border: 2px solid #DDD;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            overflow: hidden;
+            background: conic-gradient(
+                red,
+                yellow,
+                lime,
+                aqua,
+                blue,
+                magenta,
+                red
+            );
+        }
+
+        #color-picker::-webkit-color-swatch-wrapper {
+            padding: 2px;
+        }
+
+        #color-picker::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+        }
+
+        #color-picker::-moz-color-swatch {
+            border: none;
+            border-radius: 50%;
+        }
+
+        #color-picker:hover {
+            border-color: var(--theme-color);
+            transform: scale(1.1);
+            transition: all 0.2s ease;
+        }
+
+        .color-presets {
+            display: flex;
+            gap: 6px;
+            flex-wrap: nowrap;
+        }
+
+        .color-preset {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #DDD;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .color-preset:hover {
+            transform: scale(1.15);
+            border-color: #999;
+        }
+
+        .color-preset.active {
+            border-color: #333;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #333;
+        }
+
+        /* Data sharing section */
+        .data-sharing-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #E0E0E0;
+        }
+
+        .data-sharing-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .data-sharing-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .ds-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: 2px solid #E0E0E0;
+            background: #FFFFFF;
+            color: #666;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .ds-btn:hover {
+            border-color: var(--theme-color);
+        }
+
+        .ds-btn.active {
+            background: var(--theme-color);
+            color: white;
+            border-color: var(--theme-color);
+        }
+
+        .data-sharing-hint {
+            font-size: 11px;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .data-sharing-hint a {
+            color: #555;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* App screen */
+        #app-screen {
+            display: block;
+        }
+
+        .version-footer {
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid #EEEEEE;
+            text-align: center;
+            font-size: 11px;
+            color: #AAAAAA;
+            letter-spacing: 0.3px;
+            user-select: text;
+        }
+
+        /* Unified PinTwist glass theme shared with the Pinterest rail. */
+        body.pin-glass-popup {
+            --pt-rail-bg: rgba(13,13,20,0.96);
+            --pt-panel: rgba(255,255,255,0.075);
+            --pt-panel-strong: rgba(255,255,255,0.105);
+            --pt-field: rgba(255,255,255,0.08);
+            --pt-field-strong: rgba(255,255,255,0.12);
+            --pt-line: rgba(255,255,255,0.14);
+            --pt-line-strong: rgba(255,255,255,0.22);
+            --pt-text: #f8fafc;
+            --pt-muted: rgba(248,250,252,0.72);
+            --pt-faint: rgba(248,250,252,0.48);
+            --pt-green: var(--theme-color, #4ade80);
+            --pt-blue: #60a5fa;
+            --pt-glow-green: rgba(74,222,128,0.28);
+            --pt-glow-blue: rgba(96,165,250,0.26);
+            --pt-secondary-bg: rgba(96,165,250,0.14);
+            --pt-secondary-border: rgba(96,165,250,0.42);
+            --pt-secondary-text: #dbeafe;
+            --pt-disabled-bg: rgba(255,255,255,0.055);
+            --pt-disabled-border: rgba(255,255,255,0.11);
+            --pt-disabled-text: rgba(248,250,252,0.50);
+            --pt-font-body: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --pt-font-heading: 'Syne', 'DM Sans', system-ui, sans-serif;
+            width: 320px;
+            max-width: 340px;
+            min-height: 420px;
+            padding: 16px;
+            color: var(--pt-text);
+            font-family: var(--pt-font-body);
+            background: var(--pt-rail-bg);
+            backdrop-filter: blur(22px) saturate(150%);
+            -webkit-backdrop-filter: blur(22px) saturate(150%);
+        }
+
+        body.pin-glass-popup.theme-mode-light {
+            --pt-rail-bg: rgba(248,250,252,0.96);
+            --pt-panel: rgba(255,255,255,0.78);
+            --pt-panel-strong: rgba(255,255,255,0.92);
+            --pt-field: rgba(15,23,42,0.06);
+            --pt-field-strong: rgba(15,23,42,0.09);
+            --pt-line: rgba(15,23,42,0.12);
+            --pt-line-strong: rgba(15,23,42,0.20);
+            --pt-text: #0f172a;
+            --pt-muted: rgba(15,23,42,0.68);
+            --pt-faint: rgba(15,23,42,0.46);
+            --pt-glow-green: color-mix(in srgb, var(--pt-green) 20%, transparent);
+            --pt-glow-blue: rgba(37,99,235,0.18);
+            --pt-secondary-bg: color-mix(in srgb, var(--pt-green) 10%, #ffffff);
+            --pt-secondary-border: color-mix(in srgb, var(--pt-green) 38%, rgba(15,23,42,0.18));
+            --pt-secondary-text: #0f172a;
+            --pt-disabled-bg: rgba(15,23,42,0.045);
+            --pt-disabled-border: rgba(15,23,42,0.13);
+            --pt-disabled-text: rgba(15,23,42,0.58);
+            background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(241,245,249,0.96));
+        }
+
+        .pin-glass-popup::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 18% 0%, rgba(74,222,128,0.16), transparent 32%),
+                radial-gradient(circle at 100% 20%, rgba(96,165,250,0.14), transparent 30%);
+            opacity: 1;
+        }
+
+        .pin-glass-popup.theme-mode-light::before {
+            background:
+                radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--pt-green) 13%, transparent), transparent 32%),
+                radial-gradient(circle at 100% 20%, rgba(96,165,250,0.12), transparent 30%);
+        }
+
+        .pin-glass-popup #app-screen {
+            position: relative;
+            padding: 14px;
+            border: 1px solid var(--pt-line);
+            border-radius: 8px;
+            background: var(--pt-panel-strong);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 18px 42px rgba(0,0,0,0.30);
+            backdrop-filter: blur(18px) saturate(135%);
+            -webkit-backdrop-filter: blur(18px) saturate(135%);
+        }
+
+        .pin-glass-popup #app-screen {
+            display: flex !important;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .pin-glass-popup .header {
+            justify-content: flex-start;
+            margin: 0;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--pt-line);
+        }
+
+        .pin-glass-popup .header-wordmark {
+            height: 26px;
+            max-width: 190px;
+        }
+
+        .pin-glass-popup .header,
+        .pin-glass-popup .color-label,
+        .pin-glass-popup .overlays-label {
+            font-family: var(--pt-font-heading);
+        }
+
+        .pin-glass-popup .status,
+        .pin-glass-popup .color-section,
+        .pin-glass-popup .mode-section,
+        .pin-glass-popup .catalog-section,
+        .pin-glass-popup .overlays-section {
+            margin: 0;
+            padding: 10px;
+            border: 1px solid var(--pt-line);
+            border-radius: 8px;
+            background: var(--pt-panel);
+            color: var(--pt-text);
+        }
+
+        .pin-glass-popup .toggle-container,
+        .pin-glass-popup .overlays-toggle,
+        .pin-glass-popup .mode-toggle {
+            gap: 8px;
+            margin: 0;
+        }
+
+        .pin-glass-popup button,
+        .pin-glass-popup .toggle-btn,
+        .pin-glass-popup .overlays-btn,
+        .pin-glass-popup .mode-btn,
+        .pin-glass-popup #open-catalog-btn {
+            min-height: 36px;
+            height: 36px;
+            width: 100%;
+            border: 1px solid var(--pt-line-strong);
+            border-radius: 8px;
+            background: var(--pt-field);
+            color: var(--pt-text);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0;
+            text-transform: none;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+            transition: background 200ms ease, border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+        }
+
+        .pin-glass-popup .toggle-btn.active,
+        .pin-glass-popup .overlays-btn.active,
+        .pin-glass-popup .mode-btn.active {
+            background: var(--pt-green);
+            border-color: rgba(74,222,128,0.55);
+            color: #06120c;
+            box-shadow: 0 0 20px var(--pt-glow-green), inset 0 1px 0 rgba(255,255,255,0.28);
+        }
+
+        .pin-glass-popup #open-catalog-btn {
+            background: var(--pt-green);
+            border-color: color-mix(in srgb, var(--pt-green) 55%, rgba(255,255,255,0.2));
+            color: #06120c;
+            box-shadow: 0 0 18px var(--pt-glow-green), inset 0 1px 0 rgba(255,255,255,0.18);
+        }
+
+        .pin-glass-popup button:hover {
+            transform: none;
+            filter: brightness(1.06);
+        }
+
+        .pin-glass-popup .status,
+        .pin-glass-popup .status.on,
+        .pin-glass-popup .status.off,
+        .pin-glass-popup .color-label,
+        .pin-glass-popup .mode-label,
+        .pin-glass-popup .overlays-label,
+        .pin-glass-popup .version-footer {
+            color: var(--pt-muted);
+        }
+
+        .pin-glass-popup .color-picker-row {
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pin-glass-popup .mode-toggle {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .pin-glass-popup .mode-label {
+            margin-bottom: 10px;
+            font-family: var(--pt-font-heading);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .pin-glass-popup .color-preset,
+        .pin-glass-popup #color-picker {
+            border: 1px solid var(--pt-line-strong);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.22);
+        }
+
+        .pin-glass-popup button,
+        .pin-glass-popup input,
+        .pin-glass-popup select,
+        .pin-glass-popup textarea {
+            box-sizing: border-box;
+            font-family: inherit;
+            letter-spacing: 0;
+        }
+
+        .pin-glass-popup button {
+            border: 1px solid var(--pt-line-strong);
+            background: var(--pt-panel);
+            color: var(--pt-text);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 850;
+            line-height: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: background 200ms ease, border-color 200ms ease, color 200ms ease, filter 200ms ease;
+        }
+
+        .pin-glass-popup button:hover:not(:disabled) {
+            background: var(--pt-panel-strong);
+            border-color: rgba(96,165,250,0.58);
+            color: var(--pt-text);
+            filter: brightness(1.06);
+        }
+
+        .pin-glass-popup button:disabled {
+            opacity: 1;
+            cursor: not-allowed;
+            background: var(--pt-disabled-bg);
+            border-color: var(--pt-disabled-border);
+            color: var(--pt-disabled-text);
+        }
+
+        .pin-glass-popup input:not([type="color"]) {
+            min-height: 36px;
+            background: var(--pt-field-strong);
+            border: 1px solid var(--pt-line-strong);
+            border-radius: 8px;
+            color: var(--pt-text);
+            font-size: 13px;
+            font-weight: 750;
+            outline: 0;
+        }
+
+        .pin-glass-popup input:not([type="color"]):focus {
+            border-color: var(--pt-blue);
+            box-shadow: 0 0 0 2px rgba(96,165,250,0.24), inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+      </style>
+</head>
+<body class="pin-glass-popup theme-mode-dark">
+    <!-- App Screen -->
+    <div id="app-screen">
+    <div class="header">
+        <svg class="header-wordmark" xmlns="http://www.w3.org/2000/svg" viewBox="0.00 0.00 2959.00 1062.00" height="24">
+            <path id="popup-wordmark-fill" fill="#F48FB1" d="M 606.29 202.72 A 0.15 0.15 0.0 0 0 606.08 202.86 L 606.08 337.13 A 2.37 2.36 82.7 0 1 604.31 339.42 C 597.59 341.17 590.21 344.19 585.28 345.89 Q 550.45 357.90 534.16 363.39 C 531.76 364.20 528.93 364.83 526.66 365.62 C 502.56 373.99 480.54 381.20 457.22 387.24 A 0.90 0.90 0.0 0 1 456.10 386.37 L 456.10 202.21 A 0.39 0.39 0.0 0 0 455.55 201.86 Q 428.32 214.10 404.51 226.28 Q 381.59 238.00 362.56 252.79 Q 349.75 262.74 341.35 275.06 C 335.39 283.81 333.91 294.26 337.79 304.37 C 340.67 311.86 345.33 317.43 351.32 323.78 Q 354.83 327.50 359.07 330.83 Q 374.56 342.98 385.53 348.96 Q 399.02 356.33 411.69 362.73 A 0.90 0.88 13.8 0 1 412.18 363.52 L 412.18 400.80 A 0.68 0.67 -8.9 0 1 411.71 401.44 C 385.32 409.94 360.46 417.94 333.83 428.08 Q 318.97 433.74 308.47 438.74 Q 306.99 439.45 303.79 439.83 A 1.51 1.47 60.6 0 1 302.66 439.50 C 281.45 422.03 262.57 403.40 248.91 380.41 Q 244.72 373.36 237.42 358.09 Q 224.53 331.16 223.64 301.27 C 223.11 283.05 224.31 265.60 229.47 247.93 Q 238.65 216.44 259.18 190.17 Q 266.52 180.79 275.22 171.47 C 276.57 170.03 277.68 168.13 279.11 166.68 Q 288.38 157.34 291.27 154.76 C 342.93 108.53 408.95 81.53 477.50 72.54 C 551.50 62.83 627.95 73.09 695.49 104.97 C 729.22 120.89 760.01 142.12 785.54 169.46 Q 796.65 181.36 804.51 191.49 C 816.01 206.34 823.65 222.35 831.50 242.25 A 5.32 5.18 33.8 0 1 831.85 243.90 Q 831.92 245.43 832.36 246.90 Q 837.11 262.83 838.34 279.74 Q 838.63 283.76 838.38 302.75 C 838.20 316.59 835.05 333.03 830.07 346.72 Q 816.87 382.98 789.98 411.76 C 777.03 425.63 761.48 439.16 745.21 450.41 C 715.59 470.89 682.67 487.22 649.86 501.59 Q 642.45 504.83 618.91 513.76 C 582.78 527.46 546.46 538.67 507.22 550.33 Q 486.59 556.46 474.77 560.40 Q 453.34 567.56 442.46 570.87 C 429.43 574.84 417.83 579.16 405.79 582.94 C 389.80 587.97 369.14 596.21 357.28 600.82 Q 340.76 607.25 323.06 616.32 C 298.86 628.72 277.28 643.69 261.53 665.02 Q 255.85 672.72 252.65 683.15 A 0.40 0.39 8.6 0 0 253.03 683.66 L 411.62 683.66 A 0.54 0.54 0.0 0 1 412.16 684.20 L 412.16 793.47 A 0.69 0.69 0.0 0 1 411.47 794.16 Q 342.30 794.11 180.00 794.14 Q 176.29 794.14 165.85 792.16 Q 154.23 789.96 144.41 783.63 C 132.32 775.84 123.98 761.05 121.17 747.29 Q 119.16 737.44 119.19 726.75 Q 119.23 707.75 122.76 689.08 Q 126.49 669.40 132.14 652.40 C 139.38 630.63 150.21 609.88 164.70 590.51 C 187.34 560.24 216.78 534.88 249.87 515.64 Q 290.68 491.91 335.87 474.34 Q 379.50 457.38 419.53 445.47 Q 448.26 436.92 450.77 436.12 Q 466.38 431.10 481.96 426.70 C 499.87 421.64 514.36 416.62 532.04 411.22 C 545.65 407.07 558.69 402.09 575.03 396.23 Q 581.61 393.88 592.01 389.66 Q 621.02 377.90 648.06 364.68 Q 648.54 364.44 649.10 363.95 Q 649.67 363.45 650.13 363.21 Q 657.72 359.17 668.73 353.30 Q 680.18 347.19 686.88 342.62 C 698.34 334.82 708.14 327.39 716.58 316.77 Q 722.14 309.76 724.21 303.04 C 727.98 290.74 724.40 280.56 716.31 270.50 Q 710.33 263.07 704.20 257.80 Q 687.44 243.38 664.86 231.14 Q 635.68 215.34 606.29 202.72 Z M 1658.87 345.16 L 1658.87 473.12 A 0.53 0.53 0.0 0 1 1658.34 473.65 L 1512.26 473.65 A 0.53 0.53 0.0 0 0 1511.73 474.18 L 1511.73 994.04 A 0.53 0.53 0.0 0 1 1511.20 994.57 L 1364.40 994.57 A 0.53 0.53 0.0 0 1 1363.87 994.04 L 1363.87 474.18 A 0.53 0.53 0.0 0 0 1363.34 473.65 L 1222.06 473.65 A 0.53 0.53 0.0 0 1 1221.53 473.12 L 1221.53 345.16 A 0.53 0.53 0.0 0 1 1222.06 344.63 L 1658.34 344.63 A 0.53 0.53 0.0 0 1 1658.87 345.16 Z M 2053.71 387.10 L 2179.95 387.10 A 0.34 0.34 0 0 1 2180.29 387.44 L 2180.29 473.84 A 0.34 0.34 0 0 1 2179.95 474.18 L 2053.71 474.18 A 0.34 0.34 0 0 1 2053.37 473.84 L 2053.37 387.44 A 0.34 0.34 0 0 1 2053.71 387.10 Z M 2596.95 414.06 L 2723.06 414.06 A 0.61 0.60 90.0 0 1 2723.66 414.67 L 2723.66 548.78 A 0.81 0.81 0.0 0 0 2724.47 549.59 L 2786.21 549.59 A 0.63 0.63 0.0 0 1 2786.84 550.22 L 2786.84 631.63 A 0.43 0.43 0.0 0 1 2786.41 632.06 L 2724.13 632.04 A 0.50 0.49 86.4 0 0 2723.64 632.60 Q 2723.67 632.78 2723.66 861.00 Q 2723.66 869.04 2726.02 876.20 C 2732.10 894.62 2751.39 898.17 2768.26 897.50 Q 2782.37 896.93 2796.22 894.56 A 0.50 0.50 0.0 0 1 2796.81 895.05 L 2796.81 992.57 A 0.60 0.59 86.1 0 1 2796.30 993.16 Q 2752.82 999.93 2711.01 999.11 C 2691.78 998.73 2670.45 995.62 2652.10 988.22 C 2601.22 967.68 2596.61 915.65 2596.61 868.83 Q 2596.63 634.84 2596.63 632.47 A 0.42 0.42 0.0 0 0 2596.21 632.05 L 2553.85 632.05 A 0.37 0.37 0.0 0 1 2553.48 631.68 L 2553.48 550.21 A 0.62 0.62 0.0 0 1 2554.10 549.59 L 2596.14 549.59 A 0.49 0.49 0.0 0 0 2596.63 549.10 L 2596.63 414.39 A 0.33 0.32 -90.0 0 1 2596.95 414.06 Z M 904.40 549.44 L 1028.50 549.44 A 0.62 0.62 0.0 0 1 1029.12 550.06 L 1029.12 593.36 A 0.33 0.32 -22.9 0 0 1029.68 593.58 C 1060.01 563.04 1099.78 538.48 1144.44 542.17 C 1190.73 546.00 1213.10 584.85 1217.56 627.14 Q 1218.51 636.20 1218.43 653.40 Q 1218.38 666.38 1218.41 994.20 A 0.37 0.37 0.0 0 1 1218.04 994.57 L 1094.24 994.57 A 0.47 0.46 0.0 0 1 1093.77 994.11 Q 1093.78 732.02 1093.77 663.00 C 1093.77 654.62 1092.70 644.52 1087.19 637.64 C 1080.45 629.24 1066.39 629.27 1056.76 632.53 Q 1042.19 637.45 1029.38 646.57 A 0.61 0.60 72.9 0 0 1029.12 647.07 L 1029.12 994.25 A 0.32 0.31 90.0 0 1 1028.81 994.57 L 904.10 994.57 A 0.43 0.42 -0.0 0 1 903.67 994.15 L 903.67 550.17 A 0.73 0.73 0.0 0 1 904.40 549.44 Z M 2443.38 693.49 A 0.39 0.38 -21.0 0 1 2442.85 693.26 C 2434.62 667.73 2411.94 626.87 2380.16 629.85 C 2369.39 630.86 2360.75 636.59 2357.91 647.44 C 2354.22 661.58 2362.47 674.29 2371.69 684.59 C 2383.49 697.76 2397.51 709.73 2410.73 720.37 C 2427.37 733.75 2442.76 748.12 2459.63 762.54 C 2491.45 789.73 2524.43 822.35 2529.83 866.27 Q 2533.10 892.83 2525.72 917.25 C 2511.54 964.15 2469.10 992.49 2422.47 1000.06 Q 2399.65 1003.76 2373.19 1001.45 Q 2349.94 999.43 2330.46 992.81 C 2298.37 981.91 2273.16 960.38 2254.95 932.04 Q 2242.63 912.87 2233.87 890.94 A 0.41 0.41 0.0 0 1 2234.08 890.42 L 2318.71 853.03 A 0.60 0.59 67.1 0 1 2319.51 853.36 C 2331.61 884.06 2356.36 925.48 2396.36 916.15 C 2412.23 912.45 2416.06 899.23 2412.66 884.47 Q 2410.31 874.30 2402.76 865.24 C 2393.26 853.85 2382.21 844.32 2371.49 835.26 Q 2367.22 831.64 2319.90 792.10 C 2301.98 777.13 2285.28 761.67 2271.21 743.76 Q 2246.43 712.21 2244.04 674.11 Q 2242.61 651.19 2248.40 631.37 C 2263.29 580.40 2311.63 548.70 2362.55 542.88 Q 2384.79 540.33 2407.91 543.89 Q 2456.33 551.35 2488.19 586.99 C 2505.13 605.94 2517.07 630.98 2523.79 656.13 A 0.63 0.62 -19.8 0 1 2523.44 656.86 L 2443.38 693.49 Z M 700.59 549.46 L 826.07 549.46 A 0.53 0.53 0 0 1 826.60 549.99 L 826.60 994.05 A 0.53 0.53 0 0 1 826.07 994.58 L 700.59 994.58 A 0.53 0.53 0 0 1 700.06 994.05 L 700.06 549.99 A 0.53 0.53 0 0 1 700.59 549.46 Z M 1707.96 800.58 L 1742.35 549.80 A 0.42 0.41 -86.0 0 1 1742.76 549.44 L 1832.96 549.44 A 0.44 0.43 86.2 0 1 1833.39 549.82 L 1863.15 806.36 A 0.17 0.17 0.0 0 0 1863.49 806.36 L 1900.89 549.83 A 0.45 0.45 0.0 0 1 1901.34 549.44 L 1997.68 549.44 A 0.35 0.34 -85.7 0 1 1998.02 549.84 L 1931.93 994.18 A 0.45 0.45 0.0 0 1 1931.48 994.57 L 1824.54 994.57 A 0.68 0.67 -3.9 0 1 1823.87 993.99 L 1785.72 745.83 A 0.17 0.17 0.0 0 0 1785.39 745.83 L 1742.60 994.19 A 0.46 0.45 4.4 0 1 1742.15 994.57 L 1636.58 994.57 A 0.48 0.47 85.8 0 1 1636.11 994.16 L 1570.81 549.99 A 0.48 0.48 0.0 0 1 1571.28 549.44 L 1675.17 549.44 A 0.45 0.44 86.3 0 1 1675.61 549.83 L 1707.71 800.58 A 0.13 0.13 0.0 0 0 1707.96 800.58 Z M 2054.54 549.45 L 2179.94 549.45 A 0.34 0.34 0 0 1 2180.28 549.79 L 2180.28 994.23 A 0.34 0.34 0 0 1 2179.94 994.57 L 2054.54 994.57 A 0.34 0.34 0 0 1 2054.20 994.23 L 2054.20 549.79 A 0.34 0.34 0 0 1 2054.54 549.45 Z M 605.64 566.15 A 0.34 0.34 0.0 0 1 606.08 566.47 Q 606.12 711.52 606.13 870.68 Q 606.13 879.74 605.00 886.24 C 601.84 904.45 595.88 920.87 587.77 938.55 Q 572.46 971.96 550.09 1004.09 Q 542.48 1015.03 531.96 1029.18 A 0.65 0.64 44.1 0 1 530.93 1029.19 Q 522.29 1018.19 510.59 1001.21 Q 492.78 975.36 479.32 948.62 Q 475.01 940.06 472.55 934.18 C 469.06 925.87 466.38 920.52 464.45 914.45 Q 459.88 900.07 457.31 884.43 Q 456.11 877.16 456.11 867.47 Q 456.07 755.78 456.14 613.91 A 1.20 1.19 80.4 0 1 456.94 612.78 C 468.44 608.78 482.28 604.50 502.57 598.50 Q 518.45 593.80 530.48 589.85 C 541.79 586.14 554.86 582.71 567.73 578.51 Q 587.15 572.16 605.64 566.15 Z"/>
+        </svg>
+    </div>
+
+    <div class="toggle-container">
+        <button class="toggle-btn" id="btn-off">OFF</button>
+        <button class="toggle-btn active" id="btn-on">ON</button>
+    </div>
+
+    <div class="status on" id="status">
+        Bar will show on Pinterest pages
+    </div>
+
+    <div class="overlays-section" id="overlays-section">
+        <div class="overlays-label">Pin Overlays:</div>
+        <div class="overlays-toggle">
+            <button class="overlays-btn" id="overlays-off">OFF</button>
+            <button class="overlays-btn active" id="overlays-on">ON</button>
+        </div>
+    </div>
+
+    <div class="color-section">
+        <div class="color-label">🎨 Theme Color:</div>
+        <div class="color-picker-row">
+            <input type="color" id="color-picker" value="#F48FB1" title="Pick a custom color">
+            <div class="color-presets">
+                <div class="color-preset" data-color="#E60023" style="background:#E60023" title="Pinterest Red"></div>
+                <div class="color-preset" data-color="#F48FB1" style="background:#F48FB1" title="Pink (Default)"></div>
+                <div class="color-preset" data-color="#64B5F6" style="background:#64B5F6" title="Blue"></div>
+                <div class="color-preset" data-color="#81C784" style="background:#81C784" title="Green"></div>
+                <div class="color-preset" data-color="#BA68C8" style="background:#BA68C8" title="Purple"></div>
+                <div class="color-preset" data-color="#FFB74D" style="background:#FFB74D" title="Orange"></div>
+            </div>
+        </div>
+    </div>
+    <div class="catalog-section">
+        <button id="open-catalog-btn" type="button">Open Local Catalog</button>
+    </div>
+    <div class="version-footer">PinTwist v<span id="pintwist-version">—</span></div>
+    </div><!-- /app-screen -->
+
+    <script src="popup.js"></script>
+    <script src="popup-catalog.js"></script>
+</body>
+</html>

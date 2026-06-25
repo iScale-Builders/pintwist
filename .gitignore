@@ -1,0 +1,63 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+coverage/
+
+# Test scratch output
+.vitest-out.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+credentials/
+secrets/
+tokens/
+keys/
+private/
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+*service-account*.json
+*oauth*client*secret*.json
+
+# Local data and machine state
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.session
+*.cookies
+.cache/
+.tmp/
+tmp/
+temp/
+
+# Agent/tool state
+.claude/
+.omx/
+
+# Windows artifacts
+nul

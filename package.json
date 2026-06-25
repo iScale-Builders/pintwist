@@ -1,0 +1,59 @@
+{
+  "name": "pintwist-free-extension",
+  "version": "1.0.2",
+  "author": "iScaleLabs",
+  "description": "Local-only Pinterest analytics with pin sorting, smart filtering, HD image downloads, and a local gallery.",
+  "private": true,
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/iScale-Builders/pintwist#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iScale-Builders/pintwist.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iScale-Builders/pintwist/issues"
+  },
+  "keywords": [
+    "pinterest",
+    "chrome-extension",
+    "pinterest-analytics",
+    "research",
+    "local-first"
+  ],
+  "type": "module",
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node build.cjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --max-warnings 11",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.js\" \"tests/**/*.ts\" catalog.js catalog-utils.js build.cjs eslint.config.js",
+    "format:check": "prettier --check \"src/**/*.js\" \"tests/**/*.ts\" catalog.js catalog-utils.js build.cjs eslint.config.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "esbuild": "^0.28.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/chrome": "^0.2.0",
+    "@vitest/coverage-v8": "^4.1.9",
+    "eslint": "^10.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^29.1.1",
+    "prettier": "^3.8.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

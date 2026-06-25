@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PinTwist Catalog</title>
+  <link rel="stylesheet" href="catalog.css">
+</head>
+<body>
+  <header class="catalog-header">
+    <div class="catalog-wrap catalog-topbar">
+      <div class="catalog-titlebar">
+        <span class="catalog-logo" role="img" aria-label="PinTwist"></span>
+        <h1>Local Catalog</h1>
+        <p>Browse saved PinTwist CSV results on this computer.</p>
+        <label class="catalog-import">
+          Import CSV files
+          <input id="csv-input" type="file" accept=".csv,text/csv" multiple>
+        </label>
+        <label class="catalog-import">
+          Import CSV folder
+          <input id="csv-input-folder" type="file" accept=".csv,text/csv" webkitdirectory directory multiple>
+        </label>
+      </div>
+      <div class="catalog-actions">
+        <div class="catalog-theme-toggle" role="group" aria-label="Theme mode">
+          <button id="catalog-mode-dark" class="catalog-mode-btn" type="button" aria-pressed="true" aria-label="Dark mode" title="Dark mode">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
+          <button id="catalog-mode-light" class="catalog-mode-btn" type="button" aria-pressed="false" aria-label="Light mode" title="Light mode">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          </button>
+        </div>
+        <button id="clear-catalog" type="button">Clear Catalog</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="catalog-wrap">
+    <section class="catalog-stats" aria-label="Catalog summary">
+      <div><b id="stat-pins">0</b><span>Pins</span></div>
+      <div><b id="stat-terms">0</b><span>Searches</span></div>
+      <div><b id="stat-saves">0</b><span>Saves</span></div>
+      <div><b id="stat-repins">0</b><span>Repins</span></div>
+      <div><b id="stat-comments">0</b><span>Comments</span></div>
+      <div><b id="stat-reactions">0</b><span>Reactions</span></div>
+      <div><b id="stat-shares">0</b><span>Shares</span></div>
+      <div><b id="stat-engagement">0</b><span>Engagement</span></div>
+    </section>
+
+    <section class="catalog-controls" aria-label="Catalog controls">
+      <input id="search-input" type="search" placeholder="Search title, term, domain, board...">
+      <select id="term-filter">
+        <option value="">All search terms</option>
+      </select>
+      <select id="type-filter">
+        <option value="">All pins</option>
+        <option value="image">Images only</option>
+        <option value="video">Videos only</option>
+      </select>
+      <select id="sort-select">
+        <option value="saves">Sort by saves</option>
+        <option value="shares">Sort by shares</option>
+        <option value="reactions">Sort by reactions</option>
+        <option value="repins">Sort by repins</option>
+        <option value="comments">Sort by comments</option>
+        <option value="date">Sort by last activity</option>
+        <option value="engagement">Sort by engagement</option>
+        <option value="term">Sort by search term</option>
+        <option value="copies">Sort by copies (designs)</option>
+        <option value="reach">Sort by total reach (designs)</option>
+      </select>
+      <select id="per-page-select" aria-label="Results per page">
+        <option value="24">24 per page</option>
+        <option value="48" selected>48 per page</option>
+        <option value="96">96 per page</option>
+        <option value="192">192 per page</option>
+      </select>
+      <label class="catalog-group-toggle" title="Collapse duplicate pins of the same design into one card (best copy + how many copies)">
+        <input type="checkbox" id="group-by-design"> Group by design
+      </label>
+    </section>
+
+    <section class="catalog-filter-bar" id="catalog-filter-bar" aria-label="Metric filters">
+      <div class="filter-content">
+        <button id="catalog-reset-filters" type="button" title="Reset all filters">Reset</button>
+        <div class="filter-group-wrapper"><div class="filter-group"><label>Saves:</label><input class="filter-input" data-metric="saves" data-bound="min" type="text" inputmode="numeric" placeholder="min" aria-label="Saves minimum"><span class="filter-dash">-</span><input class="filter-input" data-metric="saves" data-bound="max" type="text" inputmode="numeric" placeholder="max" aria-label="Saves maximum"></div></div>
+        <div class="filter-group-wrapper"><div class="filter-group"><label>Comments:</label><input class="filter-input" data-metric="comments" data-bound="min" type="text" inputmode="numeric" placeholder="min" aria-label="Comments minimum"><span class="filter-dash">-</span><input class="filter-input" data-metric="comments" data-bound="max" type="text" inputmode="numeric" placeholder="max" aria-label="Comments maximum"></div></div>
+        <div class="filter-group-wrapper"><div class="filter-group"><label>Repins:</label><input class="filter-input" data-metric="repins" data-bound="min" type="text" inputmode="numeric" placeholder="min" aria-label="Repins minimum"><span class="filter-dash">-</span><input class="filter-input" data-metric="repins" data-bound="max" type="text" inputmode="numeric" placeholder="max" aria-label="Repins maximum"></div></div>
+        <div class="filter-group-wrapper"><div class="filter-group"><label>Reactions:</label><input class="filter-input" data-metric="reactions" data-bound="min" type="text" inputmode="numeric" placeholder="min" aria-label="Reactions minimum"><span class="filter-dash">-</span><input class="filter-input" data-metric="reactions" data-bound="max" type="text" inputmode="numeric" placeholder="max" aria-label="Reactions maximum"></div></div>
+        <div class="filter-group-wrapper"><div class="filter-group"><label>Shares:</label><input class="filter-input" data-metric="shares" data-bound="min" type="text" inputmode="numeric" placeholder="min" aria-label="Shares minimum"><span class="filter-dash">-</span><input class="filter-input" data-metric="shares" data-bound="max" type="text" inputmode="numeric" placeholder="max" aria-label="Shares maximum"></div></div>
+        <div class="filter-group-wrapper"><div class="filter-group"><label>Last activity:</label><input class="filter-input" data-metric="date" data-bound="min" type="date" aria-label="Last activity from"><span class="filter-dash">-</span><input class="filter-input" data-metric="date" data-bound="max" type="date" aria-label="Last activity to"></div></div>
+        <div class="filter-date-presets">
+          <button type="button" class="date-preset-chip" data-days="7">7d</button>
+          <button type="button" class="date-preset-chip" data-days="30">30d</button>
+          <button type="button" class="date-preset-chip" data-days="90">90d</button>
+          <button type="button" class="date-preset-chip" data-days="365">365d</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-status" id="catalog-status" aria-live="polite">
+      Import downloaded PinTwist CSV files to start building your local catalog.
+    </section>
+
+    <section class="catalog-grid" id="catalog-grid" aria-label="Catalog pins"></section>
+
+    <nav class="catalog-pagination" aria-label="Catalog pagination">
+      <button id="page-prev" type="button">Previous</button>
+      <span id="page-info">Page 1 of 1</span>
+      <button id="page-next" type="button">Next</button>
+    </nav>
+  </main>
+
+  <template id="pin-card-template">
+    <article class="pin-card">
+      <a class="pin-image-link" target="_blank" rel="noopener noreferrer">
+        <img class="pin-image" alt="" loading="lazy">
+        <span class="pin-term"></span>
+      </a>
+      <a class="pin-badge" target="_blank" rel="noopener noreferrer"></a>
+      <div class="pin-metrics-overlay">
+        <div class="pin-metrics-grid">
+          <div class="pin-metric" title="Saves"><span class="pin-metric-icon" data-icon="heart"></span><span class="pin-metric-value" data-metric="saves"></span></div>
+          <div class="pin-metric" title="Reactions"><span class="pin-metric-icon" data-icon="reaction"></span><span class="pin-metric-value" data-metric="reactions"></span></div>
+          <div class="pin-metric" title="Shares"><span class="pin-metric-icon" data-icon="share"></span><span class="pin-metric-value" data-metric="shares"></span></div>
+          <div class="pin-metric" title="Repins"><span class="pin-metric-icon" data-icon="repin"></span><span class="pin-metric-value" data-metric="repins"></span></div>
+          <div class="pin-metric" title="Comments"><span class="pin-metric-icon" data-icon="comment"></span><span class="pin-metric-value" data-metric="comments"></span></div>
+          <div class="pin-metric" title="Last activity"><span class="pin-metric-icon" data-icon="calendar"></span><span class="pin-metric-value" data-metric="date"></span></div>
+        </div>
+        <button class="pin-download" type="button" title="Download image"><span class="pin-download-icon" data-icon="download"></span><span class="pin-download-text">Download</span></button>
+      </div>
+      <div class="pin-history" hidden>
+        <button type="button" class="pin-history-arrow pin-history-prev" aria-label="Previous scrape">&#8249;</button>
+        <div class="pin-history-dots" role="tablist" aria-label="Scrape history"></div>
+        <button type="button" class="pin-history-arrow pin-history-next" aria-label="Next scrape">&#8250;</button>
+        <span class="pin-history-stamp" aria-live="polite"></span>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="catalog.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+# Normalize line endings so Windows checkouts don't produce CRLF diffs in the
+# generated build output (which would fail the CI build-output drift gate).
+* text=auto eol=lf

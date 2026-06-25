@@ -1,0 +1,3575 @@
+/* ===== PINTWIST 1.5.3 - SOFT PINK THEME ===== */
+/* Production Ready | Optimized | Clean */
+
+:root {
+    /* Soft Pink Theme */
+    --pintwist-primary: #F48FB1;
+    --pintwist-primary-dark: #EC407A;
+
+    /* Backgrounds */
+    --pintwist-bg-dark: rgba(255, 255, 255, 0.98);
+
+    /* Text */
+    --pintwist-text-light: #FFFFFF;
+    --pintwist-text-muted: rgba(17, 17, 17, 0.6);
+    --pintwist-text-panel: #333333;
+
+    /* Borders & Shadows */
+    --pintwist-shadow-dark: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+    /* Status Colors */
+    --pintwist-success: #00A86B;
+    --pintwist-error: #FF3B30;
+
+    /* Card Colors */
+    --pintwist-card-bg: #FFFFFF;
+    --pintwist-card-border: rgba(244, 143, 177, 0.12);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes pintwistPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+}
+
+@keyframes pintwistSpin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pintwistShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* ===== METRICS OVERLAY (On Pin Hover) ===== */
+.pintwist-metrics-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: auto;
+    min-width: 45px;
+    max-width: 55px;
+    height: 90%;
+    background: transparent;
+    border-radius: 16px 0 0 16px;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    z-index: 999;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+[data-test-pin-id]:hover .pintwist-metrics-overlay {
+    pointer-events: auto;
+}
+
+/* ===== LOADING STATE ===== */
+.pintwist-loading-state {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.pintwist-skeleton {
+    animation: pintwistPulse 1.2s ease-in-out infinite;
+}
+
+.pintwist-skeleton-icon {
+    background: linear-gradient(90deg, rgba(244,143,177,0.1) 25%, rgba(244,143,177,0.2) 50%, rgba(244,143,177,0.1) 75%);
+    background-size: 200% 100%;
+    animation: pintwistShimmer 1.5s infinite;
+    border-radius: 50%;
+}
+
+.pintwist-skeleton-text {
+    background: linear-gradient(90deg, rgba(244,143,177,0.1) 25%, rgba(244,143,177,0.2) 50%, rgba(244,143,177,0.1) 75%);
+    background-size: 200% 100%;
+    animation: pintwistShimmer 1.5s infinite;
+    border-radius: 4px;
+    height: 14px;
+    width: 32px;
+}
+
+/* ===== METRICS COLUMN ===== */
+.pintwist-metrics-column {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.pintwist-metric-item {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding: 3px 2px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 4px;
+    font-size: 10px;
+    color: var(--pintwist-text-light);
+    transition: all 0.15s ease;
+    cursor: default;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.pintwist-metric-item:hover {
+    background: var(--pintwist-primary);
+    transform: translateX(3px);
+    border-color: var(--pintwist-primary);
+}
+
+.pintwist-metric-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: #FFFFFF;
+}
+
+.pintwist-metric-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    fill: #FFFFFF;
+}
+
+.pintwist-metric-value {
+    font-weight: 700;
+    color: var(--pintwist-text-light);
+    font-size: 10px;
+    letter-spacing: 0.1px;
+}
+
+/* ===== DOWNLOAD BUTTON ===== */
+.pintwist-download-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 100% !important;
+    padding: 5px 6px;
+    background: #F0F0F0;
+    color: #555;
+    border: 1px solid #DDD;
+    border-radius: 4px;
+    font-size: 7px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: none;
+    margin-top: 4px;
+    font-family: inherit;
+    letter-spacing: 0.1px;
+    text-transform: uppercase;
+}
+
+.pintwist-download-btn:hover:not(:disabled) {
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+    border-color: var(--pintwist-primary);
+    transform: translateY(-1px);
+}
+
+.pintwist-download-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.pintwist-download-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pintwist-download-btn.pintwist-downloading {
+    background: var(--pintwist-success);
+    color: #FFFFFF;
+    border-color: var(--pintwist-success);
+}
+
+.pintwist-download-icon {
+    width: 11px;
+    height: 11px;
+}
+
+.pintwist-download-loader {
+    animation: pintwistSpin 1s linear infinite;
+    font-size: 10px;
+}
+
+/* ===== ERROR BADGE ===== */
+.pintwist-error-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--pintwist-error);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--pintwist-text-light);
+    z-index: 998;
+    box-shadow: var(--pintwist-shadow-dark);
+    cursor: help;
+}
+
+/* ===== CUSTOM DROPDOWN (SHARED) ===== */
+.custom-dropdown {
+    position: relative;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.custom-dropdown-btn {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    color: #555;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.custom-dropdown-btn:hover {
+    background: rgba(244, 143, 177, 0.05);
+    border-color: var(--pintwist-primary);
+}
+
+.custom-dropdown-btn:focus {
+    outline: none;
+    border-color: var(--pintwist-primary);
+    box-shadow: 0 0 0 3px rgba(244, 143, 177, 0.15);
+}
+
+.dropdown-text {
+    flex: 1;
+}
+
+.dropdown-arrow {
+    transition: transform 0.2s ease;
+    opacity: 0.6;
+}
+
+.custom-dropdown-btn:hover .dropdown-arrow {
+    opacity: 1;
+}
+
+.custom-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: #FFFFFF;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-dropdown-menu.show {
+    max-height: 300px;
+    opacity: 1;
+    transform: translateY(0);
+    overflow-y: auto;
+}
+
+.dropdown-item {
+    padding: 12px 14px;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.dropdown-item:first-child {
+    border-radius: 10px 10px 0 0;
+}
+
+.dropdown-item:last-child {
+    border-radius: 0 0 10px 10px;
+}
+
+.dropdown-item:hover {
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+    padding-left: 18px;
+}
+
+.dropdown-item:active {
+    background: var(--pintwist-primary-dark);
+}
+
+/* ===== SORTED VIEW - PINTEREST GRID ===== */
+.pinterest--container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 24px;
+    background: #FAFAFA;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.pinterest--container .custom-dropdown {
+    position: relative;
+    width: 20%;
+    margin-top: 8px;
+}
+
+/* Pin Cards in Sorted View */
+.pinterest--block {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    background: var(--pintwist-card-bg);
+    border-radius: 16px;
+    padding: 0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--pintwist-card-border);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    width: 100%;
+}
+
+.pinterest--block * {
+    padding-bottom: 0 !important;
+}
+
+/* Hide Pinterest extra UI in sorted view */
+.pinterest--block [data-test-id="pinTitle"],
+.pinterest--block [data-test-id="pin-title"],
+.pinterest--block [data-test-id="truncated-description"],
+.pinterest--block [data-test-id="pointer-events-wrapper"] {
+    display: none !important;
+}
+
+.pinterest--block button:not(.pintwist-download-btn),
+.pinterest--block [role="button"]:not(.pintwist-download-btn):not(.pintwist-metric-item) {
+    display: none !important;
+}
+
+.pinterest--block > * {
+    flex: unset !important;
+    max-height: 320px;
+}
+
+.pinterest--block > .pintwist-metrics-overlay {
+    max-height: none !important;
+}
+
+.pinterest--block:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 16px 40px rgba(244, 143, 177, 0.2);
+    border-color: var(--pintwist-primary);
+}
+
+/* Pin Images */
+.pinterest--block > div[data-grid-item] img,
+.pinterest--block img {
+    width: 100%;
+    height: 320px !important;
+    max-height: 320px !important;
+    object-fit: contain;
+    background: #f5f5f5;
+    border-radius: 16px 16px 0 0;
+    flex-shrink: 0;
+    display: block;
+}
+
+/* ===== VIDEO PIN STYLING ===== */
+/* Video pins are rebuilt from scratch in JS with just: img + badge + overlay */
+
+/* Video badge */
+.pintwist-video-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 100;
+    pointer-events: none;
+}
+
+/* Placeholder when no image available */
+.pintwist-placeholder-thumb {
+    width: 100%;
+    height: 320px;
+    background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #999;
+    font-size: 14px;
+}
+
+.pintwist-placeholder-thumb span:first-child {
+    font-size: 48px;
+}
+
+.pintwist-placeholder-thumb .pintwist-view-link {
+    color: var(--pintwist-primary);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 6px 12px;
+    border: 2px solid var(--pintwist-primary);
+    border-radius: 20px;
+    margin-top: 5px;
+    transition: all 0.2s;
+}
+
+.pintwist-placeholder-thumb .pintwist-view-link:hover {
+    background: var(--pintwist-primary);
+    color: white;
+}
+
+.pinterest--block > div {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: unset !important;
+    min-height: 0;
+    height: auto !important;
+    padding: 0 !important;
+}
+
+.pinterest--block div:not(.pintwist-metrics-overlay):not(.pintwist-metrics-column):not(.pintwist-metric-item):not(.pintwist-metric-icon) {
+    height: auto !important;
+    min-height: unset !important;
+    max-height: unset !important;
+}
+
+.pinterest--block [data-grid-item] > div:not(.pintwist-metrics-overlay) {
+    display: flex;
+    flex-direction: column;
+    height: auto !important;
+}
+
+/* Metrics Overlay in Sorted View */
+.pinterest--block .pintwist-metrics-overlay {
+    position: relative;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #FFFFFF;
+    backdrop-filter: none;
+    margin: 0 !important;
+    border-radius: 0 0 16px 16px !important;
+    flex-shrink: 0;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 10;
+    padding: 4px 4px 4px 4px !important;
+    box-sizing: border-box;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    overflow: hidden !important;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-metrics-column {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    grid-template-rows: auto auto !important;
+    gap: 2px !important;
+    row-gap: 2px !important;
+    column-gap: 2px !important;
+    flex-direction: unset !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-sizing: border-box;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: unset !important;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    background: #FFFFFF;
+    border-radius: 3px;
+    height: 26px !important;
+    min-height: 26px !important;
+    max-height: 26px !important;
+    font-size: 12px;
+    line-height: 1 !important;
+    border: 1.5px solid var(--pintwist-primary);
+    padding: 0 4px !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    overflow: hidden;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-item:hover {
+    background: var(--pintwist-primary);
+    transform: translateY(-1px);
+}
+
+/* On hover the box fills with the theme color — flip the icon + value to white
+ * so the details stay readable instead of red-on-red. */
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-item:hover .pintwist-metric-icon,
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-item:hover .pintwist-metric-value {
+    color: #FFFFFF;
+}
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-item:hover .pintwist-metric-icon svg {
+    fill: #FFFFFF;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--pintwist-primary);
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: var(--pintwist-primary);
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-metric-value {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pintwist-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    white-space: nowrap;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-download-icon {
+    width: 14px;
+    height: 14px;
+    color: #555;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-download-icon svg {
+    fill: #555;
+}
+
+/* Download Button in Sorted View */
+.pinterest--block .pintwist-metrics-overlay .pintwist-download-btn {
+    width: 100% !important;
+    margin: 2px 0 0 0 !important;
+    padding: 5px 10px !important;
+    font-size: 12px;
+    height: 26px !important;
+    border-radius: 4px;
+    background: #F0F0F0;
+    color: #555;
+    border: 1px solid #DDD;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-download-btn:hover {
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+    border-color: var(--pintwist-primary);
+    transform: translateY(-1px);
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-download-btn:hover .pintwist-download-icon {
+    color: #FFFFFF;
+}
+
+.pinterest--block .pintwist-metrics-overlay .pintwist-download-btn:hover .pintwist-download-icon svg {
+    fill: #FFFFFF;
+}
+
+/* ===== SORT BADGE ===== */
+.pintwist-legacy-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    color: var(--pintwist-primary);
+    z-index: 999;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    font-size: 12px;
+    padding: 8px 14px;
+    text-decoration: none;
+    font-weight: 700;
+    font-family: inherit;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    border: 2px solid var(--pintwist-primary);
+    letter-spacing: 0.3px;
+}
+
+.pintwist-legacy-badge:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 24px rgba(244, 143, 177, 0.5);
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+}
+
+/* ===== INITIAL BAR (BEFORE STATE) ===== */
+/* Floating pill positioned via JS - below header, right of sidebar */
+#pintwist-initial-bar {
+    position: fixed;
+    /* top and left are set dynamically via JS */
+    z-index: 99999;
+    background: #F8F8F8;
+    border: 2px solid var(--pintwist-primary);
+    border-radius: 50px;
+    padding: 8px 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-sizing: border-box;
+}
+
+#pintwist-initial-bar > * {
+    flex-shrink: 0;
+}
+
+#pintwist-initial-bar .pintwist-pages-label,
+#pintwist-initial-bar .pintwist-sort-label {
+    color: #555;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    line-height: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+}
+
+#pintwist-initial-bar .pintwist-pages-input {
+    width: 55px;
+    padding: 0 10px;
+    background: #FFFFFF;
+    color: #333;
+    border: 1.5px solid #DDD;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    height: 36px;
+    box-sizing: border-box;
+    line-height: 36px;
+}
+
+#pintwist-initial-bar .pintwist-pages-input:focus {
+    border-color: var(--pintwist-primary);
+    outline: none;
+}
+
+#pintwist-initial-bar .pintwist-sort-btn {
+    padding: 0 20px;
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(244, 143, 177, 0.3);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    height: 36px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#pintwist-initial-bar .pintwist-sort-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(244, 143, 177, 0.4);
+    background: var(--pintwist-primary-dark);
+}
+
+/* Dropdown - MATCH AFTER BAR */
+#pintwist-initial-bar .custom-dropdown {
+    /* width:auto and min-width set inline to match AFTER bar */
+}
+
+#pintwist-initial-bar .custom-dropdown-btn {
+    background: #FFFFFF;
+    border: 1.5px solid #DDD;
+    padding: 0 12px;
+    font-size: 13px;
+    color: #333;
+    border-radius: 6px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 110px;
+    height: 36px;
+    box-sizing: border-box;
+    line-height: 1;
+}
+
+#pintwist-initial-bar .custom-dropdown-btn .dropdown-text {
+    color: #333;
+    font-weight: 600;
+}
+
+#pintwist-initial-bar .custom-dropdown-btn .dropdown-arrow {
+    color: #999;
+    opacity: 0.7;
+}
+
+#pintwist-initial-bar .custom-dropdown-btn:hover {
+    border-color: var(--pintwist-primary);
+}
+
+#pintwist-initial-bar .custom-dropdown-btn:hover .dropdown-arrow {
+    opacity: 1;
+    color: var(--pintwist-primary);
+}
+
+/* Search - MATCH AFTER BAR */
+#pintwist-initial-bar .pintwist-search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    height: 36px;
+}
+
+#pintwist-initial-bar #pintwist-search-input-initial {
+    padding: 0 12px;
+    border: 1.5px solid #DDD;
+    border-right: none;
+    border-radius: 16px 0 0 16px;
+    font-size: 12px;
+    width: 160px;
+    outline: none;
+    background: #FFFFFF;
+    color: #333;
+    height: 36px;
+    box-sizing: border-box;
+    line-height: 36px;
+}
+
+#pintwist-initial-bar #pintwist-search-input-initial::placeholder {
+    color: #AAA;
+}
+
+#pintwist-initial-bar #pintwist-search-input-initial:focus {
+    border-color: var(--pintwist-primary);
+}
+
+#pintwist-initial-bar #pintwist-search-btn-initial {
+    padding: 0 12px;
+    border: 1.5px solid #DDD;
+    border-left: none;
+    border-radius: 0 16px 16px 0;
+    background: #F0F0F0;
+    color: #666;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    margin: 0;
+    height: 36px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#pintwist-initial-bar #pintwist-search-btn-initial:hover {
+    background: var(--pintwist-primary);
+    color: white;
+    border-color: var(--pintwist-primary);
+}
+
+/* ===== CHECKBOXES (SHARED) ===== */
+.pintwist-checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+    height: 36px;
+}
+
+/* BEFORE bar: checkbox next to search */
+#pintwist-initial-bar .pintwist-checkbox-wrapper {
+    margin-left: 0;
+}
+
+/* AFTER bar: checkbox next to search (no margin) */
+#pintwist-resort-bar .pintwist-checkbox-wrapper {
+    margin-left: 0;
+}
+
+.pintwist-checkbox-wrapper input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--pintwist-primary);
+}
+
+#pintwist-initial-bar .pintwist-checkbox-label {
+    color: #555;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+}
+
+#pintwist-resort-bar .pintwist-checkbox-label {
+    color: #555;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+}
+
+/* ===== RESORT BAR (AFTER STATE) ===== */
+#pintwist-resort-bar {
+    position: sticky;
+    top: 0;
+    z-index: 99999;
+    background: #F8F8F8;
+    border-bottom: 2px solid var(--pintwist-primary);
+    padding: 10px 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#pintwist-resort-bar label {
+    color: #555;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.2px;
+}
+
+.pintwist-logo-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 16px;
+}
+
+.pintwist-logo-icon {
+    height: 32px;
+    width: auto;
+}
+
+.pintwist-logo-wordmark {
+    height: 28px;
+    width: auto;
+}
+
+/* Tutorial Link */
+.pintwist-tutorial-link {
+    color: #777;
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 8px 12px;
+    background: #EFEFEF;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    margin-left: auto;
+    height: 36px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+}
+
+.pintwist-tutorial-link:hover {
+    color: var(--pintwist-primary);
+    background: #E8E8E8;
+}
+
+/* Settings link — same pill style as the tutorial pill, distinct class so the
+ * Automation insertBefore(.pintwist-tutorial-link) keeps targeting Tutorial. */
+.pintwist-settings-link {
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 8px 12px;
+    background: var(--pintwist-primary, #F48FB1);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    height: 36px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pintwist-settings-link:hover {
+    color: #FFFFFF;
+    background: var(--pintwist-primary-dark, #E08AAB);
+    filter: brightness(0.95);
+}
+
+/* Inline Settings panel — collapsible, lives directly under the Settings pill
+ * inside the sidebar. Replaces the standalone Options page. */
+.pintwist-settings-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #F7F7F7;
+    border: 1px solid #E0E0E0;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.pintwist-settings-panel[hidden] { display: none; }
+.pintwist-settings-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.pintwist-settings-row > label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #555;
+    letter-spacing: 0.2px;
+}
+.pintwist-settings-row input[type="text"] {
+    padding: 7px 9px;
+    border: 1px solid #D6D6D6;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #333;
+    background: #FFF;
+    width: 100%;
+    box-sizing: border-box;
+    outline: none;
+}
+.pintwist-settings-row input[type="text"]:focus {
+    border-color: var(--pintwist-primary, #F48FB1);
+}
+.pintwist-settings-check {
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: #555;
+    cursor: pointer;
+}
+.pintwist-settings-check input[type="checkbox"] {
+    margin: 0;
+    accent-color: var(--pintwist-primary, #F48FB1);
+}
+.pintwist-settings-hint {
+    font-size: 10.5px;
+    color: #999;
+    line-height: 1.3;
+}
+
+
+#pintwist-resort-bar .custom-dropdown {
+    min-width: 120px;
+    margin-top: 0;
+}
+
+#pintwist-resort-bar .custom-dropdown-btn {
+    background: #FFFFFF;
+    border: 1.5px solid #DDD;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #333;
+    border-radius: 6px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 110px;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+#pintwist-resort-bar .custom-dropdown-btn .dropdown-text {
+    color: #333;
+    font-weight: 600;
+}
+
+#pintwist-resort-bar .custom-dropdown-btn .dropdown-arrow {
+    color: #999;
+    opacity: 0.7;
+}
+
+#pintwist-resort-bar .custom-dropdown-btn:hover {
+    border-color: var(--pintwist-primary);
+}
+
+#pintwist-resort-bar .custom-dropdown-btn:hover .dropdown-arrow {
+    opacity: 1;
+    color: var(--pintwist-primary);
+}
+
+#pintwist-resort-bar .custom-dropdown-btn:focus {
+    border-color: var(--pintwist-primary);
+    box-shadow: 0 0 0 2px rgba(244, 143, 177, 0.2);
+    outline: none;
+}
+
+#pintwist-resort-bar .custom-dropdown-menu {
+    background: #FFFFFF;
+    border: 1.5px solid #DDD;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+#pintwist-resort-bar .dropdown-item {
+    color: #333;
+}
+
+#pintwist-resort-bar .dropdown-item:hover {
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+}
+
+#pintwist-resort-bar button {
+    padding: 8px 16px;
+    background: #FFFFFF;
+    color: #555;
+    border: 1.5px solid #DDD;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+#pintwist-resort-bar button:hover {
+    border-color: var(--pintwist-primary);
+    color: var(--pintwist-primary);
+}
+
+#pintwist-resort-bar button:active {
+    background: #F5F5F5;
+}
+
+#pintwist-resort-bar button#pintwist-back-btn {
+    background: #F0F0F0;
+    color: #666;
+    border-color: #DDD;
+}
+
+#pintwist-resort-bar button#pintwist-back-btn:hover {
+    background: #E8E8E8;
+    border-color: #CCC;
+}
+
+#pintwist-resort-bar .resort-info {
+    color: var(--pintwist-primary);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Search Bar */
+#pintwist-resort-bar .pintwist-search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-left: 0;
+    height: 36px;
+}
+
+#pintwist-resort-bar #pintwist-search-input {
+    padding: 8px 12px;
+    border: 1.5px solid #DDD;
+    border-right: none;
+    border-radius: 16px 0 0 16px;
+    font-size: 12px;
+    width: 160px;
+    outline: none;
+    background: #FFFFFF;
+    color: #555;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+#pintwist-resort-bar #pintwist-search-input::placeholder {
+    color: #AAA;
+}
+
+#pintwist-resort-bar #pintwist-search-input:focus {
+    border-color: var(--pintwist-primary);
+}
+
+#pintwist-resort-bar #pintwist-search-btn {
+    padding: 8px 12px;
+    border: 1.5px solid #DDD;
+    border-left: none;
+    border-radius: 0 16px 16px 0;
+    background: #F0F0F0;
+    color: #666;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    margin: 0;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+#pintwist-resort-bar #pintwist-search-btn:hover {
+    background: var(--pintwist-primary);
+    color: white;
+    border-color: var(--pintwist-primary);
+}
+
+/* ===== COLOR PICKER ===== */
+.pintwist-color-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+}
+
+.pintwist-color-label {
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#pintwist-color-picker {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 32px;
+    height: 32px;
+    border: 2px solid #DDD;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+}
+
+#pintwist-color-picker::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+#pintwist-color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+#pintwist-color-picker::-moz-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+#pintwist-color-picker:hover {
+    border-color: var(--pintwist-primary);
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+}
+
+/* SVG Logo Styling */
+.pintwist-logo-wordmark-svg {
+    height: 28px;
+    width: auto;
+}
+
+.pintwist-themed-fill {
+    fill: var(--pintwist-primary);
+    transition: fill 0.3s ease;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    #sort-panel {
+        min-width: 290px;
+        top: 10px;
+    }
+
+    .pinterest--container {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .pinterest--block {
+        min-height: 300px;
+        max-height: 420px;
+    }
+
+    #pintwist-resort-bar {
+        padding: 12px 16px;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    #pintwist-resort-bar .pintwist-search-wrapper {
+        order: 10;
+        width: 100%;
+        margin-left: 0;
+        margin-top: 8px;
+    }
+
+    #pintwist-resort-bar #pintwist-search-input {
+        flex: 1;
+        width: auto;
+    }
+}
+
+/* ===== ACCESSIBILITY ===== */
+.pintwist-metrics-overlay:focus-within,
+.pintwist-download-btn:focus,
+button:focus-visible {
+    outline: 2px solid var(--pintwist-text-light);
+    outline-offset: 2px;
+}
+
+/* ===== SMOOTH RENDERING ===== */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== FILTER BAR (ADDED) ===== */
+#pintwist-filter-bar {
+    position: sticky;
+    top: 56px; /* Height of resort bar */
+    z-index: 99998; /* Just below resort bar */
+    background: #FFFFFF;
+    border-bottom: 1.5px solid var(--pintwist-primary);
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    box-shadow: 0 4px 16px rgba(244, 143, 177, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#pintwist-filter-bar.pintwist-filter-expanded {
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+    padding: 12px 28px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 16px;
+    row-gap: 10px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.filter-group-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    padding-right: 16px;
+    border-right: 1px solid rgba(244, 143, 177, 0.2);
+}
+
+.filter-group-wrapper:last-of-type {
+    border-right: none;
+    padding-right: 0;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.filter-group label {
+    color: var(--pintwist-primary);
+    font-weight: 700;
+    font-size: 12.5px;
+    white-space: nowrap;
+}
+
+.filter-input {
+    padding: 6px 8px;
+    border: 1.5px solid var(--pintwist-primary);
+    border-radius: 5px;
+    font-size: 12.5px;
+    background: #FFFFFF;
+    color: #555;
+    font-weight: 600;
+    min-width: 40px;
+    max-width: 100px;
+    width: auto;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+/* Date inputs need more width to show full 4-digit year */
+.filter-input[type="date"] {
+    max-width: 135px;
+    min-width: 135px;
+}
+
+.filter-input:focus {
+    border-color: var(--pintwist-primary);
+    background: #FFFFFF;
+    box-shadow: 0 0 0 2px rgba(244, 143, 177, 0.1);
+}
+
+.filter-dash {
+    color: var(--pintwist-primary);
+    font-weight: 700;
+    font-size: 14px;
+}
+
+/* Reset All Button */
+.reset-all-btn {
+    padding: 8px 16px;
+    background: #FFFFFF;
+    color: var(--pintwist-primary);
+    border: 1.5px solid var(--pintwist-primary);
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    margin-right: 16px;
+    padding-right: 20px;
+    border-right: 1.5px solid var(--pintwist-primary);
+    align-self: flex-start;
+    margin-top: 0;
+}
+
+.reset-all-btn:hover {
+    background: rgba(244, 143, 177, 0.05);
+    transform: translateY(-1px);
+}
+
+/* Filter Pills Container */
+.filter-pills-container {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.filter-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: #FFFFFF;
+    border: 1.5px solid var(--pintwist-primary);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    transition: all 0.2s ease;
+}
+
+.filter-pill:hover {
+    background: rgba(244, 143, 177, 0.1);
+    border-color: var(--pintwist-primary);
+    transform: scale(1.1);
+}
+
+.filter-pill-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--pintwist-primary);
+    line-height: 1;
+}
+
+.filter-pill-remove:hover {
+    color: var(--pintwist-primary-dark);
+}
+
+
+/* ===== FILTER TOGGLE BUTTON (ADDED) ===== */
+#pintwist-resort-bar button#pintwist-filter-toggle {
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+    border: none;
+    padding: 6px 14px;
+    font-size: 12px;
+}
+
+#pintwist-resort-bar button#pintwist-filter-toggle:hover {
+    background: var(--pintwist-primary-dark);
+    border-color: var(--pintwist-primary-dark);
+}
+
+/* ===== DOWNLOAD CSV BUTTON IN RESORT BAR ===== */
+#pintwist-resort-bar button#pintwist-download-csv-btn {
+    background: var(--pintwist-primary);
+    color: #FFFFFF;
+    border: none;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+}
+#pintwist-resort-bar button#pintwist-download-csv-btn:hover {
+    background: var(--pintwist-primary-dark);
+}
+
+/* ===== GREY BADGE (FILTERED) (ADDED) ===== */
+.pintwist-legacy-badge.pintwist-badge-grey {
+    background: #999999;
+    opacity: 0.6;
+    transform: scale(0.85);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.pintwist-legacy-badge.pintwist-badge-grey:hover {
+    background: #999999;
+    opacity: 0.75;
+    transform: translateY(-2px) scale(0.85);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* ===== FILTER SEPARATOR (ADDED) ===== */
+.pintwist-filter-separator {
+    grid-column: 1 / -1;
+    margin: 32px 0;
+    padding: 16px 0;
+    text-align: center;
+    border-top: 2px solid rgba(244, 143, 177, 0.15);
+    border-bottom: 2px solid rgba(244, 143, 177, 0.15);
+    position: relative;
+}
+
+.pintwist-filter-separator span {
+    background: #FFFFFF;
+    padding: 8px 24px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 13px;
+    color: #999999;
+    border: 2px solid rgba(153, 153, 153, 0.3);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+/* ===== RESPONSIVE FILTERS (ADDED) ===== */
+@media (max-width: 1400px) {
+    .filter-row {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .filter-row {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .filter-group-wrapper {
+        width: 100%;
+        border-right: none;
+        padding-right: 0;
+        flex-wrap: wrap;
+    }
+
+    .reset-all-btn {
+        width: 100%;
+        margin-right: 0;
+        padding-right: 16px;
+        border-right: none;
+    }
+}
+
+
+
+/* ===== Automation (lives inside pintwist-initial-bar) =====
+ * Toggle button: sits as the rightmost child of the toolbar via margin-left:auto.
+ * Body: absolute-positioned dropdown anchored to the bar's bottom edge so the
+ * toolbar visually "expands downward" when opened.
+ * (Color theming via --pintwist-primary will be wired in a follow-up; using
+ * the same variable now where it makes sense so swap-in is one-line.)
+ */
+#pintwist-auto-toggle {
+    margin-left: auto;
+    background: var(--pintwist-primary, #F48FB1);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    height: 36px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+}
+#pintwist-auto-toggle:hover { background: var(--pintwist-primary-dark, #E91E63); }
+#pintwist-auto-toggle.pintwist-auto-toggle--open { background: var(--pintwist-primary-dark, #E91E63); }
+
+#pintwist-auto-body {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    background: #FFFFFF;
+    border-top: 1.5px solid var(--pintwist-primary, #F48FB1);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    padding: 14px 18px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 13px;
+    color: #1a1a1a;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.pintwist-auto-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2eb872;
+    margin-left: 6px;
+    animation: pintwist-pulse 1.5s ease-in-out infinite;
+    vertical-align: middle;
+}
+@keyframes pintwist-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+.pintwist-auto-cooldown {
+    color: #d93025;
+    font-weight: 600;
+    font-size: 11px;
+    margin-left: 4px;
+}
+.pintwist-auto-row-fields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+.pintwist-auto-row-fields label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #555;
+}
+.pintwist-auto-label {
+    width: 100%;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #777;
+    margin-bottom: -4px;
+}
+.pintwist-auto-textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px 10px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+}
+.pintwist-auto-textarea:focus { border-color: var(--pintwist-primary, #F48FB1); outline: none; }
+.pintwist-auto-num-wrap {
+    display: inline-flex !important;
+    align-items: stretch !important;
+    border: 1px solid #d0d0d0 !important;
+    border-radius: 4px !important;
+    background: #fff !important;
+    overflow: hidden !important;
+    height: 26px !important;
+    line-height: 1 !important;
+    box-sizing: border-box !important;
+}
+.pintwist-auto-num-wrap:focus-within {
+    border-color: var(--pintwist-primary, #F48FB1) !important;
+}
+.pintwist-auto-num {
+    width: 56px !important;
+    padding: 4px 6px !important;
+    border: none !important;
+    font-size: 13px !important;
+    background: transparent !important;
+    outline: none !important;
+    -moz-appearance: textfield !important;
+    box-sizing: border-box !important;
+}
+.pintwist-auto-num::-webkit-outer-spin-button,
+.pintwist-auto-num::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+.pintwist-auto-num--xs { width: 40px !important; }
+.pintwist-auto-num-spin {
+    display: flex !important;
+    flex-direction: column !important;
+    border-left: 1px solid #e8e8e8 !important;
+    width: 16px !important;
+    flex-shrink: 0 !important;
+}
+.pintwist-auto-num-up,
+.pintwist-auto-num-down {
+    box-sizing: border-box !important;
+    background: #f7f7f7 !important;
+    border: none !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 16px !important;
+    min-width: 16px !important;
+    max-width: 16px !important;
+    height: 12px !important;
+    min-height: 12px !important;
+    max-height: 12px !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+    color: #666 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background 0.1s, color 0.1s !important;
+}
+.pintwist-auto-num-up { border-bottom: 1px solid #e8e8e8 !important; }
+.pintwist-auto-num-up:hover,
+.pintwist-auto-num-down:hover {
+    background: var(--pintwist-primary, #F48FB1) !important;
+    color: #fff !important;
+}
+.pintwist-auto-num-up:active,
+.pintwist-auto-num-down:active {
+    background: var(--pintwist-primary-dark, #E91E63) !important;
+}
+.pintwist-auto-checkbox input { margin: 0; }
+.pintwist-auto-btn {
+    background: #fff;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+}
+.pintwist-auto-btn:hover:not(:disabled) { background: #f5f5f5; }
+.pintwist-auto-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Full-width "Open Local Catalog" button under the automation controls row.
+ * Uses the theme color so it tracks the user's chosen popup color. */
+/* Full-width "Open Local Catalog" button under the automation controls row.
+ * id-scoped + !important so it stays theme-red in BOTH bars — the resort bar
+ * has higher-specificity #pintwist-auto-* rules that would otherwise win. */
+.pintwist-auto-catalog-btn,
+#pintwist-initial-bar .pintwist-auto-catalog-btn,
+#pintwist-resort-bar .pintwist-auto-catalog-btn {
+    display: block !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+    background: var(--pintwist-primary, #F48FB1) !important;
+    color: #fff !important;
+    border: 1px solid var(--pintwist-primary, #F48FB1) !important;
+    font-weight: 700 !important;
+}
+.pintwist-auto-catalog-btn:hover:not(:disabled),
+#pintwist-initial-bar .pintwist-auto-catalog-btn:hover:not(:disabled),
+#pintwist-resort-bar .pintwist-auto-catalog-btn:hover:not(:disabled) {
+    background: var(--pintwist-primary-dark, #E91E63) !important;
+    border-color: var(--pintwist-primary-dark, #E91E63) !important;
+}
+.pintwist-auto-btn--primary {
+    background: var(--pintwist-primary, #F48FB1);
+    color: #fff;
+    border-color: var(--pintwist-primary, #F48FB1);
+}
+.pintwist-auto-btn--primary:hover:not(:disabled) {
+    background: var(--pintwist-primary-dark, #E91E63);
+    border-color: var(--pintwist-primary-dark, #E91E63);
+}
+.pintwist-auto-btn--danger {
+    background: #d93025;
+    color: #fff;
+    border-color: #d93025;
+}
+.pintwist-auto-btn--danger:hover:not(:disabled) {
+    background: #b3261e;
+    border-color: #b3261e;
+}
+
+/* ===== Add row + Pills + ON/OFF switch + countdown (v1.7+) ===== */
+.pintwist-auto-add-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    width: 100%;
+}
+.pintwist-auto-add-row .pintwist-auto-textarea { flex: 1; }
+.pintwist-auto-add-row .pintwist-auto-btn { white-space: nowrap; align-self: flex-start; }
+
+.pintwist-auto-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 6px;
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    min-height: 44px;
+}
+.pintwist-auto-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 4px 4px 10px;
+    background: #fff;
+    border: 1px solid #d0d0d0;
+    border-radius: 999px;
+    font-size: 12px;
+    color: #333;
+    max-width: 320px;
+    transition: border-color 0.15s, background 0.15s;
+}
+.pintwist-auto-pill--current {
+    border-color: var(--pintwist-primary, #F48FB1);
+    background: rgba(244, 143, 177, 0.08);
+}
+.pintwist-auto-pill--done { background: #f0f9f3; border-color: #c8e6d0; color: #2eb872; }
+.pintwist-auto-pill--failed { background: #fdeeed; border-color: #f4c5c2; color: #b3261e; }
+.pintwist-auto-pill--cancelled { color: #888; }
+.pintwist-auto-pill-icon { font-weight: bold; font-size: 11px; }
+.pintwist-auto-pill-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pintwist-auto-pill-text em { font-style: normal; opacity: 0.7; font-size: 11px; }
+.pintwist-auto-pill-play,
+.pintwist-auto-pill-x {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    color: #666;
+    padding: 0;
+}
+.pintwist-auto-pill-play:hover {
+    background: var(--pintwist-primary, #F48FB1);
+    color: #fff;
+}
+.pintwist-auto-pill-x:hover {
+    background: #d93025;
+    color: #fff;
+}
+
+/* Master row: settings + ON/OFF + actions + countdown all on one line. */
+.pintwist-auto-master-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    padding-top: 8px;
+    border-top: 1px solid #f0f0f0;
+}
+.pintwist-auto-inline-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #555;
+    white-space: nowrap;
+}
+.pintwist-auto-divider {
+    width: 1px;
+    height: 24px;
+    background: #e0e0e0;
+    margin: 0 4px;
+}
+.pintwist-auto-master-row .pintwist-auto-checkbox { white-space: nowrap; font-size: 12px; }
+.pintwist-auto-master-row .pintwist-auto-btn { padding: 5px 10px; font-size: 12px; }
+
+.pintwist-auto-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+.pintwist-auto-switch input { position: absolute; opacity: 0; pointer-events: none; }
+.pintwist-auto-switch-track {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    border-radius: 999px;
+    background: #ccc;
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+}
+.pintwist-auto-switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: left 0.2s ease;
+}
+.pintwist-auto-switch input:checked + .pintwist-auto-switch-track {
+    background: var(--pintwist-primary, #F48FB1);
+}
+.pintwist-auto-switch input:checked + .pintwist-auto-switch-track .pintwist-auto-switch-thumb {
+    left: 25px;
+}
+.pintwist-auto-switch input:disabled + .pintwist-auto-switch-track {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.pintwist-auto-switch-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #1a1a1a;
+}
+
+/* ▶ / ✗ icon buttons sitting next to the master toggle. Match the pill
+ * buttons visually so users recognize the same affordance. */
+.pintwist-auto-iconbtn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid #d0d0d0;
+    background: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    color: #555;
+    padding: 0;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.pintwist-auto-iconbtn--play:hover {
+    background: var(--pintwist-primary, #F48FB1);
+    color: #fff;
+    border-color: var(--pintwist-primary, #F48FB1);
+}
+.pintwist-auto-iconbtn--x:hover {
+    background: #d93025;
+    color: #fff;
+    border-color: #d93025;
+}
+
+.pintwist-auto-countdown {
+    font-size: 12px;
+    color: #555;
+    font-variant-numeric: tabular-nums;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #f5f5f5;
+    min-width: 130px;
+    text-align: center;
+}
+.pintwist-auto-stats { margin-left: auto; font-size: 12px; color: #777; }
+.pintwist-auto-countdown strong { color: #1a1a1a; font-variant-numeric: tabular-nums; }
+.pintwist-auto-cd--scanning { color: var(--pintwist-primary-dark, #E91E63); font-weight: 600; }
+.pintwist-auto-cd--cooldown { color: #d93025; }
+.pintwist-auto-cd--off { color: #999; }
+.pintwist-auto-cd--idle { color: #888; }
+
+/* Cancel button injected into the scan-progress popup. */
+.pintwist-progress-cancel {
+    display: block;
+    margin: 16px auto 0 auto;
+    padding: 8px 18px;
+    background: var(--pintwist-primary, #F48FB1);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.pintwist-progress-cancel:hover:not(:disabled) { background: var(--pintwist-primary-dark, #E91E63); }
+.pintwist-progress-cancel:disabled { background: #999; cursor: wait; }
+.pintwist-auto-stats {
+    margin-left: auto;
+    font-size: 12px;
+    color: #777;
+}
+.pintwist-auto-queue {
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid #f0f0f0;
+    border-radius: 6px;
+    background: #fafafa;
+}
+.pintwist-auto-empty {
+    padding: 16px;
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+}
+.pintwist-auto-row {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 12px;
+}
+.pintwist-auto-row:last-child { border-bottom: none; }
+.pintwist-auto-row--done .pintwist-auto-icon { color: #2eb872; }
+.pintwist-auto-row--failed .pintwist-auto-icon { color: #d93025; }
+.pintwist-auto-row--running .pintwist-auto-icon { color: var(--pintwist-primary, #F48FB1); }
+.pintwist-auto-row--cancelled .pintwist-auto-icon { color: #999; }
+.pintwist-auto-icon { text-align: center; font-weight: bold; }
+.pintwist-auto-term { font-weight: 500; color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pintwist-auto-detail { color: #777; font-size: 11px; white-space: nowrap; }
+
+/* ===== Automation compact mode =====
+ * Keep Pinterest visible even with large queues.
+ */
+#pintwist-auto-body {
+    max-height: min(58vh, 460px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+
+.pintwist-auto-add-row .pintwist-auto-textarea {
+    min-height: 44px;
+    max-height: 96px;
+    resize: vertical;
+}
+
+.pintwist-auto-add-row .pintwist-auto-btn {
+    height: 44px;
+    padding: 0 12px;
+}
+
+.pintwist-auto-pills {
+    max-height: min(28vh, 230px);
+    overflow-y: auto;
+    align-content: flex-start;
+    padding: 6px;
+    gap: 5px;
+}
+
+.pintwist-auto-pill {
+    max-width: 270px;
+    padding: 2px 3px 2px 8px;
+    min-height: 28px;
+    font-size: 11px;
+}
+
+.pintwist-auto-pill-text {
+    max-width: 180px;
+}
+
+.pintwist-auto-pill-text em {
+    font-size: 10px;
+}
+
+.pintwist-auto-pill-play,
+.pintwist-auto-pill-x {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+}
+
+.pintwist-auto-master-row {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background: #fff;
+    padding: 8px 0 2px;
+}
+
+.pintwist-auto-stats {
+    font-size: 11px;
+}
+
+/* ===== Left Dock Layout =====
+ * Replaces the full-width top bar with a compact fixed panel.
+ */
+html.pintwist-docked {
+    --pintwist-dock-offset: 324px;
+    --pintwist-dock-width: 320px;
+}
+
+html.pintwist-docked body {
+    padding-left: 0 !important;
+    box-sizing: border-box !important;
+    transition: none !important;
+}
+
+/* Style 1: Pinterest Native */
+html.pintwist-ui-style-pinterest-native #pintwist-initial-bar {
+    background: #ffffff !important;
+    border: none !important;
+    border-right: 1px solid #e5e7eb !important;
+    color: #111111 !important;
+}
+
+html.pintwist-ui-style-pinterest-native #pintwist-initial-bar .custom-dropdown-btn,
+html.pintwist-ui-style-pinterest-native #pintwist-initial-bar .pintwist-pages-input,
+html.pintwist-ui-style-pinterest-native #pintwist-initial-bar #pintwist-search-input-initial,
+html.pintwist-ui-style-pinterest-native #pintwist-initial-bar #pintwist-search-btn-initial {
+    background: #f6f7f8 !important;
+    border-color: #e5e7eb !important;
+    color: #111111 !important;
+}
+
+/* Style 2: Pinterest Glass */
+html.pintwist-ui-style-pinterest-glass #pintwist-initial-bar {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: none !important;
+    border-right: 1px solid rgba(209, 213, 219, 0.9) !important;
+    backdrop-filter: blur(14px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(130%) !important;
+    box-shadow: none !important;
+}
+
+html.pintwist-ui-style-pinterest-glass #pintwist-initial-bar .custom-dropdown-btn,
+html.pintwist-ui-style-pinterest-glass #pintwist-initial-bar .pintwist-pages-input,
+html.pintwist-ui-style-pinterest-glass #pintwist-initial-bar #pintwist-search-input-initial,
+html.pintwist-ui-style-pinterest-glass #pintwist-initial-bar #pintwist-search-btn-initial {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border-color: rgba(209, 213, 219, 0.9) !important;
+}
+
+/* Style 3: Ultra Minimal */
+html.pintwist-ui-style-ultra-minimal {
+    --pintwist-dock-offset: 324px;
+}
+
+html.pintwist-ui-style-ultra-minimal #pintwist-initial-bar {
+    width: 320px !important;
+    padding: 14px 16px !important;
+    gap: 10px !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    border: none !important;
+    border-right: 1px solid #ececec !important;
+    box-shadow: none !important;
+}
+
+html.pintwist-ui-style-ultra-minimal #pintwist-initial-bar .custom-dropdown-btn,
+html.pintwist-ui-style-ultra-minimal #pintwist-initial-bar .pintwist-pages-input,
+html.pintwist-ui-style-ultra-minimal #pintwist-initial-bar #pintwist-search-input-initial,
+html.pintwist-ui-style-ultra-minimal #pintwist-initial-bar #pintwist-search-btn-initial,
+html.pintwist-ui-style-ultra-minimal #pintwist-initial-bar .pintwist-sort-btn {
+    min-height: 30px !important;
+    font-size: 11px !important;
+    padding: 6px 8px !important;
+}
+
+html.pintwist-ui-style-ultra-minimal #pintwist-initial-bar .pintwist-logo {
+    max-height: 24px !important;
+}
+
+#pintwist-initial-bar {
+    top: 0 !important;
+    left: 0 !important;
+    right: auto !important;
+    width: var(--pintwist-dock-width) !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    border-radius: 0 !important;
+    padding: 16px 16px 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    border-right: 2px solid #111111 !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.22) transparent;
+}
+
+#pintwist-initial-bar::-webkit-scrollbar {
+    width: 6px;
+}
+
+#pintwist-initial-bar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#pintwist-initial-bar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.22);
+    border-radius: 999px;
+}
+
+#pintwist-initial-bar > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+}
+
+#pintwist-initial-bar .pintwist-logo-container {
+    justify-content: center;
+    margin: 0 !important;
+}
+
+#pintwist-initial-bar .custom-dropdown,
+#pintwist-initial-bar .custom-dropdown-btn,
+#pintwist-initial-bar .pintwist-search-wrapper,
+#pintwist-initial-bar #pintwist-search-input-initial,
+#pintwist-initial-bar #pintwist-search-btn-initial,
+#pintwist-initial-bar .pintwist-sort-btn,
+#pintwist-initial-bar .pintwist-pages-input,
+#pintwist-initial-bar .pintwist-tutorial-link {
+    width: 100% !important;
+    font-size: 12px !important;
+}
+
+#pintwist-initial-bar .pintwist-pages-label,
+#pintwist-initial-bar .pintwist-sort-label {
+    height: auto !important;
+    line-height: 1.2 !important;
+    font-size: 12px !important;
+    margin-bottom: 4px !important;
+}
+
+#pintwist-initial-bar .pintwist-search-wrapper {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 42px !important;
+    height: auto !important;
+}
+
+#pintwist-initial-bar #pintwist-search-input-initial {
+    border-right: 1.5px solid #DDD !important;
+    border-radius: 10px 0 0 10px !important;
+    min-height: 34px !important;
+    padding: 8px 10px !important;
+}
+
+#pintwist-initial-bar #pintwist-search-btn-initial {
+    border-left: 0 !important;
+    border-radius: 0 10px 10px 0 !important;
+    min-height: 34px !important;
+    width: 42px !important;
+    padding: 0 !important;
+}
+
+#pintwist-initial-bar .custom-dropdown-btn,
+#pintwist-initial-bar .pintwist-pages-input,
+#pintwist-initial-bar .pintwist-sort-btn {
+    min-height: 34px !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+}
+
+#pintwist-initial-bar .pintwist-logo {
+    max-height: 30px !important;
+    width: auto !important;
+}
+
+#pintwist-initial-bar .pintwist-checkbox-label {
+    font-size: 12px !important;
+}
+
+#pintwist-initial-bar .pintwist-tutorial-link {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 10px !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    background: #F1F1F1 !important;
+    border: 1px solid #E2E2E2 !important;
+    border-radius: 6px !important;
+    color: #555 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+}
+
+#pintwist-initial-bar .pintwist-tutorial-link:hover {
+    background: #E9E9E9 !important;
+    color: #111 !important;
+}
+
+#pintwist-auto-toggle {
+    margin-left: 0 !important;
+    width: 100% !important;
+    justify-content: center !important;
+}
+
+#pintwist-auto-body {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    border: 1px solid #E8E8E8 !important;
+    border-top: 1px solid #E8E8E8 !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    margin-top: 6px !important;
+    max-height: none !important;
+    padding: 10px !important;
+    gap: 10px !important;
+    overflow: visible !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-label {
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    color: #555 !important;
+    margin: 0 !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-row-fields {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+    width: 100% !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-add-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 118px !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-add-row .pintwist-auto-textarea {
+    width: 100% !important;
+    min-height: 96px !important;
+    max-height: 140px !important;
+    padding: 8px !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    resize: vertical !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-add-row .pintwist-auto-btn,
+#pintwist-initial-bar #pintwist-auto-add {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 96px !important;
+    padding: 0 10px !important;
+    font-size: 12px !important;
+    align-self: stretch !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-pills {
+    max-height: 150px !important;
+    min-height: 36px !important;
+    padding: 5px !important;
+    gap: 4px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-pill {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 7px !important;
+    min-height: 26px !important;
+    padding: 3px 3px 3px 7px !important;
+    gap: 4px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-pill-text {
+    max-width: 220px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-master-row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 10px 0 0 !important;
+    position: static !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-inline-field,
+#pintwist-initial-bar .pintwist-auto-checkbox {
+    display: grid !important;
+    grid-column: 1 / -1 !important;
+    grid-template-columns: minmax(0, 1fr) 74px !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    gap: 10px !important;
+    font-size: 12px !important;
+    color: #444 !important;
+    white-space: normal !important;
+    line-height: 1.25 !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-switch {
+    display: grid !important;
+    grid-column: 1 / -1 !important;
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    gap: 9px !important;
+    align-items: center !important;
+    padding: 2px 0 !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-num-wrap {
+    width: 74px !important;
+    height: 30px !important;
+    justify-self: end !important;
+    box-sizing: border-box !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-num {
+    width: 52px !important;
+    min-width: 0 !important;
+    font-size: 13px !important;
+    text-align: center !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-num--xs {
+    width: 52px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-checkbox input[type="checkbox"] {
+    justify-self: start !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-checkbox {
+    grid-template-columns: 18px minmax(0, 1fr) 74px 12px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-switch-label {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-switch-track {
+    width: 44px !important;
+    height: 24px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-switch-thumb {
+    width: 18px !important;
+    height: 18px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-switch input:checked + .pintwist-auto-switch-track .pintwist-auto-switch-thumb {
+    left: 23px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-master-row > #pintwist-auto-runnow,
+#pintwist-initial-bar .pintwist-auto-master-row > #pintwist-auto-off {
+    display: inline-flex !important;
+    margin: 0 !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-master-row > #pintwist-auto-runnow {
+    grid-column: 1 !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-master-row > #pintwist-auto-off {
+    grid-column: 2 !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-divider {
+    display: none !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-countdown {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 8px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-stats {
+    grid-column: 1 / -1 !important;
+    margin-left: 0 !important;
+    text-align: center !important;
+    font-size: 11px !important;
+    color: #777 !important;
+}
+
+#pintwist-initial-bar #pintwist-auto-clear,
+#pintwist-initial-bar #pintwist-auto-resume-cd {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    height: 30px !important;
+    padding: 0 10px !important;
+    font-size: 12px !important;
+}
+
+#pintwist-initial-bar #pintwist-auto-runnow,
+#pintwist-initial-bar #pintwist-auto-off {
+    align-self: center !important;
+    height: 30px !important;
+    min-width: 0 !important;
+    border-radius: 8px !important;
+}
+
+/* Sorted-results state uses #pintwist-resort-bar. Keep it in the same left
+ * dock so automation does not jump back to the old full-width top layout.
+ */
+html.pintwist-docked #pintwist-resort-bar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    z-index: 2147483646 !important;
+    width: var(--pintwist-dock-width) !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    gap: 10px !important;
+    padding: 16px 16px 14px !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: #FFFFFF !important;
+    border: 0 !important;
+    border-right: 2px solid #111111 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.28) !important;
+    border-radius: 999px !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar > *,
+html.pintwist-docked #pintwist-resort-bar .custom-dropdown,
+html.pintwist-docked #pintwist-resort-bar .custom-dropdown-btn,
+html.pintwist-docked #pintwist-resort-bar .pintwist-search-wrapper,
+html.pintwist-docked #pintwist-resort-bar #pintwist-search-input,
+html.pintwist-docked #pintwist-resort-bar #pintwist-search-btn,
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-toggle,
+html.pintwist-docked #pintwist-resort-bar #pintwist-download-csv-btn,
+html.pintwist-docked #pintwist-resort-bar .pintwist-tutorial-link,
+html.pintwist-docked #pintwist-resort-bar .resort-info {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .pintwist-logo-container {
+    justify-content: center !important;
+    margin: 0 0 4px !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .pintwist-logo-wordmark-svg {
+    width: 96px !important;
+    height: auto !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar label {
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .custom-dropdown-btn,
+html.pintwist-docked #pintwist-resort-bar button,
+html.pintwist-docked #pintwist-resort-bar .pintwist-tutorial-link {
+    min-height: 36px !important;
+    height: auto !important;
+    border-radius: 8px !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .pintwist-search-wrapper {
+    display: grid !important;
+    grid-template-columns: 1fr 40px !important;
+    height: 36px !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-search-input {
+    height: 36px !important;
+    width: 100% !important;
+    border-radius: 8px 0 0 8px !important;
+    font-size: 12px !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-search-btn {
+    height: 36px !important;
+    border-radius: 0 8px 8px 0 !important;
+    padding: 0 !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .pintwist-checkbox-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .resort-info {
+    white-space: normal !important;
+    line-height: 1.25 !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+}
+
+html.pintwist-docked #pintwist-filter-bar {
+    top: 0 !important;
+    z-index: 99998 !important;
+    margin-left: var(--pintwist-dock-offset) !important;
+    width: calc(100vw - var(--pintwist-dock-offset)) !important;
+    max-width: calc(100vw - var(--pintwist-dock-offset)) !important;
+    box-sizing: border-box !important;
+}
+
+html.pintwist-docked #pintwist-sorted-container {
+    margin-left: var(--pintwist-dock-offset) !important;
+    width: calc(100vw - var(--pintwist-dock-offset)) !important;
+    max-width: calc(100vw - var(--pintwist-dock-offset)) !important;
+    box-sizing: border-box !important;
+}
+
+html.pintwist-docked #pintwist-sorted-container.pinterest--container {
+    margin-right: 0 !important;
+}
+
+@media (max-width: 900px) {
+    html.pintwist-docked {
+        --pintwist-dock-offset: 284px;
+        --pintwist-dock-width: 280px;
+    }
+
+    html.pintwist-docked body {
+        padding-left: 0 !important;
+    }
+
+    #pintwist-initial-bar {
+        left: 0 !important;
+        right: auto !important;
+        width: 280px !important;
+        top: 0 !important;
+        max-height: 100vh !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        border-right: 2px solid #111111 !important;
+    }
+
+    html.pintwist-docked #pintwist-resort-bar {
+        width: 280px !important;
+    }
+}
+
+/* ===== Flat Dock Polish =====
+ * Make the injected controls read like an in-page Pinterest work rail, not a
+ * floating pill.
+ */
+html.pintwist-docked {
+    --pintwist-dock-offset: 308px;
+    --pintwist-dock-width: 304px;
+    --pintwist-header-offset: 96px;
+}
+
+#pintwist-initial-bar,
+html.pintwist-docked #pintwist-resort-bar {
+    top: var(--pintwist-header-offset) !important;
+    height: calc(100vh - var(--pintwist-header-offset)) !important;
+    height: calc(100dvh - var(--pintwist-header-offset)) !important;
+    max-height: calc(100vh - var(--pintwist-header-offset)) !important;
+    max-height: calc(100dvh - var(--pintwist-header-offset)) !important;
+    width: var(--pintwist-dock-width) !important;
+    min-width: var(--pintwist-dock-width) !important;
+    max-width: var(--pintwist-dock-width) !important;
+    padding: 12px 14px !important;
+    gap: 8px !important;
+    background: #ffffff !important;
+    border: 0 !important;
+    border-right: 1px solid #d7d7d7 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+}
+
+#pintwist-initial-bar *,
+html.pintwist-docked #pintwist-resort-bar * {
+    border-radius: 4px !important;
+    letter-spacing: 0 !important;
+}
+
+#pintwist-initial-bar .pintwist-logo-container,
+html.pintwist-docked #pintwist-resort-bar .pintwist-logo-container {
+    min-height: 34px !important;
+    height: 34px !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 4px !important;
+    border-bottom: 1px solid #ededed !important;
+}
+
+#pintwist-initial-bar .pintwist-logo-wordmark-svg,
+html.pintwist-docked #pintwist-resort-bar .pintwist-logo-wordmark-svg {
+    width: 92px !important;
+    max-height: 28px !important;
+}
+
+#pintwist-initial-bar .pintwist-pages-label,
+#pintwist-initial-bar .pintwist-sort-label,
+html.pintwist-docked #pintwist-resort-bar label {
+    margin: 4px 0 0 !important;
+    color: #333333 !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    line-height: 1.25 !important;
+}
+
+#pintwist-initial-bar .custom-dropdown,
+html.pintwist-docked #pintwist-resort-bar .custom-dropdown {
+    margin-top: 0 !important;
+}
+
+#pintwist-initial-bar .custom-dropdown-btn,
+#pintwist-initial-bar .pintwist-pages-input,
+#pintwist-initial-bar #pintwist-search-input-initial,
+#pintwist-initial-bar #pintwist-search-btn-initial,
+html.pintwist-docked #pintwist-resort-bar .custom-dropdown-btn,
+html.pintwist-docked #pintwist-resort-bar #pintwist-search-input,
+html.pintwist-docked #pintwist-resort-bar #pintwist-search-btn {
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 7px 10px !important;
+    background: #f5f5f5 !important;
+    border: 1px solid #dcdcdc !important;
+    color: #111111 !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+}
+
+#pintwist-initial-bar .custom-dropdown-btn:hover,
+#pintwist-initial-bar .pintwist-pages-input:focus,
+#pintwist-initial-bar #pintwist-search-input-initial:focus,
+html.pintwist-docked #pintwist-resort-bar .custom-dropdown-btn:hover,
+html.pintwist-docked #pintwist-resort-bar #pintwist-search-input:focus {
+    background: #ffffff !important;
+    border-color: #b8b8b8 !important;
+    box-shadow: none !important;
+}
+
+#pintwist-initial-bar .pintwist-search-wrapper,
+html.pintwist-docked #pintwist-resort-bar .pintwist-search-wrapper {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 38px !important;
+    height: 34px !important;
+}
+
+#pintwist-initial-bar #pintwist-search-input-initial,
+html.pintwist-docked #pintwist-resort-bar #pintwist-search-input {
+    border-right: 0 !important;
+    border-radius: 4px 0 0 4px !important;
+}
+
+#pintwist-initial-bar #pintwist-search-btn-initial,
+html.pintwist-docked #pintwist-resort-bar #pintwist-search-btn {
+    width: 38px !important;
+    padding: 0 !important;
+    border-left: 0 !important;
+    border-radius: 0 4px 4px 0 !important;
+}
+
+#pintwist-initial-bar .pintwist-sort-btn,
+#pintwist-auto-toggle,
+#pintwist-initial-bar .pintwist-auto-btn,
+#pintwist-initial-bar #pintwist-auto-add,
+#pintwist-initial-bar #pintwist-auto-runnow,
+#pintwist-initial-bar #pintwist-auto-off,
+#pintwist-initial-bar #pintwist-auto-clear,
+#pintwist-initial-bar #pintwist-auto-resume-cd,
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-toggle,
+html.pintwist-docked #pintwist-resort-bar #pintwist-download-csv-btn {
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 0 10px !important;
+    border: 1px solid var(--pintwist-primary) !important;
+    background: var(--pintwist-primary) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-transform: none !important;
+}
+
+#pintwist-initial-bar .pintwist-sort-btn:hover,
+#pintwist-auto-toggle:hover,
+#pintwist-initial-bar .pintwist-auto-btn:hover,
+#pintwist-initial-bar #pintwist-auto-runnow:hover,
+#pintwist-initial-bar #pintwist-auto-off:hover,
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-toggle:hover,
+html.pintwist-docked #pintwist-resort-bar #pintwist-download-csv-btn:hover {
+    background: var(--pintwist-primary-dark) !important;
+    border-color: var(--pintwist-primary-dark) !important;
+    transform: none !important;
+}
+
+#pintwist-initial-bar #pintwist-search-btn-initial,
+html.pintwist-docked #pintwist-resort-bar #pintwist-search-btn {
+    background: var(--pintwist-primary) !important;
+    border-color: var(--pintwist-primary) !important;
+    color: #ffffff !important;
+}
+
+#pintwist-initial-bar #pintwist-search-btn-initial:hover,
+html.pintwist-docked #pintwist-resort-bar #pintwist-search-btn:hover {
+    background: var(--pintwist-primary-dark) !important;
+    border-color: var(--pintwist-primary-dark) !important;
+}
+
+#pintwist-initial-bar .pintwist-checkbox-wrapper,
+html.pintwist-docked #pintwist-resort-bar .pintwist-checkbox-wrapper {
+    min-height: 30px !important;
+    padding: 2px 0 !important;
+    gap: 8px !important;
+}
+
+#pintwist-initial-bar .pintwist-tutorial-link,
+html.pintwist-docked #pintwist-resort-bar .pintwist-tutorial-link,
+html.pintwist-docked #pintwist-resort-bar .resort-info {
+    min-height: 32px !important;
+    height: auto !important;
+    padding: 7px 10px !important;
+    background: #f5f5f5 !important;
+    border: 1px solid #dcdcdc !important;
+    color: #333333 !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+}
+
+#pintwist-auto-body {
+    max-height: calc(100dvh - 260px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 8px !important;
+    margin-top: 0 !important;
+    border: 1px solid #e1e1e1 !important;
+    background: #ffffff !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-add-row {
+    grid-template-columns: minmax(0, 1fr) 96px !important;
+    gap: 6px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-add-row .pintwist-auto-textarea,
+#pintwist-initial-bar .pintwist-auto-add-row .pintwist-auto-btn,
+#pintwist-initial-bar #pintwist-auto-add {
+    height: auto !important;
+    min-height: 72px !important;
+    max-height: 96px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-pills {
+    max-height: 120px !important;
+}
+
+html.pintwist-docked #pintwist-filter-bar {
+    margin-left: var(--pintwist-dock-offset) !important;
+    width: calc(100vw - var(--pintwist-dock-offset)) !important;
+    max-width: calc(100vw - var(--pintwist-dock-offset)) !important;
+    border-bottom: 1px solid #d7d7d7 !important;
+    box-shadow: none !important;
+}
+
+html.pintwist-docked #pintwist-sorted-container {
+    margin-left: var(--pintwist-dock-offset) !important;
+    width: calc(100vw - var(--pintwist-dock-offset)) !important;
+    max-width: calc(100vw - var(--pintwist-dock-offset)) !important;
+    padding: 16px !important;
+}
+
+@media (max-width: 900px) {
+    html.pintwist-docked {
+        --pintwist-dock-offset: 284px;
+        --pintwist-dock-width: 280px;
+    }
+
+    #pintwist-initial-bar,
+    html.pintwist-docked #pintwist-resort-bar {
+        padding: 10px 12px !important;
+    }
+}
+
+/* ===== Date filter presets + invalid-range error ===== */
+.filter-date-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-left: 6px;
+    align-items: center;
+}
+.date-preset-chip {
+    border: 1px solid #DDD;
+    background: #FFF;
+    color: #555;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    line-height: 1.4;
+    transition: all 0.15s ease;
+}
+.date-preset-chip:hover {
+    border-color: var(--pintwist-theme, #F48FB1);
+    color: var(--pintwist-theme, #F48FB1);
+}
+.date-preset-chip.active {
+    background: var(--pintwist-theme, #F48FB1);
+    border-color: var(--pintwist-theme, #F48FB1);
+    color: #FFF;
+}
+.filter-date-error {
+    color: #C62828;
+    font-size: 11px;
+    margin-left: 6px;
+    font-weight: 600;
+}
+.filter-input.is-invalid {
+    border-color: #C62828 !important;
+}
+
+/* ===== Performance hotfix UI polish ===== */
+#pintwist-progress-panel {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 999999 !important;
+    display: grid !important;
+    place-items: center !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+    pointer-events: none !important;
+}
+
+#pintwist-progress-panel .pintwist-progress-card {
+    pointer-events: auto !important;
+    width: min(420px, calc(100vw - 32px)) !important;
+    border: 1px solid #e4e4e4 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    box-shadow: 0 14px 44px rgba(0, 0, 0, 0.18) !important;
+    padding: 20px !important;
+    color: #1a1a1a !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+.pintwist-progress-title {
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    margin-bottom: 8px !important;
+}
+
+.pintwist-progress-status {
+    min-height: 20px !important;
+    font-size: 13px !important;
+    color: #555555 !important;
+    margin-bottom: 12px !important;
+}
+
+.pintwist-progress-track {
+    height: 8px !important;
+    overflow: hidden !important;
+    border-radius: 999px !important;
+    background: #eeeeee !important;
+}
+
+#pintwist-progress-bar {
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--pintwist-primary, #F48FB1);
+    transition: width 0.18s ease;
+}
+
+.pintwist-progress-meta {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-top: 10px !important;
+    font-size: 12px !important;
+    color: #666666 !important;
+}
+
+#pintwist-progress-cancel {
+    display: block !important;
+    width: 100% !important;
+    margin-top: 16px !important;
+    min-height: 36px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: var(--pintwist-primary, #F48FB1) !important;
+    color: #ffffff !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    cursor: pointer !important;
+}
+
+#pintwist-progress-cancel:hover:not(:disabled) {
+    background: var(--pintwist-primary-dark, #E91E63) !important;
+}
+
+#pintwist-progress-cancel:disabled {
+    background: #999999 !important;
+    cursor: wait !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .pintwist-text-logo,
+#pintwist-initial-bar .pintwist-text-logo {
+    color: var(--pintwist-primary, #F48FB1) !important;
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+}
+
+.pintwist-version-label {
+    margin-left: 8px !important;
+    color: #999999 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+}
+
+.pintwist-lean-results {
+    align-items: start !important;
+}
+
+.pintwist-lean-card {
+    contain: layout paint style !important;
+}
+
+.pintwist-card-image-link {
+    display: block !important;
+    text-decoration: none !important;
+}
+
+.pintwist-card-image-link img {
+    display: block !important;
+    width: 100% !important;
+    height: 320px !important;
+    object-fit: cover !important;
+    border-radius: 8px 8px 0 0 !important;
+    background: #f5f5f5 !important;
+}
+
+/* Clean stacked automation layout inside the left rail. */
+#pintwist-initial-bar #pintwist-auto-body,
+html.pintwist-docked #pintwist-resort-bar #pintwist-auto-body {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-height: min(54vh, 520px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 10px !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-row-fields,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-row-fields,
+#pintwist-initial-bar .pintwist-auto-add-row,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-add-row,
+#pintwist-initial-bar .pintwist-auto-master-row,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-master-row {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+    overflow: visible !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-label,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-label {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    color: #555555 !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    line-height: 1.25 !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-textarea,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-textarea {
+    min-height: 76px !important;
+    max-height: 130px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+}
+
+#pintwist-initial-bar #pintwist-auto-add,
+html.pintwist-docked #pintwist-resort-bar #pintwist-auto-add {
+    width: 100% !important;
+    min-height: 34px !important;
+    height: 34px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-pills,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-pills {
+    max-height: 116px !important;
+    overflow-y: auto !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-inline-field,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-inline-field {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    white-space: normal !important;
+    color: #444444 !important;
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-checkbox,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-checkbox {
+    display: grid !important;
+    grid-template-columns: 18px minmax(0, 1fr) 74px 14px !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    color: #444444 !important;
+    font-size: 12px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-switch,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-switch {
+    display: grid !important;
+    grid-template-columns: 46px minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-num-wrap,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-num-wrap {
+    width: 74px !important;
+    flex: 0 0 74px !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-countdown,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-countdown,
+#pintwist-initial-bar .pintwist-auto-stats,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-stats,
+#pintwist-initial-bar #pintwist-auto-clear,
+#pintwist-initial-bar #pintwist-auto-resume-cd,
+html.pintwist-docked #pintwist-resort-bar #pintwist-auto-clear,
+html.pintwist-docked #pintwist-resort-bar #pintwist-auto-resume-cd,
+#pintwist-initial-bar #pintwist-auto-runnow,
+#pintwist-initial-bar #pintwist-auto-off,
+html.pintwist-docked #pintwist-resort-bar #pintwist-auto-runnow,
+html.pintwist-docked #pintwist-resort-bar #pintwist-auto-off {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Hotfix: keep sorted results visible and keep rail controls ordered. */
+html.pintwist-docked #pintwist-sorted-container.pintwist-lean-results {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+    gap: 18px !important;
+    align-items: start !important;
+    min-height: 100vh !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+#pintwist-sorted-container.pintwist-lean-results .pintwist-lean-card,
+#pintwist-sorted-container.pintwist-lean-results .pintwist-card-image-link,
+#pintwist-sorted-container.pintwist-lean-results .pintwist-card-image-link img {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+#pintwist-sorted-container.pintwist-lean-results .pintwist-lean-card {
+    display: flex !important;
+    border-radius: 8px !important;
+    transform: none !important;
+}
+
+#pintwist-sorted-container.pintwist-lean-results .pintwist-card-image-link {
+    display: block !important;
+    width: 100% !important;
+    min-height: 320px !important;
+}
+
+#pintwist-sorted-container.pintwist-lean-results .pintwist-card-image-link img {
+    display: block !important;
+    width: 100% !important;
+    height: 320px !important;
+    object-fit: cover !important;
+}
+
+.pintwist-empty-results {
+    grid-column: 1 / -1 !important;
+    padding: 20px !important;
+    background: #f7f7f7 !important;
+    border: 1px solid #dddddd !important;
+    border-radius: 8px !important;
+    color: #333333 !important;
+    font-weight: 700 !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .pintwist-search-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 42px !important;
+    width: 100% !important;
+    height: 34px !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .pintwist-search-row #pintwist-search-input {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 34px !important;
+    border-radius: 4px 0 0 4px !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .pintwist-search-row #pintwist-search-btn {
+    width: 42px !important;
+    min-width: 42px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    border-radius: 0 4px 4px 0 !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+}
+
+#pintwist-auto-toggle {
+    order: 70 !important;
+}
+
+#pintwist-auto-body {
+    order: 71 !important;
+}
+
+#pintwist-initial-bar .pintwist-tutorial-link,
+html.pintwist-docked #pintwist-resort-bar .pintwist-tutorial-link {
+    order: 99 !important;
+}
+
+/* Sorted-document rail cleanup: dropdowns stay inline and action buttons read clearly. */
+#pintwist-initial-bar .custom-dropdown-menu.show,
+html.pintwist-docked #pintwist-resort-bar .custom-dropdown-menu.show {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-height: 220px !important;
+    overflow-y: auto !important;
+    margin: -4px 0 0 0 !important;
+    border: 1px solid #dddddd !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    z-index: auto !important;
+}
+
+#pintwist-initial-bar .custom-dropdown-menu.show .dropdown-item,
+html.pintwist-docked #pintwist-resort-bar .custom-dropdown-menu.show .dropdown-item {
+    min-height: 34px !important;
+    padding: 9px 12px !important;
+    color: #1f1f1f !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-actions,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+
+#pintwist-initial-bar .pintwist-auto-actions #pintwist-auto-runnow,
+#pintwist-initial-bar .pintwist-auto-actions #pintwist-auto-off,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-actions #pintwist-auto-runnow,
+html.pintwist-docked #pintwist-resort-bar .pintwist-auto-actions #pintwist-auto-off {
+    width: 100% !important;
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 0 10px !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
+}
+
+/* Sorted-document sort control: always visible buttons, no hidden tiny menu. */
+html.pintwist-docked #pintwist-resort-bar .pintwist-sort-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .pintwist-sort-choice {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 8px !important;
+    border: 1px solid #d7d7d7 !important;
+    border-radius: 8px !important;
+    background: #f7f7f7 !important;
+    color: #111111 !important;
+    box-shadow: none !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .pintwist-sort-choice:hover {
+    border-color: var(--pintwist-primary) !important;
+    background: #ffffff !important;
+    transform: none !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar .pintwist-sort-choice.is-active,
+html.pintwist-docked #pintwist-resort-bar .pintwist-sort-choice[aria-pressed="true"] {
+    border-color: var(--pintwist-primary) !important;
+    background: var(--pintwist-primary) !important;
+    color: #ffffff !important;
+}
+
+/* Sorted-document filters live inside the rail, not as a page-wide overlay. */
+html.pintwist-docked #pintwist-resort-bar > #pintwist-filter-bar {
+    position: static !important;
+    display: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    overflow: visible !important;
+    border: 1px solid #dddddd !important;
+    border-radius: 8px !important;
+    background: #fafafa !important;
+    box-shadow: none !important;
+    order: 42 !important;
+    z-index: auto !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar > #pintwist-filter-bar.pintwist-filter-expanded {
+    display: block !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-bar .filter-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-reset-all-filters {
+    width: 100% !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 0 10px !important;
+    border: 1px solid #d7d7d7 !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    color: #111111 !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    text-transform: none !important;
+    box-shadow: none !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-bar .filter-group-wrapper {
+    display: block !important;
+    width: 100% !important;
+    padding: 0 !important;
+    border: 0 !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-bar .filter-group {
+    display: grid !important;
+    grid-template-columns: 74px minmax(0, 1fr) 10px minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-bar .filter-group label {
+    margin: 0 !important;
+    color: #333333 !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-bar .filter-input {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 32px !important;
+    padding: 0 8px !important;
+    border: 1px solid #d7d7d7 !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    color: #111111 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-bar .filter-input:focus {
+    border-color: var(--pintwist-primary) !important;
+    box-shadow: 0 0 0 2px rgba(240, 0, 45, 0.12) !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-bar .filter-dash {
+    color: #777777 !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    text-align: center !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-bar .filter-pills-container {
+    grid-column: 1 / -1 !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-bar .filter-date .filter-group {
+    grid-template-columns: minmax(0, 1fr) 10px minmax(0, 1fr) !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-bar .filter-date .filter-group label {
+    grid-column: 1 / -1 !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-bar .filter-date-presets {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar #pintwist-filter-bar .date-preset-chip {
+    min-height: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+    border: 1px solid #d7d7d7 !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    color: #333333 !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    text-transform: none !important;
+}
+
+/* Final contrast sweep: keep rail/filter controls readable in light and dark mode. */
+:root {
+    --pt-secondary-bg: rgba(96, 165, 250, 0.14);
+    --pt-secondary-bg-hover: rgba(96, 165, 250, 0.24);
+    --pt-secondary-border: rgba(96, 165, 250, 0.42);
+    --pt-secondary-text: #dbeafe;
+    --pt-disabled-bg: rgba(255, 255, 255, 0.055);
+    --pt-disabled-border: rgba(255, 255, 255, 0.11);
+    --pt-disabled-text: rgba(248, 250, 252, 0.5);
+}
+
+:root.pintwist-theme-light {
+    --pt-secondary-bg: color-mix(in srgb, var(--pintwist-primary, #F0002D) 10%, #ffffff);
+    --pt-secondary-bg-hover: color-mix(in srgb, var(--pintwist-primary, #F0002D) 16%, #ffffff);
+    --pt-secondary-border: color-mix(in srgb, var(--pintwist-primary, #F0002D) 38%, rgba(15, 23, 42, 0.18));
+    --pt-secondary-text: #0f172a;
+    --pt-disabled-bg: rgba(15, 23, 42, 0.045);
+    --pt-disabled-border: rgba(15, 23, 42, 0.13);
+    --pt-disabled-text: rgba(15, 23, 42, 0.58);
+}
+
+html.pintwist-docked #pintwist-resort-bar.pintwist-unified-glass button:disabled,
+#pintwist-initial-bar.pintwist-unified-glass button:disabled {
+    opacity: 1 !important;
+    background: var(--pt-disabled-bg) !important;
+    border-color: var(--pt-disabled-border) !important;
+    color: var(--pt-disabled-text) !important;
+    box-shadow: none !important;
+    filter: none !important;
+    cursor: not-allowed !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar.pintwist-unified-glass #pintwist-filter-bar,
+#pintwist-initial-bar.pintwist-unified-glass #pintwist-filter-bar {
+    background: var(--pt-panel-strong, rgba(255, 255, 255, 0.92)) !important;
+    border-color: var(--pt-line-strong, rgba(15, 23, 42, 0.2)) !important;
+    color: var(--pt-text, #0f172a) !important;
+}
+
+:root.pintwist-theme-dark body {
+    background: #0d0d14 !important;
+    color: var(--pt-text, #f8fafc) !important;
+}
+
+:root.pintwist-theme-light body {
+    background: #f8fafc !important;
+    color: var(--pt-text, #0f172a) !important;
+}
+
+:root.pintwist-theme-dark #pintwist-sorted-container {
+    background: #0d0d14 !important;
+}
+
+:root.pintwist-theme-light #pintwist-sorted-container {
+    background: #f8fafc !important;
+}
+
+:root.pintwist-theme-dark .pintwist-lean-card {
+    background: #181820 !important;
+    border-color: var(--pt-line, rgba(255, 255, 255, 0.14)) !important;
+    color: var(--pt-text, #f8fafc) !important;
+}
+
+:root.pintwist-theme-light .pintwist-lean-card {
+    background: #ffffff !important;
+    border-color: var(--pt-line, rgba(15, 23, 42, 0.12)) !important;
+    color: var(--pt-text, #0f172a) !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar.pintwist-unified-glass #pintwist-filter-bar .filter-group label,
+html.pintwist-docked #pintwist-resort-bar.pintwist-unified-glass #pintwist-filter-bar .filter-dash,
+#pintwist-initial-bar.pintwist-unified-glass #pintwist-filter-bar .filter-group label,
+#pintwist-initial-bar.pintwist-unified-glass #pintwist-filter-bar .filter-dash {
+    color: var(--pt-muted, rgba(15, 23, 42, 0.68)) !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar.pintwist-unified-glass #pintwist-filter-bar .filter-input,
+#pintwist-initial-bar.pintwist-unified-glass #pintwist-filter-bar .filter-input {
+    background: var(--pt-field-strong, rgba(15, 23, 42, 0.09)) !important;
+    border-color: var(--pt-line-strong, rgba(15, 23, 42, 0.2)) !important;
+    color: var(--pt-text, #0f172a) !important;
+    -webkit-text-fill-color: var(--pt-text, #0f172a) !important;
+}
+
+html.pintwist-docked #pintwist-resort-bar.pintwist-unified-glass #pintwist-filter-bar .date-preset-chip,
+#pintwist-initial-bar.pintwist-unified-glass #pintwist-filter-bar .date-preset-chip,
+html.pintwist-docked #pintwist-resort-bar.pintwist-unified-glass #pintwist-reset-all-filters,
+#pintwist-initial-bar.pintwist-unified-glass #pintwist-reset-all-filters,
+html.pintwist-docked #pintwist-resort-bar.pintwist-unified-glass .filter-pill,
+#pintwist-initial-bar.pintwist-unified-glass .filter-pill {
+    background: var(--pt-secondary-bg) !important;
+    border-color: var(--pt-secondary-border) !important;
+    color: var(--pt-secondary-text) !important;
+    text-shadow: none !important;
+}
