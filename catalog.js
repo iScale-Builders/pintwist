@@ -183,10 +183,10 @@ async function saveImports(rows) {
 
 async function hydrateTheme() {
   const result = await chrome.storage.sync.get({
-    pintwist_theme_color: '#4ade80',
+    pintwist_theme_color: '#F48FB1',
     pintwist_theme_mode: 'dark',
   });
-  const theme = result.pintwist_theme_color || '#4ade80';
+  const theme = result.pintwist_theme_color || '#F48FB1';
   document.documentElement.style.setProperty('--theme-color', theme);
   applyThemeMode(result.pintwist_theme_mode);
   chrome.storage.onChanged.addListener((changes, area) => {
@@ -415,7 +415,12 @@ function wireFilterBar() {
   bar.querySelectorAll('.date-preset-chip').forEach((chip) => {
     chip.addEventListener('click', () => {
       const days = Number(chip.dataset.days) || 0;
-      const fmt = (d) => d.toISOString().split('T')[0];
+      // Local YYYY-MM-DD — toISOString() is UTC, which pushes the date to "tomorrow"
+      // for users behind UTC in the evening, shifting "last N days" by a day. (CQ-8)
+      const fmt = (d) => {
+        const p = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+      };
       const minEl = bar.querySelector('.filter-input[data-metric="date"][data-bound="min"]');
       const maxEl = bar.querySelector('.filter-input[data-metric="date"][data-bound="max"]');
       if (minEl) minEl.value = fmt(new Date(Date.now() - days * 86400000));
@@ -455,7 +460,11 @@ function dateBound(bound, fallback) {
   const el = bar.querySelector(`.filter-input[data-metric="date"][data-bound="${bound}"]`);
   const raw = el ? String(el.value).trim() : '';
   if (raw === '') return fallback;
-  const t = Date.parse(raw);
+  // Parse YYYY-MM-DD as LOCAL midnight — Date.parse() treats a bare date as UTC,
+  // which shifts "last N days" by a day for users behind UTC. Match the local
+  // formatting the preset chips use. (CQ-8)
+  const md = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+  const t = md ? new Date(+md[1], +md[2] - 1, +md[3]).getTime() : Date.parse(raw);
   if (Number.isNaN(t)) return fallback;
   return bound === 'max' ? t + 86399999 : t;
 }

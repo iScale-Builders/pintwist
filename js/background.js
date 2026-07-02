@@ -71,7 +71,6 @@ chrome.runtime.onInstalled.addListener(() => {
     }
     if (Object.keys(missing).length) chrome.storage.sync.set(missing);
   });
-  chrome.storage.local.set({ sortOption: "saves" });
   chrome.storage.local.get(
     {
       pintwist_catalog_rows: [],
@@ -172,8 +171,32 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ success: true });
     return true;
   }
-  return true;
+  return false;
 });
+function safeWait(ms) {
+  return new Promise((resolve) => {
+    const keepAlive = setInterval(() => {
+      try {
+        chrome.runtime.getPlatformInfo(() => {
+        });
+      } catch {
+      }
+    }, 2e4);
+    setTimeout(() => {
+      clearInterval(keepAlive);
+      resolve();
+    }, ms);
+  });
+}
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = "";
+  const CHUNK = 32768;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+}
 function buildHeaders(config, csrfToken) {
   const headers = {
     accept: "application/json, text/javascript, */*, q=0.01",
@@ -203,7 +226,7 @@ async function fetchSinglePin(pinID, config, csrfToken, retryCount = 2) {
   if (response.status === 429) {
     if (retryCount > 0) {
       const waitTime = (3 - retryCount) * 3e4;
-      await new Promise((r) => setTimeout(r, waitTime));
+      await safeWait(waitTime);
       return fetchSinglePin(pinID, config, csrfToken, retryCount - 1);
     }
     throw Object.assign(new Error("Rate limited after retries"), { status: 429 });
@@ -242,19 +265,23 @@ async function fetchBulkPins(pinIDs, config, csrfToken) {
     } catch {
       console.warn("PinTwist Free: Bulk endpoint failed, using parallel fetch");
     }
-    const fetchResults = await Promise.all(
-      chunk.map(async (pinID) => {
-        try {
-          const data = await fetchSinglePin(pinID, config, csrfToken);
-          return { pinID, data, success: true };
-        } catch {
-          return { pinID, data: null, success: false };
-        }
-      })
-    );
-    fetchResults.forEach((r) => {
-      if (r.success && r.data) results.set(r.pinID, r.data);
-    });
+    const FALLBACK_CONCURRENCY = 5;
+    for (let j = 0; j < chunk.length; j += FALLBACK_CONCURRENCY) {
+      const sub = chunk.slice(j, j + FALLBACK_CONCURRENCY);
+      const fetchResults = await Promise.all(
+        sub.map(async (pinID) => {
+          try {
+            const data = await fetchSinglePin(pinID, config, csrfToken);
+            return { pinID, data, success: true };
+          } catch {
+            return { pinID, data: null, success: false };
+          }
+        })
+      );
+      fetchResults.forEach((r) => {
+        if (r.success && r.data) results.set(r.pinID, r.data);
+      });
+    }
   }
   return results;
 }
@@ -289,7 +316,7 @@ async function handleCsvDownload(csvText, filename) {
     const askEachTime = false;
     const folder = sanitizeDownloadFolder(prefs[DOWNLOAD_FOLDER_KEY]);
     const targetFilename = !askEachTime && folder ? `${folder}/${cleanFilename}` : cleanFilename;
-    const dataUrl = "data:text/csv;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(csvText || "")));
+    const dataUrl = "data:text/csv;charset=utf-8;base64," + utf8ToBase64(csvText || "");
     const downloadId = await chrome.downloads.download({
       url: dataUrl,
       filename: targetFilename,

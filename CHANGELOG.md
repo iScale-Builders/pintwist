@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.0.3 — Post-audit hardening
+
+Small correctness, reliability, and quality fixes from an independent security & code
+review. No change to permissions, data handling, or the local-only design.
+
+- **Reliability:** rate-limit backoff in the background worker no longer risks the MV3
+  service worker being killed mid-wait (a search could hang); capped the bulk-fetch
+  fallback concurrency so it can't hammer an endpoint that just rate-limited us.
+- **Data safety:** a catalog save that fell back to local storage after an IndexedDB
+  write failure is now merged back on the next open, instead of being silently dropped
+  when IndexedDB recovers.
+- **Hardening (defense-in-depth):** pin metric values are coerced to numbers before they
+  reach any HTML, and the automation number inputs escape their attribute values.
+- **Cleanup:** removed dead dark-mode code from the popup (dark/light lives on the catalog
+  page); removed a write-only storage key; unified the default theme color; fixed a
+  timezone-related off-by-one in the catalog's "last N days" date presets; modernized CSV
+  encoding; quieted a spurious message-port warning; tightened lint to zero warnings.
+- **Docs:** documented the optional automation queue (pacing + backs off on rate
+  limits / security checks); cross-platform command fences in the README.
+
 ## 1.0.2 — Catalog dedup fix
 
 - Fixed the catalog showing one design as several separate cards. Some Pinterest pins (ads and aggregated results) carry a volatile id token that changes per search term, so the same design was being split into a separate card per keyword. Those copies now collapse into a single card (keeping their scrape history), while genuinely distinct pins still keep their own metrics.

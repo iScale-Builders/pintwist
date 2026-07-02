@@ -182,8 +182,9 @@ describe('content script performance hotfix', () => {
     expect(contentScript).toContain('color:var(--pt-text)!important');
     expect(popupHtml).toContain('pin-glass-popup');
     expect(popupHtml).toContain('theme-mode-light');
-    expect(popupHtml).toContain('mode-dark');
-    expect(popupHtml).toContain('mode-light');
+    // Popup is light-only (dark mode is a catalog-page feature); the dead popup
+    // dark-mode code + theme-mode-dark body class were removed. (audit CQ-1)
+    expect(popupHtml).not.toContain('theme-mode-dark');
     expect(popupHtml).toContain('--pt-rail-bg: rgba(13,13,20,0.96)');
     expect(popupHtml).toContain('--pt-disabled-bg:');
     expect(popupHtml).toContain('background: var(--pt-disabled-bg)');

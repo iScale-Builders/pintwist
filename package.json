@@ -1,6 +1,6 @@
 {
   "name": "pintwist-free-extension",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "iScaleLabs",
   "description": "Local-only Pinterest analytics with pin sorting, smart filtering, HD image downloads, and a local gallery.",
   "private": true,
@@ -30,7 +30,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "eslint . --max-warnings 11",
+    "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.js\" \"tests/**/*.ts\" catalog.js catalog-utils.js build.cjs eslint.config.js",
     "format:check": "prettier --check \"src/**/*.js\" \"tests/**/*.ts\" catalog.js catalog-utils.js build.cjs eslint.config.js",

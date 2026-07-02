@@ -9,8 +9,6 @@ const overlaysOff = document.getElementById('overlays-off');
 const overlaysOn = document.getElementById('overlays-on');
 const colorPicker = document.getElementById('color-picker');
 const colorPresets = document.querySelectorAll('.color-preset');
-const modeDark = document.getElementById('mode-dark');
-const modeLight = document.getElementById('mode-light');
 const wordmarkFill = document.getElementById('popup-wordmark-fill');
 
 try {
@@ -28,18 +26,17 @@ function render() {
 }
 
 function loadPreferences() {
+  // The popup only controls enable/overlays/theme-color. Dark/light mode is a
+  // catalog-page feature (see catalog.js); the popup does not expose it.
   chrome.storage.sync.get(
-    ['pintwist_enabled', 'pintwist_show_overlays', 'pintwist_theme_color', 'pintwist_theme_mode'],
+    ['pintwist_enabled', 'pintwist_show_overlays', 'pintwist_theme_color'],
     (result) => {
       const isEnabled = result.pintwist_enabled !== false;
       const showOverlays = result.pintwist_show_overlays !== false;
       const themeColor = result.pintwist_theme_color || '#F48FB1';
-      const themeMode = 'light'; // Dark theme removed — always light.
       updateUI(isEnabled);
       updateOverlaysUI(showOverlays);
       applyThemeColor(themeColor);
-      applyThemeMode(themeMode);
-      updateThemeModeUI(themeMode);
       colorPicker.value = themeColor;
       updatePresetSelection(themeColor);
     }
@@ -95,9 +92,6 @@ colorPresets.forEach((preset) => {
     notifyContentScript('updateThemeColor', color);
   });
 });
-
-modeDark?.addEventListener('click', () => setThemeMode('dark'));
-modeLight?.addEventListener('click', () => setThemeMode('light'));
 
 function updateUI(isEnabled) {
   const themeColor =
@@ -156,47 +150,14 @@ function applyThemeColor(color) {
   // to the active one. Otherwise a button that was previously active keeps its
   // inline background and you can't tell which option (e.g. Dark vs Light) is
   // selected — both end up showing the theme color.
-  document.querySelectorAll('.toggle-btn, .overlays-btn, .mode-btn').forEach((btn) => {
+  document.querySelectorAll('.toggle-btn, .overlays-btn').forEach((btn) => {
     btn.style.background = '';
     btn.style.borderColor = '';
   });
-  document
-    .querySelectorAll('.toggle-btn.active, .overlays-btn.active, .mode-btn.active')
-    .forEach((btn) => {
-      btn.style.background = color;
-      btn.style.borderColor = color;
-    });
-}
-
-function normalizeThemeMode(mode) {
-  return mode === 'light' ? 'light' : 'dark';
-}
-
-function applyThemeMode(mode) {
-  const normalized = normalizeThemeMode(mode);
-  document.body.classList.toggle('theme-mode-light', normalized === 'light');
-  document.body.classList.toggle('theme-mode-dark', normalized !== 'light');
-}
-
-function updateThemeModeUI(mode) {
-  const normalized = normalizeThemeMode(mode);
-  const isDark = normalized === 'dark';
-  modeDark?.classList.toggle('active', isDark);
-  modeLight?.classList.toggle('active', !isDark);
-  modeDark?.setAttribute('aria-pressed', isDark ? 'true' : 'false');
-  modeLight?.setAttribute('aria-pressed', isDark ? 'false' : 'true');
-  applyThemeColor(
-    getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim() ||
-      colorPicker.value
-  );
-}
-
-function setThemeMode(mode) {
-  const normalized = normalizeThemeMode(mode);
-  applyThemeMode(normalized);
-  updateThemeModeUI(normalized);
-  chrome.storage.sync.set({ pintwist_theme_mode: normalized });
-  notifyContentScript('updateThemeMode', normalized);
+  document.querySelectorAll('.toggle-btn.active, .overlays-btn.active').forEach((btn) => {
+    btn.style.background = color;
+    btn.style.borderColor = color;
+  });
 }
 
 function updatePresetSelection(color) {
@@ -209,9 +170,21 @@ function updatePresetSelection(color) {
   });
 }
 
+// Match a real Pinterest hostname (pinterest.com, its subdomains, and regional
+// ccTLDs), not a loose "includes('pinterest')" substring that would also accept
+// hosts like pinterest.evil.com. This only gates a best-effort tab message.
+function isPinterestTabUrl(url) {
+  try {
+    const h = new URL(url).hostname.toLowerCase();
+    return /(^|\.)pinterest\.[a-z]{2,3}(\.[a-z]{2})?$/.test(h);
+  } catch {
+    return false;
+  }
+}
+
 function notifyContentScript(action, data) {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs[0]?.url?.includes('pinterest') && tabs[0].id !== undefined) {
+    if (tabs[0]?.url && isPinterestTabUrl(tabs[0].url) && tabs[0].id !== undefined) {
       chrome.tabs.sendMessage(tabs[0].id, { action, data }, () => {
         if (chrome.runtime.lastError) {
           console.log('PinTwist Free: Tab message error - ' + chrome.runtime.lastError.message);

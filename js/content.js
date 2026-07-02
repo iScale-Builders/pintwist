@@ -373,11 +373,13 @@ function extractMetrics(e, t) {
     n || (n = e?.image_url || e?.imageUrl || e?.image_medium_url),
     {
       pinID: t,
-      saves: e?.aggregated_pin_data?.aggregated_stats?.saves || 0,
-      reactions: e?.reaction_counts?.[1] || 0,
-      shares: e?.share_count || 0,
-      repins: e?.repin_count || 0,
-      comments: e?.aggregated_pin_data?.comment_count || 0,
+      // Coerce to Number so a non-numeric API value can never reach an HTML sink
+      // (these round-trip through storage and re-render). NaN -> 0 via `|| 0`.
+      saves: Number(e?.aggregated_pin_data?.aggregated_stats?.saves) || 0,
+      reactions: Number(e?.reaction_counts?.[1]) || 0,
+      shares: Number(e?.share_count) || 0,
+      repins: Number(e?.repin_count) || 0,
+      comments: Number(e?.aggregated_pin_data?.comment_count) || 0,
       createdAt: e?.created_at || null,
       imageUrl: n,
       isVideo: i,
@@ -479,12 +481,12 @@ window.sort_all = async function () {
     }),
     t = document.createElement('div');
   t.id = 'pintwist-initial-bar';
-  const i = getPinterestHeaderHeight(),
+  const _i = getPinterestHeaderHeight(),
     n = getPinterestSidebarWidth(),
     s = window.location.hostname.includes('trends.pinterest');
-  let a, r;
+  let _a, _r;
   const m = 15;
-  (s ? ((a = m), (r = Math.round(window.innerWidth * 0.2))) : ((a = n + m), (r = m)),
+  (s ? ((_a = m), (_r = Math.round(window.innerWidth * 0.2))) : ((_a = n + m), (_r = m)),
     (t.style.cssText = `
         position: fixed !important;
         top: 0 !important;
@@ -592,8 +594,7 @@ function setupInitialBarEvents(e) {
       l.addEventListener('click', (d) => {
         ((s.value = d.target.dataset.value),
           (n.textContent = d.target.textContent),
-          i.classList.remove('show'),
-          chrome.storage.local.set({ sortOption: s.value }));
+          i.classList.remove('show'));
       });
     }),
     document.addEventListener('click', (l) => {
@@ -1141,7 +1142,7 @@ function clearState() {
     State.timeout && clearTimeout(State.timeout),
     State.observer && (State.observer.disconnect(), (State.observer = null)));
 }
-chrome.runtime.onMessage.addListener((e, t, i) => {
+chrome.runtime.onMessage.addListener((e, _t, _i) => {
   if (location.href.includes('pinterest'))
     try {
       e.action === 'enableBar'
@@ -1174,13 +1175,13 @@ function hideBar() {
 async function checkAuth() {
   return true;
 }
-let initHasRun = false;
+let _initHasRun = false;
 async function init() {
   if (!location.href.includes('pinterest')) return;
   if (!(await checkAuth())) {
     return;
   }
-  ((initHasRun = true),
+  ((_initHasRun = true),
     extractConfig(),
     State.metricsCache.size || (await loadCache()),
     State.urlCheckInterval || startUrlMonitor(),
@@ -2559,33 +2560,37 @@ async function pintwistDownloadAndResetCatalog(btn) {
   function numField(id, min, max, step, value, extraClass) {
     const cls = 'pintwist-auto-num' + (extraClass ? ' ' + extraClass : '');
     const stepStr = String(step);
+    // Defense-in-depth: every interpolated attribute value goes through escAuto,
+    // like the neighboring textarea. In practice `value` is already a browser-
+    // sanitized number-input value / clamped state and id/min/max/step come from
+    // code, but escaping keeps this HTML sink safe regardless of caller.
     return (
       '<span class="pintwist-auto-num-wrap">' +
       '<input type="number" id="' +
-      id +
+      escAuto(id) +
       '" min="' +
-      min +
+      escAuto(min) +
       '" max="' +
-      max +
+      escAuto(max) +
       '" step="' +
-      stepStr +
+      escAuto(stepStr) +
       '" value="' +
-      value +
+      escAuto(value) +
       '" class="' +
       cls +
       '" data-step="' +
-      stepStr +
+      escAuto(stepStr) +
       '" data-min="' +
-      min +
+      escAuto(min) +
       '" data-max="' +
-      max +
+      escAuto(max) +
       '">' +
       '<span class="pintwist-auto-num-spin">' +
       '<button type="button" class="pintwist-auto-num-up" data-target="' +
-      id +
+      escAuto(id) +
       '" tabindex="-1" aria-label="Increase">&#9650;</button>' +
       '<button type="button" class="pintwist-auto-num-down" data-target="' +
-      id +
+      escAuto(id) +
       '" tabindex="-1" aria-label="Decrease">&#9660;</button>' +
       '</span>' +
       '</span>'
@@ -2663,7 +2668,6 @@ async function pintwistDownloadAndResetCatalog(btn) {
     const cooldownLeft = state.cooldownUntil ? state.cooldownUntil - Date.now() : 0;
     const inCooldown = cooldownLeft > 0;
 
-    const initialTerms = typeof prev.terms === 'string' ? prev.terms : state.terms.map((t) => t.term).join(', ');
 
     body.innerHTML =
       // Search-term entry: textarea + Add button. Adding APPENDS to queue
@@ -2878,7 +2882,7 @@ async function pintwistDownloadAndResetCatalog(btn) {
               /* ignore */
             }
           });
-        } catch (e) {
+        } catch {
           /* non-fatal */
         }
       });
@@ -3304,7 +3308,7 @@ async function pintwistDownloadAndResetCatalog(btn) {
     }
   }
 
-  function normalizeLayoutMode(mode) {
+  function normalizeLayoutMode(_mode) {
     // Rail layout was removed — the bar is ALWAYS built as pill (sort_all hardcodes
     // isPill=true). So always normalize to 'pill'. Returning 'rail' for any non-'pill'
     // stored value (incl. an unset/null `pintwist_layout_mode`, which is the default!)
@@ -4000,7 +4004,6 @@ async function pintwistDownloadAndResetCatalog(btn) {
     const hidden = document.getElementById('pintwist-initial-sort-option');
     if (hidden) hidden.value = selected;
     State.selectedMetric = selected;
-    chrome.storage.local.set({ sortOption: selected });
     setSortGridActive(document.getElementById('pintwist-initial-sort-grid'), selected);
     const pagesInput = document.getElementById('pintwist-pages-input');
     const pages = parseInt(pagesInput?.value, 10) || 4;
@@ -4029,7 +4032,6 @@ async function pintwistDownloadAndResetCatalog(btn) {
         const hidden = document.getElementById('pintwist-initial-sort-option');
         if (hidden) hidden.value = selected;
         setSortGridActive(grid, selected);
-        chrome.storage.local.set({ sortOption: selected });
         await runInitialSortFromRail(selected, bar);
       });
     });
@@ -4082,7 +4084,7 @@ async function pintwistDownloadAndResetCatalog(btn) {
         resolve(result || {})
       );
     });
-    const themeColor = themePrefs.pintwist_theme_color || '#F0002D';
+    const themeColor = themePrefs.pintwist_theme_color || '#F48FB1';
     // Side panel removed — the top bar is the ONLY layout. Always pill.
     const isPill = true;
     document.documentElement.classList.toggle('pintwist-layout-pill', isPill);
@@ -4100,7 +4102,7 @@ async function pintwistDownloadAndResetCatalog(btn) {
     const bar = document.createElement('div');
     bar.id = 'pintwist-initial-bar';
     bar.className = isPill ? 'pintwist-unified-glass pintwist-is-pill' : 'pintwist-unified-glass';
-    const headerHeight = getPinterestHeaderHeight();
+    const _headerHeight = getPinterestHeaderHeight();
     const sidebarWidth = getPinterestSidebarWidth();
     const isTrends = window.location.hostname.includes('trends.pinterest');
     const selected = State.selectedMetric || 'saves';
@@ -4157,7 +4159,6 @@ async function pintwistDownloadAndResetCatalog(btn) {
         const hidden = document.getElementById('pintwist-initial-sort-option');
         if (hidden) hidden.value = v;
         setSortGridActive(document.getElementById('pintwist-initial-sort-grid'), v);
-        chrome.storage.local.set({ sortOption: v });
       });
     const pillMore = document.getElementById('pintwist-pill-more');
     if (pillMore)

@@ -8,6 +8,11 @@ import { CATALOG_IMPORTS_KEY, catalogScanKey, mergeCatalogRows } from './catalog
 import { catalogDbAvailable, countImports, getAllImports, replaceImports } from './catalog-db.js';
 
 const CATALOG_MIGRATED_KEY = 'pintwist_catalog_idb_migrated_v1';
+// Set when saveImports() falls back to chrome.storage.local after an IndexedDB
+// write failure. loadImports() uses it to know a fallback copy is newer than IDB
+// and must be merged back — WITHOUT it, we'd have to guess from "is the legacy key
+// non-empty", which would also resurrect stale pre-migration leftovers. (CQ-2)
+const CATALOG_FALLBACK_PENDING_KEY = 'pintwist_catalog_fallback_pending_v1';
 
 // True once IndexedDB is confirmed usable. Falls back to chrome.storage.local otherwise (and
 // downgrades for the rest of the session if IndexedDB starts failing mid-use).
@@ -52,7 +57,24 @@ export async function loadImports() {
       await chrome.storage.local.set({ [CATALOG_MIGRATED_KEY]: true });
       await chrome.storage.local.remove(CATALOG_IMPORTS_KEY);
     }
-    return await getAllImports();
+    let rows = await getAllImports();
+
+    // Recover a fallback copy left by a prior saveImports() whose IndexedDB write
+    // failed (it wrote the rows to chrome.storage.local and set the pending flag).
+    // Gate strictly on that flag — NOT on "is the legacy key non-empty" — so we
+    // never resurrect stale pre-migration leftovers. If IDB was down for a save and
+    // has since recovered, getAllImports() returns the STALE pre-failure rows while
+    // the newer save sits in chrome.storage.local; merge it back so it isn't lost. (CQ-2)
+    const pend = await chrome.storage.local.get({ [CATALOG_FALLBACK_PENDING_KEY]: false });
+    if (pend[CATALOG_FALLBACK_PENDING_KEY]) {
+      const fallback = await readLegacyImports();
+      if (fallback.length) {
+        rows = mergeCatalogRows(rows, fallback, { keyFn: catalogScanKey });
+        await replaceImports(rows, catalogScanKey);
+      }
+      await chrome.storage.local.remove([CATALOG_IMPORTS_KEY, CATALOG_FALLBACK_PENDING_KEY]);
+    }
+    return rows;
   } catch (e) {
     console.warn(
       'PinTwist catalog: IndexedDB unavailable, using local storage:',
@@ -78,6 +100,9 @@ export async function saveImports(rows) {
         (e && e.message) || e
       );
       useDb = false;
+      // Flag that a post-IDB fallback copy now exists, so the next IDB-backed open
+      // merges it back instead of returning stale IDB rows. (CQ-2)
+      await chrome.storage.local.set({ [CATALOG_FALLBACK_PENDING_KEY]: true });
     }
   }
   await chrome.storage.local.set({ [CATALOG_IMPORTS_KEY]: rows });

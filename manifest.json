@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "PinTwist - Pinterest Analytics",
     "description": "Local-only Pinterest analytics with pin sorting, smart filtering, HD image downloads, and a local gallery.",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "author": "iScaleLabs",
     "action": {
         "default_popup": "popup.html",
@@ -136,5 +136,5 @@
     "content_security_policy": {
         "extension_pages": "script-src 'self'; object-src 'self'"
     },
-    "version_name": "1.0.2"
+    "version_name": "1.0.3"
 }

@@ -16,14 +16,15 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "bundler",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "declaration": false,
-    "sourceMap": true
+    "noEmit": true
   },
-  "include": ["src/**/*.js"],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": [
+    "src/**/*.js",
+    "catalog.js",
+    "catalog-utils.js",
+    "catalog-db.js",
+    "catalog-store.js",
+    "popup-catalog.js"
+  ],
+  "exclude": ["node_modules", "dist"]
 }
