@@ -30,6 +30,8 @@ const browserGlobals = {
   confirm: 'readonly',
   atob: 'readonly',
   btoa: 'readonly',
+  TextEncoder: 'readonly',
+  TextDecoder: 'readonly',
   crypto: 'readonly',
   structuredClone: 'readonly',
   globalThis: 'readonly',

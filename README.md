@@ -17,6 +17,27 @@ machine — no account, no remote server, no backend.
 - Keeps the Local Catalog/gallery on your device — imported pins in IndexedDB (so it scales
   to large catalogs), live-scanned pins in `chrome.storage.local`.
 - Uses Pinterest requests from the active Pinterest page/session.
+- Optional automation queue: run a saved list of searches back-to-back, paced with
+  deliberate delays (see below).
+
+## Automation Queue (optional)
+
+Instead of typing each search by hand, you can queue a list of terms and let PinTwist
+run them one after another, sorting and collecting into your Local Catalog as it goes.
+It exists to save repetitive manual clicking during research — not to hide activity or
+evade anything.
+
+To stay a considerate Pinterest client, it:
+
+- **Paces itself.** It waits a randomized delay between searches rather than firing them
+  as fast as possible, so it doesn't hammer the site.
+- **Backs off, doesn't push through.** If Pinterest returns a rate limit or shows a
+  security / captcha check, the queue **pauses and surfaces that to you** and waits for the
+  cooldown — it does not attempt to bypass the check. You clear it in the page and resume.
+
+It uses only your own logged-in Pinterest session, reads the same public pin metrics the
+toolbar already shows, and — like the rest of PinTwist — sends nothing to any server. Use
+it responsibly and within Pinterest's terms.
 
 ## What It Doesn't Do
 
@@ -40,7 +61,7 @@ See [`PRIVACY.md`](./PRIVACY.md).
 
 1. Build from the project root:
 
-```powershell
+```bash
 corepack pnpm install
 corepack pnpm run build
 ```
@@ -54,7 +75,7 @@ corepack pnpm run build
 
 From the project root:
 
-```powershell
+```bash
 corepack pnpm run typecheck
 corepack pnpm test
 node --check js/content.js

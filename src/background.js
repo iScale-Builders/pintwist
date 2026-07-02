@@ -96,8 +96,6 @@ chrome.runtime.onInstalled.addListener(() => {
     if (Object.keys(missing).length) chrome.storage.sync.set(missing);
   });
 
-  chrome.storage.local.set({ sortOption: 'saves' });
-
   // One-time migration: split CSV imports out of the scan-accumulation store.
   // Historically both scans AND catalog CSV imports lived in `pintwist_catalog_rows`,
   // so importing inflated the bar's "N saved (manual scans)" count. Move the existing
@@ -232,8 +230,42 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  return true;
+  // Unknown action: we won't call sendResponse, so return false. Returning true
+  // here would keep the message port open with no reply, producing spurious
+  // "message port closed before a response was received" lastError noise.
+  return false;
 });
+
+// MV3-safe wait: a bare setTimeout can let Chrome kill the idle service worker
+// mid-backoff (a timer alone is not "activity"), so the retry never runs and the
+// caller's sendResponse never arrives. Ping a chrome API on an interval to keep
+// the worker alive for the duration of the wait.
+function safeWait(ms) {
+  return new Promise((resolve) => {
+    const keepAlive = setInterval(() => {
+      try {
+        chrome.runtime.getPlatformInfo(() => {});
+      } catch {
+        /* ignore */
+      }
+    }, 20000);
+    setTimeout(() => {
+      clearInterval(keepAlive);
+      resolve();
+    }, ms);
+  });
+}
+
+// UTF-8 string -> base64, without the deprecated global `unescape()`.
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  const CHUNK = 0x8000; // avoid arg-count limits on String.fromCharCode for big exports
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+}
 
 function buildHeaders(config, csrfToken) {
   const headers = {
@@ -265,7 +297,7 @@ async function fetchSinglePin(pinID, config, csrfToken, retryCount = 2) {
   if (response.status === 429) {
     if (retryCount > 0) {
       const waitTime = (3 - retryCount) * 30000;
-      await new Promise((r) => setTimeout(r, waitTime));
+      await safeWait(waitTime); // keepalive wait so the SW isn't killed mid-backoff
       return fetchSinglePin(pinID, config, csrfToken, retryCount - 1);
     }
     throw Object.assign(new Error('Rate limited after retries'), { status: 429 });
@@ -305,19 +337,26 @@ async function fetchBulkPins(pinIDs, config, csrfToken) {
     } catch {
       console.warn('PinTwist Free: Bulk endpoint failed, using parallel fetch');
     }
-    const fetchResults = await Promise.all(
-      chunk.map(async (pinID) => {
-        try {
-          const data = await fetchSinglePin(pinID, config, csrfToken);
-          return { pinID, data, success: true };
-        } catch {
-          return { pinID, data: null, success: false };
-        }
-      })
-    );
-    fetchResults.forEach((r) => {
-      if (r.success && r.data) results.set(r.pinID, r.data);
-    });
+    // Cap fallback concurrency. The bulk endpoint just failed (usually a 429), so
+    // firing all 25 single-pin fetches at once — each with its own long backoff —
+    // would hammer an already-rate-limited endpoint. Process in small sub-batches.
+    const FALLBACK_CONCURRENCY = 5;
+    for (let j = 0; j < chunk.length; j += FALLBACK_CONCURRENCY) {
+      const sub = chunk.slice(j, j + FALLBACK_CONCURRENCY);
+      const fetchResults = await Promise.all(
+        sub.map(async (pinID) => {
+          try {
+            const data = await fetchSinglePin(pinID, config, csrfToken);
+            return { pinID, data, success: true };
+          } catch {
+            return { pinID, data: null, success: false };
+          }
+        })
+      );
+      fetchResults.forEach((r) => {
+        if (r.success && r.data) results.set(r.pinID, r.data);
+      });
+    }
   }
   return results;
 }
@@ -359,8 +398,7 @@ async function handleCsvDownload(csvText, filename) {
     const askEachTime = false; // "Ask each time" option removed — always save silently to the folder.
     const folder = sanitizeDownloadFolder(prefs[DOWNLOAD_FOLDER_KEY]);
     const targetFilename = !askEachTime && folder ? `${folder}/${cleanFilename}` : cleanFilename;
-    const dataUrl =
-      'data:text/csv;charset=utf-8;base64,' + btoa(unescape(encodeURIComponent(csvText || '')));
+    const dataUrl = 'data:text/csv;charset=utf-8;base64,' + utf8ToBase64(csvText || '');
     const downloadId = await chrome.downloads.download({
       url: dataUrl,
       filename: targetFilename,

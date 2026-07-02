@@ -10,8 +10,6 @@
   var overlaysOn = document.getElementById("overlays-on");
   var colorPicker = document.getElementById("color-picker");
   var colorPresets = document.querySelectorAll(".color-preset");
-  var modeDark = document.getElementById("mode-dark");
-  var modeLight = document.getElementById("mode-light");
   var wordmarkFill = document.getElementById("popup-wordmark-fill");
   try {
     const versionEl = document.getElementById("pintwist-version");
@@ -25,17 +23,14 @@
   }
   function loadPreferences() {
     chrome.storage.sync.get(
-      ["pintwist_enabled", "pintwist_show_overlays", "pintwist_theme_color", "pintwist_theme_mode"],
+      ["pintwist_enabled", "pintwist_show_overlays", "pintwist_theme_color"],
       (result) => {
         const isEnabled = result.pintwist_enabled !== false;
         const showOverlays = result.pintwist_show_overlays !== false;
         const themeColor = result.pintwist_theme_color || "#F48FB1";
-        const themeMode = "light";
         updateUI(isEnabled);
         updateOverlaysUI(showOverlays);
         applyThemeColor(themeColor);
-        applyThemeMode(themeMode);
-        updateThemeModeUI(themeMode);
         colorPicker.value = themeColor;
         updatePresetSelection(themeColor);
       }
@@ -84,8 +79,6 @@
       notifyContentScript("updateThemeColor", color);
     });
   });
-  modeDark?.addEventListener("click", () => setThemeMode("dark"));
-  modeLight?.addEventListener("click", () => setThemeMode("light"));
   function updateUI(isEnabled) {
     const themeColor = getComputedStyle(document.documentElement).getPropertyValue("--theme-color").trim() || colorPicker.value;
     if (isEnabled) {
@@ -133,40 +126,14 @@
   function applyThemeColor(color) {
     document.documentElement.style.setProperty("--theme-color", color);
     if (wordmarkFill) wordmarkFill.setAttribute("fill", color);
-    document.querySelectorAll(".toggle-btn, .overlays-btn, .mode-btn").forEach((btn) => {
+    document.querySelectorAll(".toggle-btn, .overlays-btn").forEach((btn) => {
       btn.style.background = "";
       btn.style.borderColor = "";
     });
-    document.querySelectorAll(".toggle-btn.active, .overlays-btn.active, .mode-btn.active").forEach((btn) => {
+    document.querySelectorAll(".toggle-btn.active, .overlays-btn.active").forEach((btn) => {
       btn.style.background = color;
       btn.style.borderColor = color;
     });
-  }
-  function normalizeThemeMode(mode) {
-    return mode === "light" ? "light" : "dark";
-  }
-  function applyThemeMode(mode) {
-    const normalized = normalizeThemeMode(mode);
-    document.body.classList.toggle("theme-mode-light", normalized === "light");
-    document.body.classList.toggle("theme-mode-dark", normalized !== "light");
-  }
-  function updateThemeModeUI(mode) {
-    const normalized = normalizeThemeMode(mode);
-    const isDark = normalized === "dark";
-    modeDark?.classList.toggle("active", isDark);
-    modeLight?.classList.toggle("active", !isDark);
-    modeDark?.setAttribute("aria-pressed", isDark ? "true" : "false");
-    modeLight?.setAttribute("aria-pressed", isDark ? "false" : "true");
-    applyThemeColor(
-      getComputedStyle(document.documentElement).getPropertyValue("--theme-color").trim() || colorPicker.value
-    );
-  }
-  function setThemeMode(mode) {
-    const normalized = normalizeThemeMode(mode);
-    applyThemeMode(normalized);
-    updateThemeModeUI(normalized);
-    chrome.storage.sync.set({ pintwist_theme_mode: normalized });
-    notifyContentScript("updateThemeMode", normalized);
   }
   function updatePresetSelection(color) {
     colorPresets.forEach((preset) => {
@@ -177,9 +144,17 @@
       }
     });
   }
+  function isPinterestTabUrl(url) {
+    try {
+      const h = new URL(url).hostname.toLowerCase();
+      return /(^|\.)pinterest\.[a-z]{2,3}(\.[a-z]{2})?$/.test(h);
+    } catch {
+      return false;
+    }
+  }
   function notifyContentScript(action, data) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]?.url?.includes("pinterest") && tabs[0].id !== void 0) {
+      if (tabs[0]?.url && isPinterestTabUrl(tabs[0].url) && tabs[0].id !== void 0) {
         chrome.tabs.sendMessage(tabs[0].id, { action, data }, () => {
           if (chrome.runtime.lastError) {
             console.log("PinTwist Free: Tab message error - " + chrome.runtime.lastError.message);
