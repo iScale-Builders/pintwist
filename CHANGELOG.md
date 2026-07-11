@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.4 — Catalog: repins group by image, copies panel
+
+- **"Group by design" now catches Pinterest repins.** Every repin of an image gets a new
+  pin id (usually with no or a different title), so the same picture used to stay as
+  separate cards even in grouped view. Grouping now unions two signals: the image's
+  content filename (identical across repins and size buckets) and the title+description
+  identity — so repins, re-uploads, and titleless copies of one design all collapse into
+  a single card.
+- **New copies panel on grouped cards.** A "⧉ N pins" button lists every copy of the
+  design with its own pin link, saves, and first→last seen dates — per-copy metrics stay
+  separate (never pooled), matching how the per-pin scrape history already works.
+
 ## 1.0.3 — Post-audit hardening
 
 Small correctness, reliability, and quality fixes from an independent security & code

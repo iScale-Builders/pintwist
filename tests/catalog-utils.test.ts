@@ -617,6 +617,74 @@ describe('groupByDesign (design-level view aggregation)', () => {
     ]);
     expect(out[0].design_copies).toBe(1);
   });
+
+  it('groups Pinterest repins by IMAGE file even with no/different titles (web-app parity)', () => {
+    // Repins carry the SAME image filename (across size buckets) under NEW pin_ids,
+    // usually with no titles — the old title-first key left them as separate cards.
+    const out = groupByDesign([
+      {
+        pin_id: '111',
+        image_url: 'https://i.pinimg.com/236x/aa/bb/cc/c811eebebadab38d476f355a30ddc17d.jpg',
+        saves: 900,
+        total_engagement: 900,
+      },
+      {
+        pin_id: '222',
+        image_url: 'https://i.pinimg.com/736x/aa/bb/cc/c811eebebadab38d476f355a30ddc17d.jpg',
+        saves: 899,
+        total_engagement: 899,
+      },
+      {
+        pin_id: '333',
+        image_url: 'https://i.pinimg.com/originals/dd/ee/ff/otherimagehash000000000000000000.jpg',
+        saves: 5,
+        total_engagement: 5,
+      },
+    ]);
+    expect(out).toHaveLength(2);
+    const grouped = out.find((r) => r.design_copies === 2);
+    expect(grouped?.pin_id).toBe('111'); // best copy represents the design
+  });
+
+  it('a row bridges an image group and a name group into ONE design (union)', () => {
+    // img A + title X, img A (no title), img B + title X — all one design.
+    const out = groupByDesign([
+      {
+        pin_id: '1',
+        title: 'Cat Shirt',
+        description: 'd',
+        image_url: 'https://i.pinimg.com/236x/aa/aa/aa/imagehashaaaaaaaaaaaaaaaaaaaaaaaa.jpg',
+        saves: 10,
+        total_engagement: 10,
+      },
+      {
+        pin_id: '2',
+        image_url: 'https://i.pinimg.com/736x/aa/aa/aa/imagehashaaaaaaaaaaaaaaaaaaaaaaaa.jpg',
+        saves: 30,
+        total_engagement: 30,
+      },
+      {
+        pin_id: '3',
+        title: 'Cat Shirt',
+        description: 'd',
+        image_url: 'https://i.pinimg.com/236x/bb/bb/bb/imagehashbbbbbbbbbbbbbbbbbbbbbbbb.jpg',
+        saves: 20,
+        total_engagement: 20,
+      },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0].design_copies).toBe(3);
+    expect(out[0].pin_id).toBe('2'); // highest engagement wins representation
+  });
+
+  it('exposes every copy (best first) via design_pins for the copies panel', () => {
+    const out = groupByDesign([
+      { pin_id: '1', title: 'Cat Shirt', description: 'd', saves: 100, total_engagement: 100 },
+      { pin_id: '2', title: 'Cat Shirt', description: 'd', saves: 900, total_engagement: 900 },
+      { pin_id: '3', title: 'Cat Shirt', description: 'd', saves: 50, total_engagement: 50 },
+    ]);
+    expect(out[0].design_pins.map((p: { pin_id: string }) => p.pin_id)).toEqual(['2', '1', '3']);
+  });
 });
 
 describe('seen_count integrity on re-merge', () => {

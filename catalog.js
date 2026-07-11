@@ -842,6 +842,56 @@ function createCard(row) {
 
   applySnapshot(activeIdx);
 
+  // Copies panel (group-by-design mode): the same design seen as N distinct pins.
+  // Each copy keeps its OWN saves + first/last-seen timestamps — mirrors the web
+  // app's "Same image, N pins" view. Built lazily on first expand; everything is
+  // textContent/safePinHref (CSV rows are untrusted input).
+  const copiesWrap = node.querySelector('.pin-copies');
+  const copyRows = Array.isArray(row.design_pins) ? row.design_pins : [];
+  if (copiesWrap && row.design_copies > 1 && copyRows.length > 1) {
+    copiesWrap.hidden = false;
+    const toggle = copiesWrap.querySelector('.pin-copies-toggle');
+    const listEl = copiesWrap.querySelector('.pin-copies-list');
+    toggle.textContent = `⧉ ${row.design_copies} pins`;
+    toggle.title = 'This design was seen as ' + row.design_copies + ' pins — show each copy';
+    let built = false;
+    const shortDate = (value) => {
+      const t = Date.parse(value || '');
+      if (!t) return '';
+      return new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    };
+    toggle.addEventListener('click', () => {
+      if (!built) {
+        built = true;
+        copyRows.forEach((copy, i) => {
+          const item = document.createElement('li');
+          const href = safePinHref(copy.pin_url) || safePinHref(copy.image_url) || '';
+          const label = document.createElement(href ? 'a' : 'span');
+          label.className = 'pin-copy-link';
+          label.textContent = `#${i + 1}` + (copy.pin_id ? ` · ${copy.pin_id}` : '');
+          if (href) {
+            label.href = href;
+            label.target = '_blank';
+            label.rel = 'noopener noreferrer';
+          }
+          const meta = document.createElement('span');
+          meta.className = 'pin-copy-meta';
+          const first = shortDate(copy.first_seen_at || copy.scanned_at);
+          const last = shortDate(copy.last_seen_at || copy.scanned_at);
+          const seenSpan = first && last && first !== last ? `${first} → ${last}` : first || '—';
+          meta.textContent = `${formatCompactNumber(copy.saves)} saves · seen ${seenSpan}`;
+          item.appendChild(label);
+          item.appendChild(meta);
+          listEl.appendChild(item);
+        });
+      }
+      const open = listEl.hidden;
+      listEl.hidden = !open;
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.classList.toggle('open', open);
+    });
+  }
+
   // Download the pin image (extension has the "downloads" permission).
   const dl = node.querySelector('.pin-download');
   if (!imageUrl) dl.disabled = true;
