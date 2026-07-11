@@ -219,3 +219,17 @@ describe('content script performance hotfix', () => {
     expect(contentScript).not.toContain('Stop + Clear queue = red');
   });
 });
+
+describe('trusted-action gate (1.0.5) — page scripts cannot drive PinTwist controls', () => {
+  it('the gate honors the internal-action bypass ahead of isTrusted', () => {
+    expect(contentScriptSq).toContain(sq('function pintwistTrustedAction(event)'));
+    expect(contentScriptSq).toContain(sq('if (pintwistInternalActionDepth > 0) return true'));
+  });
+
+  it('the automation queue starts scans through the internal-action bypass', () => {
+    // A bare sortBtn.click() is synthetic (isTrusted=false): the gate would drop it and
+    // silently kill the whole automation queue. The ONLY click must be the wrapped one.
+    expect(contentScriptSq).toContain(sq('pintwistRunInternal(() => sortBtn.click())'));
+    expect(contentScript.match(/sortBtn\.click\(\)/g)).toHaveLength(1);
+  });
+});

@@ -4,7 +4,13 @@ const fs = require('fs');
 
 const ROOT = __dirname;
 const DIST = path.join(ROOT, 'dist');
-const IMAGE_ASSETS = ['icon-16.png', 'icon-48.png', 'icon-128.png', 'logo-icon.png', 'logo-wordmark.png'];
+const IMAGE_ASSETS = [
+  'icon-16.png',
+  'icon-48.png',
+  'icon-128.png',
+  'logo-icon.png',
+  'logo-wordmark.png',
+];
 
 async function build() {
   // ===== DEV BUILD (readable, for local development) =====
@@ -155,15 +161,14 @@ async function build() {
   // Copy only the extension image assets that are referenced by manifest/UI code.
   // Fail closed if anything else appears in images/ so local scratch files never ship.
   const imageDir = path.join(ROOT, 'images');
-  const unexpectedImages = fs
-    .readdirSync(imageDir)
-    .filter((img) => !IMAGE_ASSETS.includes(img));
+  const unexpectedImages = fs.readdirSync(imageDir).filter((img) => !IMAGE_ASSETS.includes(img));
   if (unexpectedImages.length) {
     throw new Error(`Unexpected file(s) in images/: ${unexpectedImages.join(', ')}`);
   }
   IMAGE_ASSETS.forEach((img) => {
     const src = path.join(imageDir, img);
-    if (!fs.lstatSync(src).isFile()) throw new Error(`Refusing to copy non-file image asset: ${img}`);
+    if (!fs.lstatSync(src).isFile())
+      throw new Error(`Refusing to copy non-file image asset: ${img}`);
     fs.copyFileSync(src, path.join(DIST, 'images', img));
   });
 

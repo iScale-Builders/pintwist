@@ -110,12 +110,7 @@ describe('catalog CSV utilities', () => {
   });
 
   it('bounds parsed CSV rows before materializing the whole import', () => {
-    const csv = [
-      'pin_id,title,saves',
-      '1,One,10',
-      '2,Two,20',
-      '3,Three,30',
-    ].join('\n');
+    const csv = ['pin_id,title,saves', '1,One,10', '2,Two,20', '3,Three,30'].join('\n');
 
     expect(parseCsvText(csv, { maxRows: 2 }).map((row) => row.pin_id)).toEqual(['1', '2']);
   });
