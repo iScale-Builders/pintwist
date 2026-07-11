@@ -332,26 +332,60 @@ var PintwistCatalog = (() => {
     return catalogPinKey(row);
   }
   function groupByDesign(rows) {
-    const byKey = /* @__PURE__ */ new Map();
-    (rows || []).forEach((row) => {
-      if (!row) return;
-      const key = catalogPinKey(row) || row.pin_id || row.pin_url || row.image_url;
-      if (!key) return;
-      let g = byKey.get(key);
+    const list = (rows || []).filter(Boolean);
+    const parent = list.map((_, i) => i);
+    const find = (i) => {
+      while (parent[i] !== i) {
+        parent[i] = parent[parent[i]];
+        i = parent[i];
+      }
+      return i;
+    };
+    const keyOwner = /* @__PURE__ */ new Map();
+    const keyed = new Array(list.length).fill(false);
+    list.forEach((row, i) => {
+      const keys = [];
+      const img = imageFileKey(row);
+      if (img) keys.push("img:" + img);
+      const name = normalizeCatalogName(row.title || row.name);
+      if (name) keys.push("name:" + name + "|desc:" + normalizeCatalogText(row.description));
+      if (!keys.length) {
+        const fallback = catalogPinKey(row) || row.pin_id || row.pin_url || row.image_url;
+        if (!fallback) return;
+        keys.push("fb:" + fallback);
+      }
+      keyed[i] = true;
+      for (const key of keys) {
+        const owner = keyOwner.get(key);
+        if (owner === void 0) keyOwner.set(key, i);
+        else {
+          const ra = find(owner);
+          const rb = find(i);
+          if (ra !== rb) parent[rb] = ra;
+        }
+      }
+    });
+    const groups = /* @__PURE__ */ new Map();
+    list.forEach((row, i) => {
+      if (!keyed[i]) return;
+      const root = find(i);
+      let g = groups.get(root);
       if (!g) {
-        g = { best: row, copies: 0, totalSaves: 0, totalEngagement: 0 };
-        byKey.set(key, g);
+        g = { best: row, copies: 0, totalSaves: 0, totalEngagement: 0, pins: [] };
+        groups.set(root, g);
       }
       g.copies += 1;
       g.totalSaves += toNumber(row.saves);
       g.totalEngagement += toNumber(row.total_engagement);
+      g.pins.push(row);
       if (toNumber(row.total_engagement) > toNumber(g.best.total_engagement)) g.best = row;
     });
-    return Array.from(byKey.values()).map((g) => ({
+    return Array.from(groups.values()).map((g) => ({
       ...g.best,
       design_copies: g.copies,
       design_total_saves: g.totalSaves,
-      design_total_engagement: g.totalEngagement
+      design_total_engagement: g.totalEngagement,
+      design_pins: g.pins.slice().sort((a, b) => toNumber(b.total_engagement) - toNumber(a.total_engagement))
     }));
   }
   var PINTEREST_HOST_SUFFIXES = [

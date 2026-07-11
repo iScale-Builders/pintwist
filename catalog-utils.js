@@ -413,34 +413,85 @@ export function catalogScanKey(row) {
   return catalogPinKey(row);
 }
 
-// Collapse per-pin rows into one row per DESIGN (title+desc identity) for the catalog's
-// "group by design" view. Unlike the storage merge, this does NOT pool metrics — it picks
-// the single best-performing copy (highest total engagement) as the representative, so every
-// displayed number still belongs to one real pin. It just adds design-level aggregates:
+// Collapse per-pin rows into one row per DESIGN for the catalog's "group by design"
+// view. Two rows belong to the same design when they share EITHER identity signal:
+//   - the IMAGE content filename (the pinimg/Amazon hash) — every Pinterest repin of a
+//     picture keeps the same image file under a NEW pin_id, usually with no/different
+//     titles, so this is the signal that actually catches repins (it's the same
+//     image-signature grouping the PinTwist web app uses);
+//   - the NAME+DESC identity — catches the same design re-uploaded as a different
+//     image file (which the image hash alone can't see).
+// A row carrying both signals bridges groups (union-find), so "img A + title X" and
+// "img A, no title" and "img B + title X" all collapse into ONE design.
+// Unlike the storage merge, this does NOT pool metrics — it picks the single
+// best-performing copy (highest total engagement) as the representative, so every
+// displayed number still belongs to one real pin. It adds design-level aggregates:
 //   design_copies            — how many distinct pins of this design exist (a demand signal)
 //   design_total_saves       — saves summed across all copies
 //   design_total_engagement  — total engagement summed across all copies
+//   design_pins              — every copy (best first), so the card can show each
+//                              copy's own first/last-seen timestamps
 export function groupByDesign(rows) {
-  const byKey = new Map();
-  (rows || []).forEach((row) => {
-    if (!row) return;
-    const key = catalogPinKey(row) || row.pin_id || row.pin_url || row.image_url;
-    if (!key) return;
-    let g = byKey.get(key);
+  const list = (rows || []).filter(Boolean);
+  // Union-find over row indexes; path-halving keeps it near-O(n).
+  const parent = list.map((_, i) => i);
+  const find = (i) => {
+    while (parent[i] !== i) {
+      parent[i] = parent[parent[i]];
+      i = parent[i];
+    }
+    return i;
+  };
+  const keyOwner = new Map();
+  const keyed = new Array(list.length).fill(false);
+  list.forEach((row, i) => {
+    const keys = [];
+    const img = imageFileKey(row);
+    if (img) keys.push('img:' + img);
+    const name = normalizeCatalogName(row.title || row.name);
+    if (name) keys.push('name:' + name + '|desc:' + normalizeCatalogText(row.description));
+    if (!keys.length) {
+      // No design signal at all — fall back to the per-pin identity so the row
+      // stays its own group (mirrors the old behavior for signal-less rows).
+      const fallback = catalogPinKey(row) || row.pin_id || row.pin_url || row.image_url;
+      if (!fallback) return;
+      keys.push('fb:' + fallback);
+    }
+    keyed[i] = true;
+    for (const key of keys) {
+      const owner = keyOwner.get(key);
+      if (owner === undefined) keyOwner.set(key, i);
+      else {
+        const ra = find(owner);
+        const rb = find(i);
+        if (ra !== rb) parent[rb] = ra;
+      }
+    }
+  });
+
+  const groups = new Map();
+  list.forEach((row, i) => {
+    if (!keyed[i]) return;
+    const root = find(i);
+    let g = groups.get(root);
     if (!g) {
-      g = { best: row, copies: 0, totalSaves: 0, totalEngagement: 0 };
-      byKey.set(key, g);
+      g = { best: row, copies: 0, totalSaves: 0, totalEngagement: 0, pins: [] };
+      groups.set(root, g);
     }
     g.copies += 1;
     g.totalSaves += toNumber(row.saves);
     g.totalEngagement += toNumber(row.total_engagement);
+    g.pins.push(row);
     if (toNumber(row.total_engagement) > toNumber(g.best.total_engagement)) g.best = row;
   });
-  return Array.from(byKey.values()).map((g) => ({
+  return Array.from(groups.values()).map((g) => ({
     ...g.best,
     design_copies: g.copies,
     design_total_saves: g.totalSaves,
     design_total_engagement: g.totalEngagement,
+    design_pins: g.pins
+      .slice()
+      .sort((a, b) => toNumber(b.total_engagement) - toNumber(a.total_engagement)),
   }));
 }
 

@@ -815,3 +815,56 @@ button:disabled {
     min-width: 0;
   }
 }
+
+/* ===== Copies panel (group-by-design): the same design seen as N pins. ===== */
+.pin-copies {
+  padding: 0 8px 8px;
+  background: var(--pt-panel-strong);
+}
+.pin-copies-toggle {
+  width: 100%;
+  border: 1px solid var(--pt-line);
+  border-radius: 8px;
+  background: var(--pt-panel);
+  color: var(--pt-muted);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.pin-copies-toggle:hover,
+.pin-copies-toggle.open {
+  color: var(--pt-text);
+  border-color: var(--pt-line-strong);
+}
+.pin-copies-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pin-copies-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 8px;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: var(--pt-panel);
+}
+.pin-copy-link {
+  color: var(--pt-blue);
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+a.pin-copy-link:hover {
+  text-decoration: underline;
+}
+.pin-copy-meta {
+  color: var(--pt-faint);
+  white-space: nowrap;
+}
