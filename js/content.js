@@ -213,6 +213,9 @@ function getCsrfToken() {
   const e = document.cookie.match(/csrftoken=([^;]+)/);
   return e ? e[1] : null;
 }
+function pintwistTrustedAction(event) {
+  return !!(event && event.isTrusted);
+}
 async function saveCache() {
   try {
     if (!chrome?.storage?.local) return;
@@ -606,9 +609,12 @@ function setupInitialBarEvents(e) {
       const l = a.value.trim();
       l && (window.location.href = `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(l)}`);
     };
-  (r.addEventListener('click', m),
+  (r.addEventListener('click', (event) => {
+    if (!pintwistTrustedAction(event)) return;
+    m();
+  }),
     a.addEventListener('keypress', (l) => {
-      l.key === 'Enter' && m();
+      l.key === 'Enter' && pintwistTrustedAction(l) && m();
     }));
   try {
     if (location.pathname.startsWith('/search/')) {
@@ -621,7 +627,8 @@ function setupInitialBarEvents(e) {
     const d = l.pintwist_show_overlays !== false;
     ((o.checked = d), toggleOverlays(d));
   }),
-    o.addEventListener('change', () => {
+    o.addEventListener('change', (event) => {
+      if (!pintwistTrustedAction(event)) return;
       const l = o.checked;
       (chrome.storage.sync.set({ pintwist_show_overlays: l }), toggleOverlays(l));
     }),
@@ -629,7 +636,8 @@ function setupInitialBarEvents(e) {
       const d = l.pintwist_theme_color || '#F48FB1';
       applyThemeColor(d);
     }),
-    document.getElementById('pintwist-sort-pins-btn').addEventListener('click', async () => {
+    document.getElementById('pintwist-sort-pins-btn').addEventListener('click', async (event) => {
+      if (!pintwistTrustedAction(event)) return;
       const l = parseInt(document.getElementById('pintwist-pages-input').value) || 4,
         d = document.getElementById('pintwist-initial-sort-option').value;
       ((State.pagesToLoad = l), (State.selectedMetric = d), e.remove(), await startSortingProcess(l, d));
@@ -659,6 +667,7 @@ function reattachListeners() {
     const t = e.cloneNode(true);
     (e.parentNode.replaceChild(t, e),
       t.addEventListener('click', (i) => {
+        if (!pintwistTrustedAction(i)) return;
         (i.preventDefault(), i.stopPropagation(), downloadImage(t.dataset.pinId, t.dataset.imageUrl, t));
       }));
   });
@@ -737,9 +746,12 @@ function setupSearchBar() {
     const n = e.value.trim();
     n && (window.location.href = `${window.location.origin}/search/pins/?q=${encodeURIComponent(n)}`);
   };
-  (t.addEventListener('click', i),
+  (t.addEventListener('click', (event) => {
+    if (!pintwistTrustedAction(event)) return;
+    i();
+  }),
     e.addEventListener('keypress', (n) => {
-      n.key === 'Enter' && i();
+      n.key === 'Enter' && pintwistTrustedAction(n) && i();
     }));
 }
 function resortPins(e) {
@@ -2467,6 +2479,7 @@ async function pintwistDownloadAndResetCatalog(btn) {
     btn.textContent = 'Cancel scan';
     btn.className = 'pintwist-progress-cancel';
     btn.addEventListener('click', async (e) => {
+      if (!pintwistTrustedAction(e)) return;
       e.preventDefault();
       e.stopPropagation();
       try {
@@ -2875,7 +2888,8 @@ async function pintwistDownloadAndResetCatalog(btn) {
     const clearBtn = $('pintwist-auto-clear');
     const catalogBtn = $('pintwist-auto-catalog');
     if (catalogBtn)
-      catalogBtn.addEventListener('click', () => {
+      catalogBtn.addEventListener('click', (event) => {
+        if (!pintwistTrustedAction(event)) return;
         try {
           chrome.runtime.sendMessage({ action: 'openCatalog' }, () => {
             if (chrome.runtime.lastError) {
@@ -2910,12 +2924,17 @@ async function pintwistDownloadAndResetCatalog(btn) {
       // Keep the panel open after adding — adding terms should never collapse it.
       await saveState({ terms: state.terms.concat(newItems), panelExpanded: true });
     };
-    if (addBtn) addBtn.addEventListener('click', doAdd);
+    if (addBtn)
+      addBtn.addEventListener('click', (e) => {
+        if (!pintwistTrustedAction(e)) return;
+        doAdd();
+      });
     // Enter submits (Shift+Enter inserts newline, the standard convention).
     const ta = $('pintwist-auto-terms');
     if (ta)
       ta.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
+          if (!pintwistTrustedAction(e)) return;
           e.preventDefault();
           doAdd();
         }
@@ -2930,6 +2949,7 @@ async function pintwistDownloadAndResetCatalog(btn) {
     //         an in-progress scan; use Cancel scan for that.
     if (runningSwitch)
       runningSwitch.addEventListener('change', async (e) => {
+        if (!pintwistTrustedAction(e)) return;
         const on = !!e.target.checked;
         // Defense in depth: the toggle is disabled when the queue is empty, but guard the
         // handler too so automation can never start with nothing queued.
@@ -2971,6 +2991,7 @@ async function pintwistDownloadAndResetCatalog(btn) {
     const runNowBtn = $('pintwist-auto-runnow');
     if (runNowBtn)
       runNowBtn.addEventListener('click', async (e) => {
+        if (!pintwistTrustedAction(e)) return;
         e.preventDefault();
         e.stopPropagation();
         clearPending();
@@ -2998,6 +3019,7 @@ async function pintwistDownloadAndResetCatalog(btn) {
     const offBtn = $('pintwist-auto-off');
     if (offBtn)
       offBtn.addEventListener('click', async (e) => {
+        if (!pintwistTrustedAction(e)) return;
         e.preventDefault();
         e.stopPropagation();
         clearPending();
@@ -3009,6 +3031,7 @@ async function pintwistDownloadAndResetCatalog(btn) {
     // Pill clicks (delegated): ▶ = run now, ✗ = remove
     if (queueEl)
       queueEl.addEventListener('click', async (e) => {
+        if (!pintwistTrustedAction(e)) return;
         const playBtn = e.target.closest('.pintwist-auto-pill-play');
         const xBtn = e.target.closest('.pintwist-auto-pill-x');
         if (playBtn) {
@@ -3045,7 +3068,8 @@ async function pintwistDownloadAndResetCatalog(btn) {
       });
 
     if (clearBtn)
-      clearBtn.addEventListener('click', async () => {
+      clearBtn.addEventListener('click', async (e) => {
+        if (!pintwistTrustedAction(e)) return;
         if ((state.running || state.terms.length > 0) && !confirm('Clear the entire queue?')) return;
         try {
           if (typeof State !== 'undefined') State.aborted = true;
@@ -3056,6 +3080,7 @@ async function pintwistDownloadAndResetCatalog(btn) {
 
     if (randomize)
       randomize.addEventListener('change', async (e) => {
+        if (!pintwistTrustedAction(e)) return;
         await saveState({ randomize: e.target.checked });
         rescheduleIfPending();
       });
@@ -3064,7 +3089,8 @@ async function pintwistDownloadAndResetCatalog(btn) {
     // so the on-screen "Next scan in X" reflects the new value immediately.
     const intervalInput = $('pintwist-auto-interval');
     const pctInput = $('pintwist-auto-randomize-pct');
-    const onSettingChange = async () => {
+    const onSettingChange = async (e) => {
+      if (!pintwistTrustedAction(e)) return;
       await persistSettingsFromInputs(wrap);
       rescheduleIfPending();
     };
@@ -3080,11 +3106,12 @@ async function pintwistDownloadAndResetCatalog(btn) {
     // Custom number-spinner clicks (delegated). Honors min/max/step from the
     // input's data-* attributes, fires "input" + "change" so any listeners
     // wired to the input (like settings-persist) trigger normally.
-    wrap.addEventListener('click', (e) => {
+    wrap.addEventListener('click', async (e) => {
       const upBtn = e.target.closest('.pintwist-auto-num-up');
       const downBtn = e.target.closest('.pintwist-auto-num-down');
       const btn = upBtn || downBtn;
       if (!btn) return;
+      if (!pintwistTrustedAction(e)) return;
       e.preventDefault();
       e.stopPropagation();
       const input = wrap.querySelector('#' + btn.dataset.target);
@@ -3101,6 +3128,8 @@ async function pintwistDownloadAndResetCatalog(btn) {
       input.value = decimals ? next.toFixed(decimals) : String(Math.round(next));
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
+      await persistSettingsFromInputs(wrap);
+      rescheduleIfPending();
     });
   }
 
@@ -4026,7 +4055,8 @@ async function pintwistDownloadAndResetCatalog(btn) {
     const selected = State.selectedMetric || 'saves';
     setSortGridActive(grid, selected);
     grid.querySelectorAll('.pintwist-sort-choice').forEach((button) => {
-      button.addEventListener('click', async () => {
+      button.addEventListener('click', async (event) => {
+        if (!pintwistTrustedAction(event)) return;
         const selected = button.dataset.value || 'saves';
         State.selectedMetric = selected;
         const hidden = document.getElementById('pintwist-initial-sort-option');
@@ -4133,9 +4163,12 @@ async function pintwistDownloadAndResetCatalog(btn) {
       const term = search.value.trim();
       if (term) window.location.href = 'https://www.pinterest.com/search/pins/?q=' + encodeURIComponent(term);
     };
-    searchBtn.addEventListener('click', runSearch);
+    searchBtn.addEventListener('click', (event) => {
+      if (!pintwistTrustedAction(event)) return;
+      runSearch();
+    });
     search.addEventListener('keypress', (event) => {
-      if (event.key === 'Enter') runSearch();
+      if (event.key === 'Enter' && pintwistTrustedAction(event)) runSearch();
     });
     const overlays = document.getElementById('pintwist-show-overlays');
     chrome.storage.sync.get(['pintwist_show_overlays'], (result) => {
@@ -4143,11 +4176,13 @@ async function pintwistDownloadAndResetCatalog(btn) {
       overlays.checked = enabled;
       toggleOverlays(enabled);
     });
-    overlays.addEventListener('change', () => {
+    overlays.addEventListener('change', (event) => {
+      if (!pintwistTrustedAction(event)) return;
       chrome.storage.sync.set({ pintwist_show_overlays: overlays.checked });
       toggleOverlays(overlays.checked);
     });
-    document.getElementById('pintwist-sort-pins-btn').addEventListener('click', async () => {
+    document.getElementById('pintwist-sort-pins-btn').addEventListener('click', async (event) => {
+      if (!pintwistTrustedAction(event)) return;
       const metric = document.getElementById('pintwist-initial-sort-option').value || 'saves';
       await runInitialSortFromRail(metric, bar);
     });
@@ -4162,7 +4197,8 @@ async function pintwistDownloadAndResetCatalog(btn) {
       });
     const pillMore = document.getElementById('pintwist-pill-more');
     if (pillMore)
-      pillMore.addEventListener('click', () => {
+      pillMore.addEventListener('click', (event) => {
+        if (!pintwistTrustedAction(event)) return;
         const b = document.getElementById('pintwist-initial-bar');
         const expanded = b ? b.classList.toggle('pintwist-pill-expanded') : false;
         pillMore.setAttribute('aria-expanded', expanded ? 'true' : 'false');
@@ -4194,7 +4230,8 @@ async function pintwistDownloadAndResetCatalog(btn) {
       });
     const barCatalog = document.getElementById('pintwist-bar-catalog');
     if (barCatalog)
-      barCatalog.addEventListener('click', () => {
+      barCatalog.addEventListener('click', (event) => {
+        if (!pintwistTrustedAction(event)) return;
         try {
           chrome.runtime.sendMessage({ action: 'openCatalog' }, () => {
             if (chrome.runtime.lastError) {
@@ -4446,18 +4483,28 @@ function pintwistWireSettingsPanel() {
   const autoCb = document.getElementById('pintwist-settings-autoexport');
   const autoSel = document.getElementById('pintwist-settings-autoexport-n');
   if (autoCb && !autoCb.dataset.pintwistWired) {
-    autoCb.addEventListener('change', pintwistSaveAutoexportPrefs);
+    autoCb.addEventListener('change', (event) => {
+      if (!pintwistTrustedAction(event)) return;
+      pintwistSaveAutoexportPrefs();
+    });
     autoCb.dataset.pintwistWired = '1';
   }
   if (autoSel && !autoSel.dataset.pintwistWired) {
-    autoSel.addEventListener('change', pintwistSaveAutoexportPrefs);
+    autoSel.addEventListener('change', (event) => {
+      if (!pintwistTrustedAction(event)) return;
+      pintwistSaveAutoexportPrefs();
+    });
     autoSel.dataset.pintwistWired = '1';
   }
   if (f && !f.dataset.pintwistWired) {
-    f.addEventListener('input', pintwistSaveSettings);
+    f.addEventListener('input', (event) => {
+      if (!pintwistTrustedAction(event)) return;
+      pintwistSaveSettings();
+    });
     // Pressing Enter in the folder field accepts + closes, same as the Done button.
     f.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
+        if (!pintwistTrustedAction(e)) return;
         e.preventDefault();
         pintwistCloseSettingsPanel();
       }
@@ -4465,7 +4512,10 @@ function pintwistWireSettingsPanel() {
     f.dataset.pintwistWired = '1';
   }
   if (done && !done.dataset.pintwistWired) {
-    done.addEventListener('click', pintwistCloseSettingsPanel);
+    done.addEventListener('click', (event) => {
+      if (!pintwistTrustedAction(event)) return;
+      pintwistCloseSettingsPanel();
+    });
     done.dataset.pintwistWired = '1';
   }
 }
@@ -4782,6 +4832,7 @@ function pintwistWireSettingsPanel() {
           if (btn && !btn.dataset.pintwistWired) {
             btn.dataset.pintwistWired = '1';
             btn.addEventListener('click', (event) => {
+              if (!pintwistTrustedAction(event)) return;
               event.preventDefault();
               event.stopPropagation();
               downloadImage(pinID, btn.dataset.imageUrl || '', btn);
@@ -4972,7 +5023,8 @@ function pintwistWireSettingsPanel() {
       State.observer = null;
     }
 
-    cancel.addEventListener('click', () => {
+    cancel.addEventListener('click', (event) => {
+      if (!pintwistTrustedAction(event)) return;
       State.aborted = true;
       cancel.disabled = true;
       cancel.textContent = 'Cancelling...';
@@ -5198,7 +5250,8 @@ function pintwistWireSettingsPanel() {
         badgeToggle.checked = enabled;
         toggleBadges(enabled);
       });
-      badgeToggle.addEventListener('change', () => {
+      badgeToggle.addEventListener('change', (event) => {
+        if (!pintwistTrustedAction(event)) return;
         const enabled = badgeToggle.checked;
         chrome.storage.sync.set({ pintwist_show_badges: enabled });
         toggleBadges(enabled);
@@ -5221,7 +5274,8 @@ function pintwistWireSettingsPanel() {
 
     const barCatalog = document.getElementById('pintwist-bar-catalog');
     if (barCatalog) {
-      barCatalog.addEventListener('click', () => {
+      barCatalog.addEventListener('click', (event) => {
+        if (!pintwistTrustedAction(event)) return;
         try {
           chrome.runtime.sendMessage({ action: 'openCatalog' }, () => {
             if (chrome.runtime.lastError) {

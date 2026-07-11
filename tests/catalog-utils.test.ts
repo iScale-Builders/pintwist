@@ -109,6 +109,17 @@ describe('catalog CSV utilities', () => {
     expect(parseCsvText(legacyCsv)[0].pin_created_at).toBe('2015-04-10T00:00:00Z');
   });
 
+  it('bounds parsed CSV rows before materializing the whole import', () => {
+    const csv = [
+      'pin_id,title,saves',
+      '1,One,10',
+      '2,Two,20',
+      '3,Three,30',
+    ].join('\n');
+
+    expect(parseCsvText(csv, { maxRows: 2 }).map((row) => row.pin_id)).toEqual(['1', '2']);
+  });
+
   it('merges duplicate pins by pin id and keeps newer useful fields', () => {
     const rows = mergeCatalogRows(
       [{ pin_id: '123', title: 'Old', saves: 10, image_url: '' }],
@@ -444,6 +455,19 @@ describe('createCatalogMerger (streaming import dedup)', () => {
     expect(out[0].history.length).toBeLessThanOrEqual(5); // history bounded
     expect(out[0].saves).toBe(40); // latest metrics preserved despite the cap
     expect(out[0].seen_count).toBe(40); // true scrape count, not the capped length
+  });
+
+  it('maxUniqueRows refuses new unique pins while preserving existing-pin merges', () => {
+    const capped = createCatalogMerger({ maxUniqueRows: 2 });
+    capped.ingest([mk('100', 10, '2026-06-01T00:00:00Z')]);
+    capped.ingest([mk('200', 20, '2026-06-01T00:00:00Z')]);
+    capped.ingest([mk('300', 30, '2026-06-01T00:00:00Z')]);
+    capped.ingest([mk('100', 40, '2026-06-02T00:00:00Z')]);
+
+    const out = capped.finalize();
+    expect(capped.isCapped()).toBe(true);
+    expect(out.map((row) => row.pin_id).sort()).toEqual(['100', '200']);
+    expect(out.find((row) => row.pin_id === '100')?.saves).toBe(40);
   });
 });
 

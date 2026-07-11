@@ -44,13 +44,27 @@ var PintwistCatalog = (() => {
   });
   var CATALOG_STORAGE_KEY = "pintwist_catalog_rows";
   var CATALOG_IMPORTS_KEY = "pintwist_catalog_imports";
-  function parseCsvText(text) {
+  function parseCsvText(text, opts) {
     const source = String(text || "").replace(/^\uFEFF/, "");
+    const maxRows = Math.max(0, Number(opts && opts.maxRows || 0));
     const rows = [];
     let row = [];
     let cell = "";
     let quoted = false;
-    for (let i = 0; i < source.length; i += 1) {
+    let dataRows = 0;
+    let capped = false;
+    const pushRow = () => {
+      if (rows.length > 0) {
+        dataRows += 1;
+        if (maxRows && dataRows > maxRows) {
+          capped = true;
+          return false;
+        }
+      }
+      rows.push(row);
+      return true;
+    };
+    for (let i = 0; i < source.length && !capped; i += 1) {
       const ch = source[i];
       const next = source[i + 1];
       if (quoted) {
@@ -71,16 +85,16 @@ var PintwistCatalog = (() => {
         cell = "";
       } else if (ch === "\n") {
         row.push(cell);
-        rows.push(row);
+        if (!pushRow()) break;
         row = [];
         cell = "";
       } else if (ch !== "\r") {
         cell += ch;
       }
     }
-    if (cell || row.length) {
+    if (!capped && (cell || row.length)) {
       row.push(cell);
-      rows.push(row);
+      pushRow();
     }
     const headers = (rows.shift() || []).map((header) => normalizeHeader(header));
     if (!headers.length) return [];
@@ -173,13 +187,19 @@ var PintwistCatalog = (() => {
   function createCatalogMerger(opts) {
     const keyOf = opts && opts.keyFn || catalogPinKey;
     const maxObs = opts && opts.maxObservations || 0;
+    const maxUniqueRows = Math.max(0, Number(opts && opts.maxUniqueRows || 0));
     const byKey = /* @__PURE__ */ new Map();
+    let capped = false;
     const ingestOne = (raw) => {
       const normalized = normalizeCatalogRow(raw);
       if (!normalized) return;
       const key = keyOf(normalized) || normalized.pin_id || normalized.pin_url || normalized.image_url;
       let bucket = byKey.get(key);
       if (!bucket) {
+        if (maxUniqueRows && byKey.size >= maxUniqueRows) {
+          capped = true;
+          return;
+        }
         bucket = { meta: normalized, observations: [], seen: 0 };
         byKey.set(key, bucket);
       } else {
@@ -203,6 +223,9 @@ var PintwistCatalog = (() => {
       },
       size() {
         return byKey.size;
+      },
+      isCapped() {
+        return capped;
       },
       finalize() {
         return finalizeBuckets(byKey, maxObs);

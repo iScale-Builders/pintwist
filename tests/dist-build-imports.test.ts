@@ -24,4 +24,19 @@ describe('build.cjs ships every module catalog.js imports', () => {
       `${file} is imported by catalog.js but build.cjs never references it → it won't be in dist/`
     ).toBe(true);
   });
+
+  it('copies only an explicit allowlist of extension image assets', () => {
+    expect(buildSrc).toContain('IMAGE_ASSETS');
+    expect(buildSrc).toContain('lstatSync');
+    expect(buildSrc).toContain('Unexpected file(s) in images/');
+    for (const image of [
+      'icon-16.png',
+      'icon-48.png',
+      'icon-128.png',
+      'logo-icon.png',
+      'logo-wordmark.png',
+    ]) {
+      expect(buildSrc).toContain(`'${image}'`);
+    }
+  });
 });
