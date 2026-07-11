@@ -4,6 +4,13 @@ const fs = require('fs');
 
 const ROOT = __dirname;
 const DIST = path.join(ROOT, 'dist');
+const IMAGE_ASSETS = [
+  'icon-16.png',
+  'icon-48.png',
+  'icon-128.png',
+  'logo-icon.png',
+  'logo-wordmark.png',
+];
 
 async function build() {
   // ===== DEV BUILD (readable, for local development) =====
@@ -151,10 +158,18 @@ async function build() {
   fs.copyFileSync(path.join(ROOT, 'catalog-db.js'), path.join(DIST, 'catalog-db.js'));
   fs.copyFileSync(path.join(ROOT, 'catalog-store.js'), path.join(DIST, 'catalog-store.js'));
 
-  // Copy images
-  const images = fs.readdirSync(path.join(ROOT, 'images'));
-  images.forEach((img) => {
-    fs.copyFileSync(path.join(ROOT, 'images', img), path.join(DIST, 'images', img));
+  // Copy only the extension image assets that are referenced by manifest/UI code.
+  // Fail closed if anything else appears in images/ so local scratch files never ship.
+  const imageDir = path.join(ROOT, 'images');
+  const unexpectedImages = fs.readdirSync(imageDir).filter((img) => !IMAGE_ASSETS.includes(img));
+  if (unexpectedImages.length) {
+    throw new Error(`Unexpected file(s) in images/: ${unexpectedImages.join(', ')}`);
+  }
+  IMAGE_ASSETS.forEach((img) => {
+    const src = path.join(imageDir, img);
+    if (!fs.lstatSync(src).isFile())
+      throw new Error(`Refusing to copy non-file image asset: ${img}`);
+    fs.copyFileSync(src, path.join(DIST, 'images', img));
   });
 
   // Update popup.html in dist to reference minified popup.js (same path, already correct)

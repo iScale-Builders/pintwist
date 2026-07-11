@@ -269,12 +269,34 @@ async function importCsvFiles(event) {
   // autoexports) blew memory and had to be truncated at a byte/row cap. Now a heavily-
   // duplicated folder loads in full. Only sanity caps remain (file count + unique rows).
   const MAX_IMPORT_FILES = 2000;
+  const MAX_IMPORT_FILE_BYTES = 64 * 1024 * 1024;
+  const MAX_IMPORT_TOTAL_BYTES = 512 * 1024 * 1024;
   const MAX_UNIQUE_ROWS = 500000;
   let capNote = '';
   let toRead = files;
   if (toRead.length > MAX_IMPORT_FILES) {
     capNote += ` (capped at ${MAX_IMPORT_FILES} files)`;
     toRead = toRead.slice(0, MAX_IMPORT_FILES);
+  }
+  const tooLarge = toRead.find((file) => file.size > MAX_IMPORT_FILE_BYTES);
+  if (tooLarge) {
+    target.value = '';
+    setStatus(
+      `Import failed — ${tooLarge.name} is too large (max ${Math.round(MAX_IMPORT_FILE_BYTES / 1024 / 1024)} MB per CSV).`
+    );
+    if (els.input) els.input.disabled = false;
+    if (els.inputFolder) els.inputFolder.disabled = false;
+    return;
+  }
+  const selectedBytes = toRead.reduce((sum, file) => sum + file.size, 0);
+  if (selectedBytes > MAX_IMPORT_TOTAL_BYTES) {
+    target.value = '';
+    setStatus(
+      `Import failed — selected CSVs are too large together (max ${Math.round(MAX_IMPORT_TOTAL_BYTES / 1024 / 1024)} MB per import).`
+    );
+    if (els.input) els.input.disabled = false;
+    if (els.inputFolder) els.inputFolder.disabled = false;
+    return;
   }
 
   try {
@@ -284,7 +306,11 @@ async function importCsvFiles(event) {
     // pooled across the design's other copies. (Rows with no pin_id fall back to title+desc.)
     // maxObservations bounds each pin's history so a pin scraped hundreds of times can't grow
     // unboundedly (24 is plenty for the sparkline).
-    const merger = createCatalogMerger({ maxObservations: 24, keyFn: catalogScanKey });
+    const merger = createCatalogMerger({
+      maxObservations: 24,
+      maxUniqueRows: MAX_UNIQUE_ROWS,
+      keyFn: catalogScanKey,
+    });
     merger.ingest(importedRows);
     let rawRows = 0;
     for (let i = 0; i < toRead.length; i++) {
@@ -296,11 +322,16 @@ async function importCsvFiles(event) {
       });
       // Yield so the status actually repaints before we block on the next read.
       await new Promise((resolve) => setTimeout(resolve, 0));
+      const remainingRows = Math.max(0, MAX_UNIQUE_ROWS - merger.size());
+      if (remainingRows <= 0) {
+        capNote += ` (capped at ${MAX_UNIQUE_ROWS.toLocaleString()} unique pins)`;
+        break;
+      }
       const text = await toRead[i].text();
-      const rows = parseCsvText(text);
+      const rows = parseCsvText(text, { maxRows: remainingRows + 1 });
       rawRows += rows.length;
       merger.ingest(rows); // lean snapshots kept; the raw rows are freed after this
-      if (merger.size() > MAX_UNIQUE_ROWS) {
+      if (rows.length > remainingRows || merger.isCapped()) {
         capNote += ` (capped at ${MAX_UNIQUE_ROWS.toLocaleString()} unique pins)`;
         break;
       }

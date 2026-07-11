@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.5 — Hardening: trusted-input gates + import bounds
+
+- **PinTwist controls now only react to real user input.** Every toolbar, automation,
+  and settings handler checks `event.isTrusted`, so a Pinterest page script can't
+  synthesize clicks or keypresses into the extension's UI (extends the existing guard on
+  the destructive export button to all controls). The automation queue's own scheduled
+  scan-start runs through an internal bypass that page scripts cannot reach — automation
+  behavior is unchanged.
+- **CSV import bounds.** Imports refuse files over 64 MB and batches over 512 MB with a
+  clear message, and the unique-pin cap (500k) is now enforced inside the streaming
+  merger mid-file — a single enormous CSV can no longer blow past it.
+- **Build safety.** `build.cjs` copies only an explicit allowlist of image assets and
+  fails closed if anything unexpected appears in `images/` — local scratch files can
+  never ship into `dist/`.
+
 ## 1.0.4 — Catalog: repins group by image, copies panel
 
 - **"Group by design" now catches Pinterest repins.** Every repin of an image gets a new
