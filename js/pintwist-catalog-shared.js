@@ -369,11 +369,12 @@ var PintwistCatalog = (() => {
     list.forEach((row, i) => {
       const keys = [];
       const img = imageFileKey(row);
-      if (img) keys.push("img:" + img);
+      if (img && /^[a-z0-9]{16,}\.[a-z0-9]+$/i.test(img)) keys.push("img:" + img);
       const name = normalizeCatalogName(row.title || row.name);
-      if (name) keys.push("name:" + name + "|desc:" + normalizeCatalogText(row.description));
+      const desc = normalizeCatalogText(row.description);
+      if (name && desc) keys.push("name:" + name + "|desc:" + desc);
       if (!keys.length) {
-        const fallback = catalogPinKey(row) || row.pin_id || row.pin_url || row.image_url;
+        const fallback = stableNumericId(row) || String(row.pin_id || row.pin_url || row.image_url || "");
         if (!fallback) return;
         keys.push("fb:" + fallback);
       }

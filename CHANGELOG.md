@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.6 — Catalog "group by design" no longer over-merges
+
+- **Distinct products no longer collapse into one design.** The catalog's group-by-design
+  view bridged rows that shared *either* an image filename *or* a normalized
+  title+description. Because a generic title with a blank description (very common on
+  Pinterest) forms a low-entropy key, unrelated products with the same title could
+  transitively merge into a single card and inflate the "⧉ N pins" copies count. Now the
+  title+description bridge requires *both* to be present, the image bridge requires a real
+  content-hash filename (so a generic `image.jpg` from an imported CSV can't merge unrelated
+  pins), and a row with no confident design signal stays its own group keyed by its pin id.
+  Same-image repins and genuinely same title+description pins still merge. Added regression
+  tests. Found by the 2026-07-11 audit.
+
 ## 1.0.5 — Hardening: trusted-input gates + import bounds
 
 - **PinTwist controls now only react to real user input.** Every toolbar, automation,
