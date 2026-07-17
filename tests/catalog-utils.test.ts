@@ -391,6 +391,98 @@ describe('catalog CSV utilities', () => {
   });
 });
 
+describe('groupByDesign (design-level rollup — no over-merge)', () => {
+  const HASH_A = 'https://i.pinimg.com/originals/aa/bb/cc/1111111111111111aaaa.jpg';
+  const HASH_B = 'https://i.pinimg.com/originals/dd/ee/ff/2222222222222222bbbb.jpg';
+  const HASH_C = 'https://i.pinimg.com/originals/1a/2b/3c/3333333333333333cccc.jpg';
+  const HASH_D = 'https://i.pinimg.com/originals/4d/5e/6f/4444444444444444dddd.jpg';
+
+  it('does NOT merge distinct pins that share a generic title but have blank descriptions', () => {
+    const groups = groupByDesign([
+      {
+        pin_id: '1001',
+        title: 'Personalized Name Necklace',
+        description: '',
+        image_url: HASH_A,
+        total_engagement: 10,
+        saves: 5,
+      },
+      {
+        pin_id: '1002',
+        title: 'Personalized Name Necklace',
+        description: '',
+        image_url: HASH_B,
+        total_engagement: 8,
+        saves: 4,
+      },
+    ]);
+    // Different images + blank descriptions => two distinct designs, not one inflated card.
+    expect(groups).toHaveLength(2);
+    expect(groups.every((g) => g.design_copies === 1)).toBe(true);
+  });
+
+  it('still merges same-image repins and same title+description across pins', () => {
+    const groups = groupByDesign([
+      {
+        pin_id: '2001',
+        title: 'A',
+        description: '',
+        image_url: HASH_A,
+        total_engagement: 10,
+        saves: 5,
+      },
+      {
+        pin_id: '2002',
+        title: 'B',
+        description: '',
+        image_url: HASH_A,
+        total_engagement: 8,
+        saves: 4,
+      }, // same image, diff pin -> one design
+      {
+        pin_id: '3001',
+        title: 'Cat Mom Shirt',
+        description: 'Soft cotton tee',
+        image_url: HASH_C,
+        total_engagement: 3,
+        saves: 1,
+      },
+      {
+        pin_id: '3002',
+        title: 'Cat Mom Shirt',
+        description: 'Soft cotton tee',
+        image_url: HASH_D,
+        total_engagement: 2,
+        saves: 1,
+      }, // same title+desc, diff image -> one design
+    ]);
+    expect(groups).toHaveLength(2);
+    expect(groups.map((g) => g.design_copies).sort()).toEqual([2, 2]);
+  });
+
+  it('does NOT merge unrelated pins by a generic image filename from an imported CSV', () => {
+    const groups = groupByDesign([
+      {
+        pin_id: '4001',
+        title: 'One Thing',
+        description: '',
+        image_url: 'https://example.com/image.jpg',
+        total_engagement: 1,
+        saves: 1,
+      },
+      {
+        pin_id: '4002',
+        title: 'Another Thing',
+        description: '',
+        image_url: 'https://example.com/image.jpg',
+        total_engagement: 1,
+        saves: 1,
+      },
+    ]);
+    expect(groups).toHaveLength(2);
+  });
+});
+
 describe('createCatalogMerger (streaming import dedup)', () => {
   const mk = (pin, saves, scanned, extra) => ({
     search_term: 'x',

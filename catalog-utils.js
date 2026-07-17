@@ -471,13 +471,25 @@ export function groupByDesign(rows) {
   list.forEach((row, i) => {
     const keys = [];
     const img = imageFileKey(row);
-    if (img) keys.push('img:' + img);
+    // Only bridge by image when the filename looks like a real content hash (pinimg
+    // uses long hex; Amazon/other CDNs use long ids). A generic name like 'image.jpg'
+    // or '1.jpg' from an imported CSV must NOT merge unrelated pins by filename alone.
+    if (img && /^[a-z0-9]{16,}\.[a-z0-9]+$/i.test(img)) keys.push('img:' + img);
     const name = normalizeCatalogName(row.title || row.name);
-    if (name) keys.push('name:' + name + '|desc:' + normalizeCatalogText(row.description));
+    const desc = normalizeCatalogText(row.description);
+    // Only bridge by title+description when BOTH are present. A generic title with a
+    // blank description (very common on Pinterest) is too low-entropy to prove two
+    // pins are the same design — via transitive union-find it would merge unrelated
+    // products and inflate design_copies. The image hash above still catches
+    // same-picture repins; title+desc adds same-design-different-image only when the
+    // description corroborates it.
+    if (name && desc) keys.push('name:' + name + '|desc:' + desc);
     if (!keys.length) {
-      // No design signal at all — fall back to the per-pin identity so the row
-      // stays its own group (mirrors the old behavior for signal-less rows).
-      const fallback = catalogPinKey(row) || row.pin_id || row.pin_url || row.image_url;
+      // No confident design signal — keep the row as its OWN group, keyed by its
+      // stable pin identity. (NOT catalogPinKey, which returns the name key for a
+      // named row and would re-introduce the generic-title over-merge here.)
+      const fallback =
+        stableNumericId(row) || String(row.pin_id || row.pin_url || row.image_url || '');
       if (!fallback) return;
       keys.push('fb:' + fallback);
     }

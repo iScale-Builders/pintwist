@@ -1,6 +1,6 @@
 {
   "name": "pintwist-free-extension",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "author": "iScaleLabs",
   "description": "Local-only Pinterest analytics with pin sorting, smart filtering, HD image downloads, and a local gallery.",
   "private": true,
