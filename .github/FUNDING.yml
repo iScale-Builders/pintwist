@@ -1,0 +1,10 @@
+# Adds a "Sponsor" button to the top of the repo page and to every release.
+# This is the only funding route — the extension is free, MIT licensed, and
+# asks for nothing.
+#
+# `buy_me_a_coffee` is a first-class GitHub key and takes the username only,
+# not the full URL. It renders with Buy Me a Coffee's own branding, which the
+# generic `custom:` field does not.
+#
+# Note: the Sponsor button only appears on PUBLIC repositories.
+buy_me_a_coffee: josequiles
