@@ -11,6 +11,9 @@ const IMAGE_ASSETS = [
   'logo-icon.png',
   'logo-wordmark.png',
 ];
+// Sponsor artwork, kept out of images/ so that folder's fail-closed guard keeps
+// meaning "extension identity assets only" (ISCA-4-9 ReadyPixl sponsorship).
+const BRAND_ASSETS = ['readypixl-logo.png'];
 
 async function build() {
   // ===== DEV BUILD (readable, for local development) =====
@@ -60,6 +63,7 @@ async function build() {
   fs.mkdirSync(path.join(DIST, 'js'), { recursive: true });
   fs.mkdirSync(path.join(DIST, 'css'), { recursive: true });
   fs.mkdirSync(path.join(DIST, 'images'), { recursive: true });
+  fs.mkdirSync(path.join(DIST, 'brands'), { recursive: true });
 
   // Minify background service worker (src/background.js -> dist/js/background.js)
   await esbuild.build({
@@ -170,6 +174,19 @@ async function build() {
     if (!fs.lstatSync(src).isFile())
       throw new Error(`Refusing to copy non-file image asset: ${img}`);
     fs.copyFileSync(src, path.join(DIST, 'images', img));
+  });
+
+  // Same fail-closed rule for sponsor artwork referenced by popup.html.
+  const brandDir = path.join(ROOT, 'brands');
+  const unexpectedBrands = fs.readdirSync(brandDir).filter((img) => !BRAND_ASSETS.includes(img));
+  if (unexpectedBrands.length) {
+    throw new Error(`Unexpected file(s) in brands/: ${unexpectedBrands.join(', ')}`);
+  }
+  BRAND_ASSETS.forEach((img) => {
+    const src = path.join(brandDir, img);
+    if (!fs.lstatSync(src).isFile())
+      throw new Error(`Refusing to copy non-file brand asset: ${img}`);
+    fs.copyFileSync(src, path.join(DIST, 'brands', img));
   });
 
   // Update popup.html in dist to reference minified popup.js (same path, already correct)

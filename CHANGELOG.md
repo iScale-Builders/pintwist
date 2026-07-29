@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.7 — Funding and sponsor surfaces in the popup
+
+- **"☕ Buy me a coffee" link** in the popup, above the version footer. PinTwist stays
+  free and gates nothing; donations are the only funding.
+- **ReadyPixl sponsor credit** in the popup, linking to readypixl.com. Everything
+  iScaleLabs gives away carries a ReadyPixl attribution.
+- Sponsor artwork lives in `brands/`, with the same explicit-allowlist, fail-closed
+  copy rule `build.cjs` already applies to `images/` — so `images/` keeps meaning
+  "extension identity assets only" and no scratch file can ship from either folder.
+
 ## 1.0.6 — Catalog "group by design" no longer over-merges
 
 - **Distinct products no longer collapse into one design.** The catalog's group-by-design

@@ -329,6 +329,84 @@
             user-select: text;
         }
 
+        /* Donations are the only funding; PinTwist is free and gates nothing. */
+        .support-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 14px;
+            padding: 9px 12px;
+            border: 1px solid rgba(251, 191, 36, 0.6);
+            border-radius: 8px;
+            background: rgba(254, 243, 199, 0.7);
+            color: #78350F;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            text-decoration: none;
+            transition: background 200ms ease;
+        }
+
+        .support-link:hover {
+            background: rgba(254, 243, 199, 1);
+        }
+
+        .support-link .support-note {
+            font-weight: 400;
+            opacity: 0.7;
+        }
+
+        /* ReadyPixl sponsorship surface. PinTwist is free, and everything
+           iScaleLabs gives away carries a ReadyPixl attribution (ISCA-4-9). */
+        .sponsor-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 10px;
+            padding: 10px 12px;
+            border: 1px solid #000000;
+            border-radius: 8px;
+            background: #000000;
+            text-align: center;
+            text-decoration: none;
+            transition: background 200ms ease;
+        }
+
+        .sponsor-link:hover {
+            background: #18181B;
+        }
+
+        .sponsor-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .sponsor-by {
+            font-size: 11px;
+            font-weight: 500;
+            color: #FFFFFF;
+        }
+
+        .sponsor-logo {
+            height: 26px;
+            width: auto;
+            max-width: 150px;
+            border-radius: 2px;
+            object-fit: contain;
+        }
+
+        .sponsor-cta {
+            font-size: 12px;
+            font-weight: 600;
+            color: #FFFFFF;
+            line-height: 1.3;
+        }
+
         /* Unified PinTwist glass theme shared with the Pinterest rail. */
         body.pin-glass-popup {
             --pt-rail-bg: rgba(13,13,20,0.96);
@@ -436,6 +514,13 @@
         .pin-glass-popup .color-label,
         .pin-glass-popup .overlays-label {
             font-family: var(--pt-font-heading);
+        }
+
+        /* #app-screen is a flex column with its own gap here, so the funding and
+           sponsor blocks drop their own margins like every other section. */
+        .pin-glass-popup .support-link,
+        .pin-glass-popup .sponsor-link {
+            margin-top: 0;
         }
 
         .pin-glass-popup .status,
@@ -630,6 +715,21 @@
     <div class="catalog-section">
         <button id="open-catalog-btn" type="button">Open Local Catalog</button>
     </div>
+
+    <a class="support-link" href="https://buymeacoffee.com/josequiles" target="_blank" rel="noopener noreferrer">
+        ☕ Buy me a coffee
+        <span class="support-note">— free forever, fully private</span>
+    </a>
+
+    <a class="sponsor-link" href="https://readypixl.com" target="_blank" rel="noopener noreferrer"
+       aria-label="Sponsored by ReadyPixl — Click Here for Free Bulk Upscaler and Bulk Image Editing!">
+        <span class="sponsor-row">
+            <span class="sponsor-by">Sponsored by</span>
+            <img class="sponsor-logo" src="brands/readypixl-logo.png" alt="ReadyPixl">
+        </span>
+        <span class="sponsor-cta">Click Here for Free Bulk Upscaler and Bulk Image Editing!</span>
+    </a>
+
     <div class="version-footer">PinTwist v<span id="pintwist-version">—</span></div>
     </div><!-- /app-screen -->
 

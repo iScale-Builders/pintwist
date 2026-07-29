@@ -39,4 +39,12 @@ describe('build.cjs ships every module catalog.js imports', () => {
       expect(buildSrc).toContain(`'${image}'`);
     }
   });
+
+  // Sponsor artwork is kept out of images/ so that folder's guard keeps meaning
+  // "extension identity assets only". brands/ gets the same fail-closed rule.
+  it('copies only an explicit allowlist of sponsor brand assets', () => {
+    expect(buildSrc).toContain('BRAND_ASSETS');
+    expect(buildSrc).toContain('Unexpected file(s) in brands/');
+    expect(buildSrc).toContain(`'readypixl-logo.png'`);
+  });
 });
